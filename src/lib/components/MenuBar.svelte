@@ -41,6 +41,7 @@
         "sep",
         { label: "Insert Table", id: "insert_table" },
         { label: "Format Tables", id: "format_tables" },
+        { label: "Copy as HTML", id: "copy_html" },
       ],
     },
     {

@@ -9,7 +9,7 @@
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { editorCommands, formatCommands } from "$lib/editor-commands";
-  import { exportHtml, exportPdf } from "$lib/export";
+  import { exportHtml, exportPdf, copyAsHtml } from "$lib/export";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
   import AboutDialog from "$lib/components/AboutDialog.svelte";
@@ -58,6 +58,9 @@
     select_all: () => editorCommands.selectAll(),
     insert_table: () => formatCommands.table(),
     format_tables: () => formatCommands.formatTables(),
+    copy_html: () => {
+      if (tabs.active) void copyAsHtml(tabs.active.content);
+    },
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
     view_preview: () => setViewMode("preview"),

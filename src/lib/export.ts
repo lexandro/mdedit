@@ -54,6 +54,21 @@ export async function exportHtml(content: string, title: string): Promise<void> 
   if (path) await writeTextFile(path, html);
 }
 
+/** Copy the rendered document to the clipboard as rich HTML (and plain text). */
+export async function copyAsHtml(content: string): Promise<void> {
+  const html = renderMarkdown(content, null);
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([html], { type: "text/plain" }),
+      }),
+    ]);
+  } catch {
+    await navigator.clipboard.writeText(html); // fallback: plain text only
+  }
+}
+
 /** Print the document via an isolated iframe so the user can "Save as PDF". */
 export function exportPdf(content: string, basePath: string | null, title: string): void {
   const html = standaloneHtml(renderMarkdown(content, basePath), title);
