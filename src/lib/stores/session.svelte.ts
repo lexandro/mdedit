@@ -2,7 +2,8 @@
 // reopen, and unsaved/untitled buffers are restored so in-progress work survives
 // a normal exit OR a machine restart. State is written continuously (debounced)
 // rather than only on close, so an unexpected shutdown loses at most ~0.4s.
-import { load, type Store } from "@tauri-apps/plugin-store";
+import { type Store } from "@tauri-apps/plugin-store";
+import { tryLoadStore } from "$lib/stores/persist";
 import { tabs, isDirty, type SessionData } from "$lib/stores/tabs.svelte";
 
 const STORE_FILE = "session.json";
@@ -15,11 +16,11 @@ class SessionStore {
   /** Load the persisted session and recreate tabs. Call once on startup. */
   async restore() {
     try {
-      this.#store = await load(STORE_FILE, { autoSave: false, defaults: {} });
-      const data = await this.#store.get<SessionData>("session");
+      this.#store = await tryLoadStore(STORE_FILE, { autoSave: false, defaults: {} });
+      const data = await this.#store?.get<SessionData>("session");
       if (data?.tabs?.length) await tabs.applySession(data);
     } catch {
-      // Not under Tauri, or nothing to restore.
+      // Nothing to restore, or restore failed.
     } finally {
       this.#ready = true;
     }

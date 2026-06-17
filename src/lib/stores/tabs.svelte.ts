@@ -41,7 +41,7 @@ export interface SessionData {
 
 let nextId = 1;
 
-function basename(path: string): string {
+export function basename(path: string): string {
   const parts = path.split(/[\\/]/);
   return parts[parts.length - 1] || path;
 }
@@ -59,7 +59,6 @@ class TabsStore {
   activeId = $state<number | null>(null);
 
   active = $derived(this.tabs.find((t) => t.id === this.activeId) ?? null);
-  anyDirty = $derived(this.tabs.some(isDirty));
 
   #makeTab(partial: Partial<Tab>): Tab {
     return {
@@ -108,17 +107,11 @@ class TabsStore {
 
   /** Open a known path directly (e.g. from the recent-files list). */
   async openPath(path: string) {
-    const existing = this.tabs.find((t) => t.path === path);
-    if (existing) {
-      this.activeId = existing.id;
-      return;
-    }
-    const loaded = await readFile(path);
-    this.#openLoaded(loaded);
+    this.#openLoaded(await readFile(path));
   }
 
   #openLoaded(loaded: { path: string; content: string; lineEnding: LineEnding; hadBom: boolean }) {
-    const existing = this.tabs.find((t) => t.path === loaded.path);
+    const existing = this.tabs.find((t) => t.path && samePath(t.path, loaded.path));
     if (existing) {
       this.activeId = existing.id;
       return;
@@ -211,13 +204,7 @@ class TabsStore {
     const msg = isDirty(tab)
       ? `"${name}" was modified by another program.\nReload and discard your unsaved changes?`
       : `"${name}" was modified by another program.\nReload it?`;
-    let ok = false;
-    try {
-      ok = await confirm(msg, { title: "File changed on disk", kind: "warning" });
-    } catch {
-      ok = window.confirm(msg);
-    }
-    if (!ok) return;
+    if (!(await this.#confirm(msg, "File changed on disk"))) return;
 
     tab.content = loaded.content;
     tab.savedContent = loaded.content;
@@ -225,15 +212,13 @@ class TabsStore {
     tab.hadBom = loaded.hadBom;
   }
 
-  /** Reload a tab's content from disk (used after external change). */
-  async reload(id: number) {
-    const tab = this.tabs.find((t) => t.id === id);
-    if (!tab?.path) return;
-    const loaded = await readFile(tab.path);
-    tab.content = loaded.content;
-    tab.savedContent = loaded.content;
-    tab.lineEnding = loaded.lineEnding;
-    tab.hadBom = loaded.hadBom;
+  /** Native confirm dialog, falling back to the web one outside Tauri. */
+  async #confirm(message: string, title: string): Promise<boolean> {
+    try {
+      return await confirm(message, { title, kind: "warning" });
+    } catch {
+      return window.confirm(message);
+    }
   }
 
   /** Save active/given tab. Returns true on success, false if cancelled. */
@@ -266,7 +251,10 @@ class TabsStore {
     if (idx === -1) return;
     const closing = this.tabs[idx];
     // Stop watching unless another tab still has the same file open.
-    if (closing.path && !this.tabs.some((t) => t.id !== id && t.path === closing.path)) {
+    if (
+      closing.path &&
+      !this.tabs.some((t) => t.id !== id && t.path && samePath(t.path, closing.path!))
+    ) {
       void unwatchFile(closing.path);
     }
     this.tabs.splice(idx, 1);
@@ -282,13 +270,7 @@ class TabsStore {
     if (!tab) return;
     if (isDirty(tab)) {
       const msg = `Discard unsaved changes to "${tabTitle(tab)}"?`;
-      let ok = true;
-      try {
-        ok = await confirm(msg, { title: "Unsaved changes", kind: "warning" });
-      } catch {
-        ok = window.confirm(msg);
-      }
-      if (!ok) return;
+      if (!(await this.#confirm(msg, "Unsaved changes"))) return;
     }
     this.close(id);
   }

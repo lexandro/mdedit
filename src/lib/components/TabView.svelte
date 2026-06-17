@@ -63,7 +63,9 @@
     onpointerup={onPointerUp}
   ></div>
   <div class="pane preview-pane">
-    <Preview source={tab.content} scrollFraction={previewFraction} onScroll={onPreviewScroll} />
+    {#if tab.viewMode !== "source"}
+      <Preview source={tab.content} scrollFraction={previewFraction} onScroll={onPreviewScroll} />
+    {/if}
   </div>
 </div>
 

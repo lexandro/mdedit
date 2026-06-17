@@ -43,13 +43,13 @@
     const _ = html;
     const theme = settings.resolvedTheme;
     if (!container) return;
+    const nodes = container.querySelectorAll<HTMLElement>("pre.mermaid:not([data-rendered])");
+    if (nodes.length === 0) return; // skip mermaid entirely for docs without diagrams
     mermaid.initialize({
       startOnLoad: false,
       theme: theme === "dark" ? "dark" : "default",
       securityLevel: "strict",
     });
-    const nodes = container.querySelectorAll<HTMLElement>("pre.mermaid:not([data-rendered])");
-    if (nodes.length === 0) return;
     const run = async () => {
       for (const node of Array.from(nodes)) {
         const code = node.textContent ?? "";

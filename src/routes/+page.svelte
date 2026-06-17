@@ -3,7 +3,7 @@
   import TabBar from "$lib/components/TabBar.svelte";
   import TabView from "$lib/components/TabView.svelte";
   import SettingsDialog from "$lib/components/SettingsDialog.svelte";
-  import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
+  import { tabs, isDirty, tabTitle, basename } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { onMount } from "svelte";
@@ -30,44 +30,31 @@
     return () => unlisten?.();
   });
 
-  function handleMenu(id: string) {
-    switch (id) {
-      case "new":
-        tabs.newTab();
-        break;
-      case "open":
-        void tabs.open();
-        break;
-      case "save":
-        void tabs.save();
-        break;
-      case "save_as":
-        void tabs.saveAs();
-        break;
-      case "close_tab":
-        if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
-        break;
-      case "view_source":
-      case "view_split":
-      case "view_preview":
-        if (tabs.active) {
-          tabs.setViewMode(tabs.active.id, id.replace("view_", "") as ViewMode);
-        }
-        break;
-      case "toggle_orientation":
-        settings.setSplitOrientation(
-          settings.splitOrientation === "vertical" ? "horizontal" : "vertical",
-        );
-        break;
-      case "settings":
-        settingsOpen = true;
-        break;
-    }
+  function setViewMode(mode: ViewMode) {
+    if (tabs.active) tabs.setViewMode(tabs.active.id, mode);
   }
 
-  function basename(p: string): string {
-    const parts = p.split(/[\\/]/);
-    return parts[parts.length - 1] || p;
+  // Single source of truth for actions dispatchable from the menu and keyboard.
+  const commands: Record<string, () => void> = {
+    new: () => tabs.newTab(),
+    open: () => void tabs.open(),
+    save: () => void tabs.save(),
+    save_as: () => void tabs.saveAs(),
+    close_tab: () => {
+      if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
+    },
+    view_source: () => setViewMode("source"),
+    view_split: () => setViewMode("split"),
+    view_preview: () => setViewMode("preview"),
+    toggle_orientation: () =>
+      settings.setSplitOrientation(
+        settings.splitOrientation === "vertical" ? "horizontal" : "vertical",
+      ),
+    settings: () => (settingsOpen = true),
+  };
+
+  function handleMenu(id: string) {
+    commands[id]?.();
   }
 
   function toggleLineEnding() {
@@ -82,31 +69,27 @@
   });
   let charCount = $derived(tabs.active?.content.length ?? 0);
 
+  // Keystroke -> command id. Tab cycling is keyboard-only (not a menu command).
   function onKeydown(e: KeyboardEvent) {
-    const ctrl = e.ctrlKey || e.metaKey;
-    if (!ctrl) return;
+    if (!(e.ctrlKey || e.metaKey)) return;
     const key = e.key.toLowerCase();
 
-    if (key === "n") {
-      e.preventDefault();
-      tabs.newTab();
-    } else if (key === "o") {
-      e.preventDefault();
-      void tabs.open();
-    } else if (key === "s") {
-      e.preventDefault();
-      if (e.shiftKey) void tabs.saveAs();
-      else void tabs.save();
-    } else if (key === "w") {
-      e.preventDefault();
-      if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
-    } else if (e.key === "Tab") {
+    let cmd: string | undefined;
+    if (key === "s") cmd = e.shiftKey ? "save_as" : "save";
+    else if (key === "n") cmd = "new";
+    else if (key === "o") cmd = "open";
+    else if (key === "w") cmd = "close_tab";
+    else if (["1", "2", "3"].includes(e.key))
+      cmd = ["view_source", "view_split", "view_preview"][Number(e.key) - 1];
+    else if (e.key === "Tab") {
       e.preventDefault();
       cycleTab(e.shiftKey ? -1 : 1);
-    } else if (["1", "2", "3"].includes(e.key) && tabs.active) {
+      return;
+    }
+
+    if (cmd) {
       e.preventDefault();
-      const mode = (["source", "split", "preview"] as const)[Number(e.key) - 1];
-      tabs.setViewMode(tabs.active.id, mode);
+      commands[cmd]();
     }
   }
 

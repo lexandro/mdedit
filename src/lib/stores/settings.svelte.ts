@@ -1,6 +1,7 @@
 // App-wide settings, persisted to disk via tauri-plugin-store.
 // Uses Svelte 5 runes so any component reading `settings.*` stays reactive.
-import { load, type Store } from "@tauri-apps/plugin-store";
+import { type Store } from "@tauri-apps/plugin-store";
+import { tryLoadStore } from "$lib/stores/persist";
 
 export type ThemeChoice = "light" | "dark" | "system";
 export type SplitOrientation = "horizontal" | "vertical";
@@ -32,15 +33,13 @@ class SettingsStore {
   #mql: MediaQueryList | null = null;
 
   async init() {
-    try {
-      this.#store = await load(STORE_FILE, { autoSave: true, defaults: {} });
+    this.#store = await tryLoadStore(STORE_FILE, { autoSave: true, defaults: {} });
+    if (this.#store) {
       this.theme = (await this.#store.get<ThemeChoice>("theme")) ?? DEFAULTS.theme;
       this.splitOrientation =
         (await this.#store.get<SplitOrientation>("splitOrientation")) ?? DEFAULTS.splitOrientation;
       this.defaultViewMode =
         (await this.#store.get<ViewMode>("defaultViewMode")) ?? DEFAULTS.defaultViewMode;
-    } catch {
-      // Running outside Tauri (e.g. plain `vite dev`): fall back to defaults.
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());

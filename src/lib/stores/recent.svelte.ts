@@ -1,5 +1,6 @@
 // Recently opened file paths, persisted via tauri-plugin-store.
-import { load, type Store } from "@tauri-apps/plugin-store";
+import { type Store } from "@tauri-apps/plugin-store";
+import { tryLoadStore } from "$lib/stores/persist";
 
 const STORE_FILE = "recent.json";
 const MAX = 10;
@@ -9,12 +10,8 @@ class RecentStore {
   #store: Store | null = null;
 
   async init() {
-    try {
-      this.#store = await load(STORE_FILE, { autoSave: true, defaults: {} });
-      this.paths = (await this.#store.get<string[]>("paths")) ?? [];
-    } catch {
-      // Not running under Tauri — keep in-memory only.
-    }
+    this.#store = await tryLoadStore(STORE_FILE, { autoSave: true, defaults: {} });
+    if (this.#store) this.paths = (await this.#store.get<string[]>("paths")) ?? [];
   }
 
   async add(path: string) {

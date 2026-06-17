@@ -10,10 +10,10 @@
   let { children } = $props();
 
   onMount(() => {
-    // Init settings/recent, then restore the previous session.
+    // settings + recent are independent (separate store files); load them
+    // concurrently, then restore the session (which needs the tabs store).
     void (async () => {
-      await settings.init();
-      await recent.init();
+      await Promise.all([settings.init(), recent.init()]);
       await session.restore();
     })();
 
