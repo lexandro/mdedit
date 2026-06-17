@@ -1,13 +1,14 @@
 <script lang="ts">
   import { tabs } from "$lib/stores/tabs.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
+  import Icon, { type IconName } from "$lib/components/Icon.svelte";
 
   let { onOpenSettings }: { onOpenSettings: () => void } = $props();
 
-  const viewModes: { id: ViewMode; label: string; icon: string }[] = [
-    { id: "source", label: "Source", icon: "≣" },
-    { id: "split", label: "Split", icon: "▥" },
-    { id: "preview", label: "Preview", icon: "▦" },
+  const viewModes: { id: ViewMode; label: string; icon: IconName }[] = [
+    { id: "source", label: "Source", icon: "source" },
+    { id: "split", label: "Split", icon: "split" },
+    { id: "preview", label: "Preview", icon: "preview" },
   ];
 
   function setMode(mode: ViewMode) {
@@ -23,11 +24,17 @@
 
 <div class="toolbar">
   <div class="group">
-    <button onclick={() => tabs.newTab()} title="New (Ctrl+N)">New</button>
-    <button onclick={() => tabs.open()} title="Open (Ctrl+O)">Open</button>
-    <button onclick={() => tabs.save()} disabled={!tabs.active} title="Save (Ctrl+S)">Save</button>
+    <button onclick={() => tabs.newTab()} title="New (Ctrl+N)">
+      <Icon name="new" /> New
+    </button>
+    <button onclick={() => tabs.open()} title="Open (Ctrl+O)">
+      <Icon name="open" /> Open
+    </button>
+    <button onclick={() => tabs.save()} disabled={!tabs.active} title="Save (Ctrl+S)">
+      <Icon name="save" /> Save
+    </button>
     <button onclick={() => tabs.saveAs()} disabled={!tabs.active} title="Save As (Ctrl+Shift+S)">
-      Save As
+      <Icon name="save-as" /> Save As
     </button>
   </div>
 
@@ -39,18 +46,25 @@
         title={m.label}
         onclick={() => setMode(m.id)}
       >
-        <span aria-hidden="true">{m.icon}</span> {m.label}
+        <Icon name={m.icon} /> {m.label}
       </button>
     {/each}
     {#if tabs.active?.viewMode === "split"}
-      <button onclick={toggleOrientation} title="Toggle split orientation">
-        {settings.splitOrientation === "vertical" ? "⇆" : "⇅"}
+      <button
+        class="icon-only"
+        onclick={toggleOrientation}
+        title="Toggle split orientation"
+        aria-label="Toggle split orientation"
+      >
+        <Icon name={settings.splitOrientation === "vertical" ? "columns" : "rows"} />
       </button>
     {/if}
   </div>
 
   <div class="group right">
-    <button onclick={onOpenSettings} title="Settings">⚙</button>
+    <button class="icon-only" onclick={onOpenSettings} title="Settings" aria-label="Settings">
+      <Icon name="settings" />
+    </button>
   </div>
 </div>
 
@@ -71,6 +85,9 @@
     margin-left: auto;
   }
   button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     border: 1px solid transparent;
     background: transparent;
     color: var(--fg);
@@ -78,6 +95,12 @@
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
+  }
+  button.icon-only {
+    padding: 6px;
+  }
+  button :global(svg) {
+    flex: 0 0 auto;
   }
   button:hover:not(:disabled) {
     background: var(--border);
