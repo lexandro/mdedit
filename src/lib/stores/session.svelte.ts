@@ -51,7 +51,7 @@ class SessionStore {
             path: t.path,
             viewMode: t.viewMode,
             lineEnding: t.lineEnding,
-            hadBom: t.hadBom,
+            encoding: t.encoding,
             ...(keepBuffer ? { unsaved: t.content } : {}),
           };
         }),

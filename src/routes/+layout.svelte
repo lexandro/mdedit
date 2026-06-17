@@ -65,7 +65,7 @@
       void t.content;
       void t.viewMode;
       void t.lineEnding;
-      void t.hadBom;
+      void t.encoding;
     }
     session.schedulePersist();
   });

@@ -2,15 +2,23 @@
 // never imports the plugin packages directly. Keeps file I/O in one place.
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
-import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { readFile as fsReadFile, writeFile as fsWriteFile } from "@tauri-apps/plugin-fs";
+import {
+  decodeBytes,
+  encodeText,
+  detectLineEnding,
+  applyLineEnding,
+  type Encoding,
+  type LineEnding,
+} from "$lib/encoding";
 
-export type LineEnding = "lf" | "crlf";
+export type { Encoding, LineEnding } from "$lib/encoding";
 
 export interface LoadedFile {
   path: string;
   content: string; // normalized to LF for the editor
   lineEnding: LineEnding;
-  hadBom: boolean;
+  encoding: Encoding;
 }
 
 const MD_FILTERS = [
@@ -18,13 +26,6 @@ const MD_FILTERS = [
   { name: "Text", extensions: ["txt"] },
   { name: "All Files", extensions: ["*"] },
 ];
-
-/** Detect the dominant line ending so we can preserve it on save. */
-function detectLineEnding(raw: string): LineEnding {
-  const crlf = (raw.match(/\r\n/g) ?? []).length;
-  const lf = (raw.match(/(?<!\r)\n/g) ?? []).length;
-  return crlf > lf ? "crlf" : "lf";
-}
 
 /** Show an open dialog and read the chosen file. Returns null if cancelled. */
 export async function pickAndReadFile(): Promise<LoadedFile | null> {
@@ -34,26 +35,22 @@ export async function pickAndReadFile(): Promise<LoadedFile | null> {
 }
 
 export async function readFile(path: string): Promise<LoadedFile> {
-  let content = await readTextFile(path);
-  const hadBom = content.charCodeAt(0) === 0xfeff;
-  if (hadBom) content = content.slice(1);
-  const lineEnding = detectLineEnding(content);
-  // Normalize to LF for the editor; we re-apply the original ending on save.
-  content = content.replace(/\r\n/g, "\n");
-  return { path, content, lineEnding, hadBom };
+  const bytes = await fsReadFile(path);
+  const { content: raw, encoding } = decodeBytes(bytes);
+  const lineEnding = detectLineEnding(raw);
+  // Normalize to LF for the editor; the original ending is re-applied on save.
+  return { path, content: raw.replace(/\r\n/g, "\n"), lineEnding, encoding };
 }
 
 export interface SaveOptions {
   lineEnding: LineEnding;
-  bom?: boolean;
+  encoding: Encoding;
 }
 
-/** Write editor content (LF-normalized) back to disk with the desired ending. */
+/** Write editor content (LF-normalized) back to disk in the given encoding. */
 export async function writeFile(path: string, content: string, opts: SaveOptions): Promise<void> {
-  let out = content.replace(/\r\n/g, "\n");
-  if (opts.lineEnding === "crlf") out = out.replace(/\n/g, "\r\n");
-  if (opts.bom) out = "﻿" + out;
-  await writeTextFile(path, out);
+  const text = applyLineEnding(content, opts.lineEnding);
+  await fsWriteFile(path, encodeText(text, opts.encoding));
 }
 
 /** Show a save dialog, returning the chosen path (or null if cancelled). */

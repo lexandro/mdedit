@@ -10,6 +10,7 @@ import {
   watchFile,
   writeFile,
   type LineEnding,
+  type Encoding,
 } from "$lib/ipc";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
 import { recent } from "$lib/stores/recent.svelte";
@@ -21,7 +22,7 @@ export interface Tab {
   savedContent: string;
   viewMode: ViewMode;
   lineEnding: LineEnding;
-  hadBom: boolean;
+  encoding: Encoding;
 }
 
 /** One persisted tab. `unsaved` is the live buffer, kept only for dirty/untitled
@@ -30,7 +31,7 @@ export interface SessionTabData {
   path: string | null;
   viewMode: ViewMode;
   lineEnding: LineEnding;
-  hadBom: boolean;
+  encoding: Encoding;
   unsaved?: string;
 }
 
@@ -68,7 +69,7 @@ class TabsStore {
       savedContent: "",
       viewMode: settings.defaultViewMode,
       lineEnding: "lf",
-      hadBom: false,
+      encoding: "utf-8",
       ...partial,
     };
   }
@@ -110,7 +111,7 @@ class TabsStore {
     this.#openLoaded(await readFile(path));
   }
 
-  #openLoaded(loaded: { path: string; content: string; lineEnding: LineEnding; hadBom: boolean }) {
+  #openLoaded(loaded: { path: string; content: string; lineEnding: LineEnding; encoding: Encoding }) {
     const existing = this.tabs.find((t) => t.path && samePath(t.path, loaded.path));
     if (existing) {
       this.activeId = existing.id;
@@ -121,7 +122,7 @@ class TabsStore {
       content: loaded.content,
       savedContent: loaded.content,
       lineEnding: loaded.lineEnding,
-      hadBom: loaded.hadBom,
+      encoding: loaded.encoding,
     });
     this.tabs.push(tab);
     this.activeId = tab.id;
@@ -149,7 +150,7 @@ class TabsStore {
           savedContent: saved,
           viewMode: desc.viewMode,
           lineEnding: desc.lineEnding,
-          hadBom: desc.hadBom,
+          encoding: desc.encoding,
         });
         this.tabs.push(tab);
         if (desc.path) void watchFile(desc.path);
@@ -163,7 +164,7 @@ class TabsStore {
             savedContent: loaded.content,
             viewMode: desc.viewMode,
             lineEnding: loaded.lineEnding,
-            hadBom: loaded.hadBom,
+            encoding: loaded.encoding,
           });
           this.tabs.push(tab);
           void watchFile(loaded.path);
@@ -209,7 +210,12 @@ class TabsStore {
     tab.content = loaded.content;
     tab.savedContent = loaded.content;
     tab.lineEnding = loaded.lineEnding;
-    tab.hadBom = loaded.hadBom;
+    tab.encoding = loaded.encoding;
+  }
+
+  // Windows-1250 is read-only; saving such a buffer writes (and relabels) UTF-8.
+  #writeEncoding(tab: Tab): Encoding {
+    return tab.encoding === "windows-1250" ? "utf-8" : tab.encoding;
   }
 
   /** Native confirm dialog, falling back to the web one outside Tauri. */
@@ -226,7 +232,9 @@ class TabsStore {
     const tab = id != null ? this.tabs.find((t) => t.id === id) : this.active;
     if (!tab) return false;
     if (!tab.path) return this.saveAs(tab.id);
-    await writeFile(tab.path, tab.content, { lineEnding: tab.lineEnding, bom: tab.hadBom });
+    const encoding = this.#writeEncoding(tab);
+    await writeFile(tab.path, tab.content, { lineEnding: tab.lineEnding, encoding });
+    tab.encoding = encoding;
     tab.savedContent = tab.content;
     return true;
   }
@@ -237,7 +245,9 @@ class TabsStore {
     const suggested = tab.path ? basename(tab.path) : `${tabTitle(tab)}.md`;
     const path = await pickSavePath(suggested);
     if (!path) return false;
-    await writeFile(path, tab.content, { lineEnding: tab.lineEnding, bom: tab.hadBom });
+    const encoding = this.#writeEncoding(tab);
+    await writeFile(path, tab.content, { lineEnding: tab.lineEnding, encoding });
+    tab.encoding = encoding;
     tab.path = path;
     tab.savedContent = tab.content;
     void recent.add(path);

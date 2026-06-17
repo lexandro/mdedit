@@ -94,6 +94,14 @@
     tabs.setLineEnding(tabs.active.id, tabs.active.lineEnding === "lf" ? "crlf" : "lf");
   }
 
+  const ENCODING_LABEL: Record<string, string> = {
+    "utf-8": "UTF-8",
+    "utf-8-bom": "UTF-8 BOM",
+    "utf-16le": "UTF-16 LE",
+    "utf-16be": "UTF-16 BE",
+    "windows-1250": "Windows-1250",
+  };
+
   // Status-bar metrics for the active document.
   let wordCount = $derived.by(() => {
     const text = tabs.active?.content.trim() ?? "";
@@ -190,7 +198,7 @@
       <button class="status-btn" title="Toggle line ending" onclick={toggleLineEnding}>
         {tabs.active.lineEnding.toUpperCase()}
       </button>
-      <span>{tabs.active.hadBom ? "UTF-8 BOM" : "UTF-8"}</span>
+      <span>{ENCODING_LABEL[tabs.active.encoding]}</span>
       <span class="spacer"></span>
       <span>Ln {editorStatus.line}, Col {editorStatus.col}</span>
       <span>{wordCount} words</span>

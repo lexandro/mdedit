@@ -85,31 +85,38 @@ export function insertTable(view: EditorView): boolean {
   return true;
 }
 
-/** Reformat every GFM table in the document (aligned, padded columns). */
-export function formatTables(view: EditorView): boolean {
-  const doc = view.state.doc;
-  const changes: { from: number; to: number; insert: string }[] = [];
-  let n = 1;
-  while (n <= doc.lines) {
-    const line = doc.line(n);
-    const next = n + 1 <= doc.lines ? doc.line(n + 1) : null;
-    if (line.text.includes("|") && next && SEPARATOR.test(next.text)) {
-      let end = n + 1;
-      let m = n + 2;
-      while (m <= doc.lines && doc.line(m).text.includes("|") && doc.line(m).text.trim() !== "") {
-        end = m;
-        m++;
+/** Reformat every GFM table in a Markdown string (pure; used by the editor and
+ *  unit-tested directly). Non-table lines are passed through unchanged. */
+export function formatTablesText(text: string): string {
+  const lines = text.split("\n");
+  const out: string[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const next = lines[i + 1];
+    if (lines[i].includes("|") && next !== undefined && SEPARATOR.test(next)) {
+      let end = i + 1;
+      while (end + 1 < lines.length && lines[end + 1].includes("|") && lines[end + 1].trim() !== "") {
+        end++;
       }
-      const block: string[] = [];
-      for (let k = n; k <= end; k++) block.push(doc.line(k).text);
-      changes.push({ from: line.from, to: doc.line(end).to, insert: formatBlock(block).join("\n") });
-      n = end + 1;
+      out.push(...formatBlock(lines.slice(i, end + 1)));
+      i = end + 1;
     } else {
-      n++;
+      out.push(lines[i]);
+      i++;
     }
   }
-  if (changes.length === 0) return false;
-  view.dispatch({ changes, userEvent: "input" });
+  return out.join("\n");
+}
+
+/** Reformat every GFM table in the document (aligned, padded columns). */
+export function formatTables(view: EditorView): boolean {
+  const text = view.state.doc.toString();
+  const formatted = formatTablesText(text);
+  if (formatted === text) return false;
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: formatted },
+    userEvent: "input",
+  });
   view.focus();
   return true;
 }

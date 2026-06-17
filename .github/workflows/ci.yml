@@ -1,0 +1,25 @@
+name: CI
+
+# Fast frontend checks on every push/PR: type-check, unit tests, and a build.
+# (The full Rust/Tauri build lives in release.yml.)
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Type-check
+        run: bun run check
+      - name: Unit tests
+        run: bun run test
+      - name: Build
+        run: bun run build
