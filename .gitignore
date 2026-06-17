@@ -17,6 +17,9 @@ vite.config.ts.timestamp-*
 Thumbs.db
 *.log
 
+# Claude Code local harness state
+/.claude/
+
 # Tauri signing keys (never commit)
 *.key
 .tauri/

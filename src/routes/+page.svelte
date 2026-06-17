@@ -110,6 +110,7 @@
   <main class="workspace">
     {#if tabs.tabs.length === 0}
       <div class="empty">
+        <img class="logo" src="/app-icon.png" alt="mdedit logo" width="96" height="96" />
         <h1>mdedit</h1>
         <p>No file open.</p>
         <div class="empty-actions">
@@ -184,6 +185,11 @@
     justify-content: center;
     gap: 10px;
     color: var(--fg-muted);
+  }
+  .empty .logo {
+    image-rendering: auto;
+    opacity: 0.95;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
   }
   .empty h1 {
     margin: 0;

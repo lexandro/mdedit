@@ -3,6 +3,14 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## v0.1.1 — 2026-06-17
+
+### Changed
+
+- **Custom app icon.** Replaced the default Tauri logo with mdedit's own icon
+  (a blue "MD" document) across the executable, installer, taskbar/title bar,
+  the in-app empty screen, and the WebView favicon.
+
 ## v0.1.0 — 2026-06-17
 
 First public release — a fast, native Windows Markdown editor built with
