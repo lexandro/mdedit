@@ -10,6 +10,7 @@
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
   import { setActiveEditor, clearActiveEditor } from "$lib/editor-commands";
+  import { wrapSelection, insertLink } from "$lib/md-format";
 
   let {
     tab,
@@ -56,7 +57,15 @@
           EditorView.lineWrapping,
           markdown(),
           themeCompartment.of(themeExtension()),
-          keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+          keymap.of([
+            { key: "Mod-b", run: (v) => wrapSelection(v, "**") },
+            { key: "Mod-i", run: (v) => wrapSelection(v, "*") },
+            { key: "Mod-k", run: insertLink },
+            ...defaultKeymap,
+            ...historyKeymap,
+            ...searchKeymap,
+            indentWithTab,
+          ]),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) {
               tabs.setContent(tab.id, u.state.doc.toString());

@@ -2,6 +2,7 @@
 // active. Editor.svelte registers/clears the active view; the menu calls these.
 import type { EditorView } from "@codemirror/view";
 import { undo, redo, selectAll } from "@codemirror/commands";
+import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
 
 let activeView: EditorView | null = null;
 
@@ -54,4 +55,15 @@ export const editorCommands = {
       document.execCommand("paste"); // fallback if clipboard read is blocked
     }
   },
+};
+
+/** Markdown formatting actions applied to the active editor (toolbar buttons). */
+export const formatCommands = {
+  bold: () => activeView && wrapSelection(activeView, "**"),
+  italic: () => activeView && wrapSelection(activeView, "*"),
+  code: () => activeView && wrapSelection(activeView, "`"),
+  link: () => activeView && insertLink(activeView),
+  heading: () => activeView && toggleLinePrefix(activeView, "# "),
+  bullet: () => activeView && toggleLinePrefix(activeView, "- "),
+  quote: () => activeView && toggleLinePrefix(activeView, "> "),
 };

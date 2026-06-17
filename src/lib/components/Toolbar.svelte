@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tabs } from "$lib/stores/tabs.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
+  import { formatCommands } from "$lib/editor-commands";
   import Icon, { type IconName } from "$lib/components/Icon.svelte";
 
   let { onOpenSettings }: { onOpenSettings: () => void } = $props();
@@ -9,6 +10,16 @@
     { id: "source", label: "Source", icon: "source" },
     { id: "split", label: "Split", icon: "split" },
     { id: "preview", label: "Preview", icon: "preview" },
+  ];
+
+  const formats: { icon: IconName; title: string; run: () => void }[] = [
+    { icon: "bold", title: "Bold (Ctrl+B)", run: formatCommands.bold },
+    { icon: "italic", title: "Italic (Ctrl+I)", run: formatCommands.italic },
+    { icon: "code", title: "Inline code", run: formatCommands.code },
+    { icon: "link", title: "Link (Ctrl+K)", run: formatCommands.link },
+    { icon: "heading", title: "Heading", run: formatCommands.heading },
+    { icon: "list", title: "Bulleted list", run: formatCommands.bullet },
+    { icon: "quote", title: "Quote", run: formatCommands.quote },
   ];
 
   function setMode(mode: ViewMode) {
@@ -36,6 +47,14 @@
     <button onclick={() => tabs.saveAs()} disabled={!tabs.active} title="Save As (Ctrl+Shift+S)">
       <Icon name="save-as" /> Save As
     </button>
+  </div>
+
+  <div class="group format" role="group" aria-label="Formatting">
+    {#each formats as f (f.icon)}
+      <button class="icon-only" disabled={!tabs.active} title={f.title} aria-label={f.title} onclick={f.run}>
+        <Icon name={f.icon} />
+      </button>
+    {/each}
   </div>
 
   <div class="group modes" role="group" aria-label="View mode">

@@ -11,7 +11,14 @@
     | "split"
     | "preview"
     | "columns"
-    | "rows";
+    | "rows"
+    | "bold"
+    | "italic"
+    | "code"
+    | "link"
+    | "heading"
+    | "list"
+    | "quote";
 </script>
 
 <script lang="ts">
@@ -68,5 +75,33 @@
       d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
     />
     <circle cx="12" cy="12" r="3" />
+  {:else if name === "bold"}
+    <path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8" />
+  {:else if name === "italic"}
+    <line x1="19" x2="10" y1="4" y2="4" />
+    <line x1="14" x2="5" y1="20" y2="20" />
+    <line x1="15" x2="9" y1="4" y2="20" />
+  {:else if name === "code"}
+    <path d="m16 18 6-6-6-6" />
+    <path d="m8 6-6 6 6 6" />
+  {:else if name === "link"}
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  {:else if name === "heading"}
+    <path d="M6 12h12" />
+    <path d="M6 20V4" />
+    <path d="M18 20V4" />
+  {:else if name === "list"}
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <path d="M3 6h.01" />
+    <path d="M3 12h.01" />
+    <path d="M3 18h.01" />
+  {:else if name === "quote"}
+    <path d="M17 6H3" />
+    <path d="M21 12H8" />
+    <path d="M21 18H8" />
+    <path d="M3 12v6" />
   {/if}
 </svg>
