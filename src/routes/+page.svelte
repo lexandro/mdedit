@@ -5,8 +5,55 @@
   import SettingsDialog from "$lib/components/SettingsDialog.svelte";
   import { tabs, isDirty } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
+  import { settings, type ViewMode } from "$lib/stores/settings.svelte";
+  import { onMount } from "svelte";
+  import { listen } from "@tauri-apps/api/event";
 
   let settingsOpen = $state(false);
+
+  // Native menu items emit a "menu" event from Rust; map ids to actions here.
+  onMount(() => {
+    let unlisten: (() => void) | undefined;
+    listen<string>("menu", (e) => handleMenu(e.payload))
+      .then((fn) => (unlisten = fn))
+      .catch(() => {}); // not running under Tauri
+    return () => unlisten?.();
+  });
+
+  function handleMenu(id: string) {
+    switch (id) {
+      case "new":
+        tabs.newTab();
+        break;
+      case "open":
+        void tabs.open();
+        break;
+      case "save":
+        void tabs.save();
+        break;
+      case "save_as":
+        void tabs.saveAs();
+        break;
+      case "close_tab":
+        if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
+        break;
+      case "view_source":
+      case "view_split":
+      case "view_preview":
+        if (tabs.active) {
+          tabs.setViewMode(tabs.active.id, id.replace("view_", "") as ViewMode);
+        }
+        break;
+      case "toggle_orientation":
+        settings.setSplitOrientation(
+          settings.splitOrientation === "vertical" ? "horizontal" : "vertical",
+        );
+        break;
+      case "settings":
+        settingsOpen = true;
+        break;
+    }
+  }
 
   function basename(p: string): string {
     const parts = p.split(/[\\/]/);
