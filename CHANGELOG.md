@@ -3,6 +3,19 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## v0.4.0 — 2026-06-17
+
+### Added
+
+- **Table tools** — insert a table and auto-format/align every GFM table in the
+  document (Edit menu + toolbar).
+- **Clickable task-list checkboxes** — toggling a checkbox in the preview updates
+  the `- [ ]`/`- [x]` in the source.
+- **Copy as HTML** — copy the rendered document to the clipboard as rich HTML
+  (Edit menu).
+- **About dialog** (Help → About mdedit) showing the installed version, links,
+  and a check-for-updates button.
+
 ## v0.3.0 — 2026-06-17
 
 ### Added
