@@ -49,23 +49,30 @@ Releases are built by `.github/workflows/release.yml` when you push a version
 tag (e.g. `v0.1.0`). The app also has an in-app updater (Settings → **Check for
 updates**) backed by `tauri-plugin-updater`.
 
-One-time setup before the first signed release:
+Signing is already configured for this repo:
 
-1. **Generate a signing key pair** (keep the private key secret):
-   ```bash
-   bun tauri signer generate -w mdedit.key
-   ```
-2. **Public key** → paste into `src-tauri/tauri.conf.json` at
-   `plugins.updater.pubkey` (replaces the placeholder).
-3. **Private key + password** → add as GitHub repository secrets
-   (Settings → Secrets and variables → Actions):
-   - `TAURI_SIGNING_PRIVATE_KEY` — contents of `mdedit.key`
-   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — the password you chose
-4. **Update endpoint** → in `tauri.conf.json`, set the `plugins.updater.endpoints`
-   URL to your repo (`https://github.com/<owner>/mdedit/releases/latest/download/latest.json`).
-5. Tag and push: `git tag v0.1.0 && git push --tags`. The workflow builds the
-   installer, signs it, generates `latest.json`, and attaches everything to a
-   **draft** GitHub Release — review and publish it.
+- Key pair generated with `bun tauri signer generate` (no password). The private
+  key is stored **outside the repo** at `E:\Mega\keys\mdedit\mdedit.key`
+  (`.pub` alongside it) — **keep a backup; if lost, updates can't be signed**.
+- The **public key** is committed in `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`).
+- The **private key** is set as the `TAURI_SIGNING_PRIVATE_KEY` GitHub Actions secret.
+  No password secret is needed (the key has none — a missing secret resolves to empty).
+- The updater **endpoint** points at this repo's latest release `latest.json`.
+
+To cut a release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow builds the installer, signs it, generates `latest.json`, and
+attaches everything to a **draft** GitHub Release — review and publish it. Once
+published, existing installs see it via Settings → **Check for updates**.
+
+To regenerate the key from scratch (only if compromised/lost), repeat
+`bun tauri signer generate -w <path> --ci -f`, update the `pubkey` in
+`tauri.conf.json`, and reset the `TAURI_SIGNING_PRIVATE_KEY` secret.
 
 > **Code signing:** without an Authenticode certificate, Windows SmartScreen will
 > warn on first run. The Tauri updater signature above is separate from OS code
