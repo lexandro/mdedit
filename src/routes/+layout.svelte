@@ -4,6 +4,7 @@
   import { settings } from "$lib/stores/settings.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { session } from "$lib/stores/session.svelte";
+  import { updater } from "$lib/stores/updater.svelte";
   import { tabs } from "$lib/stores/tabs.svelte";
   import { listen } from "@tauri-apps/api/event";
 
@@ -16,6 +17,8 @@
       await Promise.all([settings.init(), recent.init()]);
       await session.restore();
     })();
+
+    updater.startAutoCheck();
 
     let unlisten: (() => void) | undefined;
     listen<string>("file-changed", (e) => tabs.handleExternalChange(e.payload))

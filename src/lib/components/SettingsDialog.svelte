@@ -10,31 +10,12 @@
     type ViewMode,
     type SplitOrientation,
   } from "$lib/stores/settings.svelte";
-  import { runUpdateCheck, type UpdateStatus } from "$lib/updater";
 
   let { onClose }: { onClose: () => void } = $props();
 
   const themes: ThemeChoice[] = ["light", "dark", "system"];
   const modes: ViewMode[] = ["source", "split", "preview"];
   const orientations: SplitOrientation[] = ["vertical", "horizontal"];
-
-  let update = $state<UpdateStatus>({ kind: "idle" });
-  let updateLabel = $derived.by(() => {
-    switch (update.kind) {
-      case "checking":
-        return "Checking…";
-      case "none":
-        return "You're up to date.";
-      case "downloading":
-        return `Downloading ${update.version}…`;
-      case "ready":
-        return `Installed ${update.version}, restarting…`;
-      case "error":
-        return `Update check failed: ${update.message}`;
-      default:
-        return "";
-    }
-  });
 </script>
 
 <div
@@ -117,20 +98,6 @@
           onclick={() => settings.setSplitOrientation(o)}>{o}</button
         >
       {/each}
-    </div>
-  </section>
-
-  <section>
-    <h3>Updates</h3>
-    <div class="update-row">
-      <button
-        class="update-btn"
-        disabled={update.kind === "checking" || update.kind === "downloading"}
-        onclick={() => runUpdateCheck((s) => (update = s))}
-      >
-        Check for updates
-      </button>
-      {#if updateLabel}<span class="update-status">{updateLabel}</span>{/if}
     </div>
   </section>
 </div>
@@ -239,30 +206,5 @@
     font-size: 12px;
     color: var(--fg-muted);
     margin: 8px 0 0;
-  }
-  .update-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .update-btn {
-    border: 1px solid var(--border);
-    background: var(--bg-alt);
-    color: var(--fg);
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .update-btn:hover:not(:disabled) {
-    border-color: var(--accent);
-  }
-  .update-btn:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-  .update-status {
-    font-size: 12px;
-    color: var(--fg-muted);
   }
 </style>

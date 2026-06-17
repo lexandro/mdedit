@@ -49,6 +49,10 @@
         { label: "Settings…", id: "settings" },
       ],
     },
+    {
+      label: "Help",
+      items: [{ label: "Check for Updates…", id: "check_updates" }],
+    },
   ];
 
   let open = $state<number | null>(null);

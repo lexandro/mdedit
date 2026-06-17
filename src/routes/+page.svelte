@@ -7,7 +7,9 @@
   import { tabs, isDirty, tabTitle, basename } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
+  import { updater } from "$lib/stores/updater.svelte";
   import { editorCommands } from "$lib/editor-commands";
+  import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
@@ -49,6 +51,7 @@
         settings.splitOrientation === "vertical" ? "horizontal" : "vertical",
       ),
     settings: () => (settingsOpen = true),
+    check_updates: () => void updater.check(true),
   };
 
   function handleMenu(id: string) {
@@ -104,6 +107,7 @@
 <div class="app">
   <MenuBar onCommand={handleMenu} />
   <Toolbar onOpenSettings={() => (settingsOpen = true)} />
+  <UpdateBanner />
   <TabBar />
 
   <main class="workspace">
