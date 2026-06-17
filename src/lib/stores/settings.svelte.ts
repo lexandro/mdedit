@@ -22,6 +22,7 @@ interface PersistShape {
   defaultViewMode: ViewMode;
   uiZoom: number;
   editorFontSize: number;
+  wordWrap: boolean;
 }
 
 const DEFAULTS: PersistShape = {
@@ -30,6 +31,7 @@ const DEFAULTS: PersistShape = {
   defaultViewMode: "split",
   uiZoom: 1,
   editorFontSize: 14,
+  wordWrap: true,
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -40,6 +42,7 @@ class SettingsStore {
   defaultViewMode = $state<ViewMode>(DEFAULTS.defaultViewMode);
   uiZoom = $state<number>(DEFAULTS.uiZoom);
   editorFontSize = $state<number>(DEFAULTS.editorFontSize);
+  wordWrap = $state<boolean>(DEFAULTS.wordWrap);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -58,6 +61,7 @@ class SettingsStore {
       this.uiZoom = (await this.#store.get<number>("uiZoom")) ?? DEFAULTS.uiZoom;
       this.editorFontSize =
         (await this.#store.get<number>("editorFontSize")) ?? DEFAULTS.editorFontSize;
+      this.wordWrap = (await this.#store.get<boolean>("wordWrap")) ?? DEFAULTS.wordWrap;
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -103,6 +107,11 @@ class SettingsStore {
   async setEditorFontSize(px: number) {
     this.editorFontSize = clamp(Math.round(px), FONT_MIN, FONT_MAX);
     await this.#store?.set("editorFontSize", this.editorFontSize);
+  }
+
+  async setWordWrap(on: boolean) {
+    this.wordWrap = on;
+    await this.#store?.set("wordWrap", on);
   }
 }
 

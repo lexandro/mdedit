@@ -53,6 +53,7 @@
         "sep",
         { label: "Toggle Split Orientation", id: "toggle_orientation" },
         { label: "Toggle Outline", id: "toggle_outline" },
+        { label: "Toggle Word Wrap", id: "toggle_word_wrap" },
         "sep",
         { label: "Settings…", id: "settings" },
       ],

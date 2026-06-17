@@ -10,6 +10,7 @@
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
   import { setActiveEditor, clearActiveEditor } from "$lib/editor-commands";
+  import { editorStatus } from "$lib/stores/editor-status.svelte";
   import { wrapSelection, insertLink, continueList } from "$lib/md-format";
   import { savePastedImage } from "$lib/paste-image";
 
@@ -26,6 +27,15 @@
   let host: HTMLDivElement;
   let view: EditorView | undefined;
   const themeCompartment = new Compartment();
+  const wrapCompartment = new Compartment();
+
+  // Report the cursor position to the status bar (only for the active tab).
+  function reportCursor(v: EditorView) {
+    if (tab.id !== tabs.activeId) return;
+    const head = v.state.selection.main.head;
+    const line = v.state.doc.lineAt(head);
+    editorStatus.set(line.number, head - line.from + 1);
+  }
 
   // Last fraction we programmatically applied, to suppress the echo scroll event.
   let appliedFraction = -1;
@@ -74,7 +84,7 @@
           history(),
           highlightActiveLine(),
           highlightSelectionMatches(),
-          EditorView.lineWrapping,
+          wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
           markdown(),
           EditorView.domEventHandlers({ paste: handlePaste }),
           themeCompartment.of(themeExtension()),
@@ -92,6 +102,9 @@
             if (u.docChanged) {
               tabs.setContent(tab.id, u.state.doc.toString());
             }
+            if (u.docChanged || u.selectionSet) {
+              reportCursor(u.view);
+            }
           }),
         ],
       }),
@@ -107,9 +120,21 @@
     };
   });
 
-  // Make this the active editor (for Edit-menu actions) when its tab is active.
+  // Make this the active editor (for Edit-menu actions) when its tab is active,
+  // and refresh the status-bar cursor for the newly active tab.
   $effect(() => {
-    if (view && tab.id === tabs.activeId) setActiveEditor(view);
+    if (view && tab.id === tabs.activeId) {
+      setActiveEditor(view);
+      reportCursor(view);
+    }
+  });
+
+  // Toggle word wrap when the setting changes.
+  $effect(() => {
+    const wrap = settings.wordWrap;
+    view?.dispatch({
+      effects: wrapCompartment.reconfigure(wrap ? EditorView.lineWrapping : []),
+    });
   });
 
   // Re-apply the editor theme whenever the resolved light/dark value changes.

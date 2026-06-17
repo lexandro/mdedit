@@ -8,6 +8,7 @@
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
+  import { editorStatus } from "$lib/stores/editor-status.svelte";
   import { editorCommands, formatCommands } from "$lib/editor-commands";
   import { exportHtml, exportPdf, copyAsHtml } from "$lib/export";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
@@ -72,6 +73,7 @@
       ),
     settings: () => (settingsOpen = true),
     toggle_outline: () => (outlineVisible = !outlineVisible),
+    toggle_word_wrap: () => settings.setWordWrap(!settings.wordWrap),
     check_updates: () => void updater.check(true),
     changelog: () => (changelogOpen = true),
     about: () => (aboutOpen = true),
@@ -92,6 +94,7 @@
     return text ? text.split(/\s+/).length : 0;
   });
   let charCount = $derived(tabs.active?.content.length ?? 0);
+  let readMinutes = $derived(Math.max(1, Math.ceil(wordCount / 200)));
 
   // Keystroke -> command id. Tab cycling is keyboard-only (not a menu command).
   function onKeydown(e: KeyboardEvent) {
@@ -182,8 +185,10 @@
       </button>
       <span>{tabs.active.hadBom ? "UTF-8 BOM" : "UTF-8"}</span>
       <span class="spacer"></span>
+      <span>Ln {editorStatus.line}, Col {editorStatus.col}</span>
       <span>{wordCount} words</span>
       <span>{charCount} chars</span>
+      <span>~{readMinutes} min read</span>
     {:else}
       <span class="spacer"></span>
     {/if}
