@@ -3,13 +3,23 @@
   import TabBar from "$lib/components/TabBar.svelte";
   import TabView from "$lib/components/TabView.svelte";
   import SettingsDialog from "$lib/components/SettingsDialog.svelte";
-  import { tabs, isDirty } from "$lib/stores/tabs.svelte";
+  import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { onMount } from "svelte";
   import { listen } from "@tauri-apps/api/event";
+  import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
+
+  // Keep the OS window title in sync with the active tab (name + dirty marker).
+  $effect(() => {
+    const t = tabs.active;
+    const title = t ? `${isDirty(t) ? "● " : ""}${tabTitle(t)} — mdedit` : "mdedit";
+    getCurrentWindow()
+      .setTitle(title)
+      .catch(() => {}); // not under Tauri
+  });
 
   // Native menu items emit a "menu" event from Rust; map ids to actions here.
   onMount(() => {

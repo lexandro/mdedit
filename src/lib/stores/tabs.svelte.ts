@@ -24,6 +24,21 @@ export interface Tab {
   hadBom: boolean;
 }
 
+/** One persisted tab. `unsaved` is the live buffer, kept only for dirty/untitled
+ *  tabs so unsaved work survives a restart; clean files are re-read from disk. */
+export interface SessionTabData {
+  path: string | null;
+  viewMode: ViewMode;
+  lineEnding: LineEnding;
+  hadBom: boolean;
+  unsaved?: string;
+}
+
+export interface SessionData {
+  tabs: SessionTabData[];
+  activeIndex: number;
+}
+
 let nextId = 1;
 
 function basename(path: string): string {
@@ -119,6 +134,53 @@ class TabsStore {
     this.activeId = tab.id;
     void recent.add(loaded.path);
     void watchFile(loaded.path);
+  }
+
+  /** Recreate tabs from a persisted session (startup restore). */
+  async applySession(data: SessionData) {
+    for (const desc of data.tabs) {
+      if (desc.unsaved != null) {
+        // Dirty or untitled buffer: restore the live text. For path-backed
+        // tabs, read disk so the dirty state reflects the real on-disk content.
+        let saved = "";
+        if (desc.path) {
+          try {
+            saved = (await readFile(desc.path)).content;
+          } catch {
+            saved = ""; // file gone/locked — treat the buffer as fully unsaved
+          }
+        }
+        const tab = this.#makeTab({
+          path: desc.path,
+          content: desc.unsaved,
+          savedContent: saved,
+          viewMode: desc.viewMode,
+          lineEnding: desc.lineEnding,
+          hadBom: desc.hadBom,
+        });
+        this.tabs.push(tab);
+        if (desc.path) void watchFile(desc.path);
+      } else if (desc.path) {
+        // Clean saved file: re-read from disk.
+        try {
+          const loaded = await readFile(desc.path);
+          const tab = this.#makeTab({
+            path: loaded.path,
+            content: loaded.content,
+            savedContent: loaded.content,
+            viewMode: desc.viewMode,
+            lineEnding: loaded.lineEnding,
+            hadBom: loaded.hadBom,
+          });
+          this.tabs.push(tab);
+          void watchFile(loaded.path);
+        } catch {
+          // File no longer exists — skip it.
+        }
+      }
+    }
+    const active = this.tabs[data.activeIndex] ?? this.tabs[this.tabs.length - 1] ?? null;
+    this.activeId = active?.id ?? null;
   }
 
   // Coalesce bursty filesystem events per path.
