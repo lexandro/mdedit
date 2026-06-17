@@ -5,6 +5,9 @@ import {
   pickAndReadFile,
   pickSavePath,
   readFile,
+  samePath,
+  unwatchFile,
+  watchFile,
   writeFile,
   type LineEnding,
 } from "$lib/ipc";
@@ -115,6 +118,49 @@ class TabsStore {
     this.tabs.push(tab);
     this.activeId = tab.id;
     void recent.add(loaded.path);
+    void watchFile(loaded.path);
+  }
+
+  // Coalesce bursty filesystem events per path.
+  #pendingChanges = new Set<string>();
+
+  /** React to an external on-disk change for an open file. */
+  async handleExternalChange(changedPath: string) {
+    const tab = this.tabs.find((t) => t.path && samePath(t.path, changedPath));
+    if (!tab?.path || this.#pendingChanges.has(tab.path)) return;
+    this.#pendingChanges.add(tab.path);
+    setTimeout(() => this.#applyExternalChange(tab.id), 200);
+  }
+
+  async #applyExternalChange(id: number) {
+    const tab = this.tabs.find((t) => t.id === id);
+    if (!tab?.path) return;
+    this.#pendingChanges.delete(tab.path);
+    let loaded;
+    try {
+      loaded = await readFile(tab.path);
+    } catch {
+      return; // file removed / temporarily locked
+    }
+    if (loaded.content === tab.savedContent) return; // no real change (e.g. our own save)
+
+    // Notepad++-style: notice the external edit and offer to reload.
+    const name = tabTitle(tab);
+    const msg = isDirty(tab)
+      ? `"${name}" was modified by another program.\nReload and discard your unsaved changes?`
+      : `"${name}" was modified by another program.\nReload it?`;
+    let ok = false;
+    try {
+      ok = await confirm(msg, { title: "File changed on disk", kind: "warning" });
+    } catch {
+      ok = window.confirm(msg);
+    }
+    if (!ok) return;
+
+    tab.content = loaded.content;
+    tab.savedContent = loaded.content;
+    tab.lineEnding = loaded.lineEnding;
+    tab.hadBom = loaded.hadBom;
   }
 
   /** Reload a tab's content from disk (used after external change). */
@@ -148,6 +194,7 @@ class TabsStore {
     tab.path = path;
     tab.savedContent = tab.content;
     void recent.add(path);
+    void watchFile(path);
     return true;
   }
 
@@ -155,6 +202,11 @@ class TabsStore {
   close(id: number) {
     const idx = this.tabs.findIndex((t) => t.id === id);
     if (idx === -1) return;
+    const closing = this.tabs[idx];
+    // Stop watching unless another tab still has the same file open.
+    if (closing.path && !this.tabs.some((t) => t.id !== id && t.path === closing.path)) {
+      void unwatchFile(closing.path);
+    }
     this.tabs.splice(idx, 1);
     if (this.activeId === id) {
       const next = this.tabs[idx] ?? this.tabs[idx - 1] ?? null;

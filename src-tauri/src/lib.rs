@@ -1,5 +1,32 @@
+use std::path::Path;
+use std::sync::Mutex;
+
+use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use tauri::menu::{MenuBuilder, SubmenuBuilder};
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
+
+/// Holds the filesystem watcher so commands can (un)watch open files.
+struct WatcherState(Mutex<RecommendedWatcher>);
+
+#[tauri::command]
+fn watch_file(path: String, state: tauri::State<WatcherState>) -> Result<(), String> {
+    state
+        .0
+        .lock()
+        .map_err(|e| e.to_string())?
+        .watch(Path::new(&path), RecursiveMode::NonRecursive)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn unwatch_file(path: String, state: tauri::State<WatcherState>) -> Result<(), String> {
+    state
+        .0
+        .lock()
+        .map_err(|e| e.to_string())?
+        .unwatch(Path::new(&path))
+        .map_err(|e| e.to_string())
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -8,10 +35,26 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![watch_file, unwatch_file])
         .setup(|app| {
-            // Native menu bar. Custom items emit a "menu" event to the frontend;
-            // keyboard shortcuts are handled there, so we set no accelerators here
-            // (avoids double-firing). Edit uses the webview's predefined actions.
+            // --- Filesystem watcher: emit "file-changed" when an open file is
+            // modified or recreated on disk. The frontend decides whether to
+            // reload or prompt.
+            let handle = app.handle().clone();
+            let watcher = notify::recommended_watcher(move |res: notify::Result<notify::Event>| {
+                if let Ok(event) = res {
+                    if matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_)) {
+                        for p in event.paths {
+                            let _ = handle.emit("file-changed", p.to_string_lossy().to_string());
+                        }
+                    }
+                }
+            })?;
+            app.manage(WatcherState(Mutex::new(watcher)));
+
+            // --- Native menu bar. Custom items emit a "menu" event to the
+            // frontend; keyboard shortcuts are handled there (no accelerators
+            // here, to avoid double-firing). Edit uses predefined webview actions.
             let file = SubmenuBuilder::new(app, "File")
                 .text("new", "New")
                 .text("open", "Open…")

@@ -1,5 +1,6 @@
 // Thin wrappers around Tauri's dialog + fs plugins so the rest of the app
 // never imports the plugin packages directly. Keeps file I/O in one place.
+import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
@@ -59,4 +60,31 @@ export async function writeFile(path: string, content: string, opts: SaveOptions
 export async function pickSavePath(defaultName?: string): Promise<string | null> {
   const path = await saveDialog({ filters: MD_FILTERS, defaultPath: defaultName });
   return path ?? null;
+}
+
+/** Start/stop watching a file for external changes (best-effort). */
+export async function watchFile(path: string): Promise<void> {
+  try {
+    await invoke("watch_file", { path });
+  } catch {
+    /* not under Tauri, or already watched */
+  }
+}
+
+export async function unwatchFile(path: string): Promise<void> {
+  try {
+    await invoke("unwatch_file", { path });
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Loose path comparison tolerant of separator and extended-length differences. */
+export function samePath(a: string, b: string): boolean {
+  const norm = (p: string) =>
+    p
+      .replace(/^\\\\\?\\/, "")
+      .replace(/\\/g, "/")
+      .toLowerCase();
+  return norm(a) === norm(b);
 }
