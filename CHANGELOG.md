@@ -3,6 +3,24 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## v0.2.0 — 2026-06-17
+
+### Added
+
+- **In-app menu bar** (File / Edit / View / Help) replacing the native OS menu —
+  it matches the theme and scales with the interface size.
+- **Interface size (zoom)** setting that enlarges the whole UI, and a separate
+  **editor font size** setting — both in Settings, for accessibility.
+- **Automatic update checks.** The app checks for updates in the background
+  (on launch and periodically) and *offers* an update via a banner; it never
+  downloads unattended. A manual check lives under **Help → Check for Updates**.
+- **Relative images in the preview.** Image paths like `![](images/foo.png)` now
+  resolve against the open document's folder and render via the asset protocol.
+
+### Changed
+
+- Moved the update check out of the (buried) Settings dialog.
+
 ## v0.1.1 — 2026-06-17
 
 ### Changed
