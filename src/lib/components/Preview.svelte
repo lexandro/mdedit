@@ -5,16 +5,18 @@
 
   let {
     source,
+    basePath,
     scrollFraction,
     onScroll,
   }: {
     source: string;
+    basePath?: string | null;
     scrollFraction?: number;
     onScroll?: (fraction: number) => void;
   } = $props();
 
   let container: HTMLDivElement;
-  let html = $derived(renderMarkdown(source));
+  let html = $derived(renderMarkdown(source, basePath));
   let mermaidSeq = 0;
 
   // Last fraction we programmatically applied, to suppress the echo scroll event.

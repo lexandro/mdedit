@@ -64,7 +64,12 @@
   ></div>
   <div class="pane preview-pane">
     {#if tab.viewMode !== "source"}
-      <Preview source={tab.content} scrollFraction={previewFraction} onScroll={onPreviewScroll} />
+      <Preview
+        source={tab.content}
+        basePath={tab.path}
+        scrollFraction={previewFraction}
+        onScroll={onPreviewScroll}
+      />
     {/if}
   </div>
 </div>
