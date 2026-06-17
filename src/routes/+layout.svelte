@@ -6,30 +6,53 @@
   import { session } from "$lib/stores/session.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { tabs } from "$lib/stores/tabs.svelte";
+  import { takeLaunchFiles } from "$lib/ipc";
   import { listen } from "@tauri-apps/api/event";
+  import { getCurrentWebview } from "@tauri-apps/api/webview";
 
   let { children } = $props();
 
+  const TEXT_EXT = /\.(md|markdown|mdown|mkd|mdx|txt)$/i;
+
+  function openPaths(paths: string[]) {
+    for (const p of paths) if (TEXT_EXT.test(p)) void tabs.openPath(p);
+  }
+
   onMount(() => {
+    const unlisteners: Array<() => void> = [];
+
     // settings + recent are independent (separate store files); load them
-    // concurrently, then restore the session (which needs the tabs store).
+    // concurrently, then restore the session, then open any launch files.
     void (async () => {
       await Promise.all([settings.init(), recent.init()]);
       await session.restore();
+      openPaths(await takeLaunchFiles());
     })();
 
     updater.startAutoCheck();
 
-    let unlisten: (() => void) | undefined;
+    // A second instance ("Open with" on another file) forwards its files here.
+    listen<string[]>("open-files", (e) => openPaths(e.payload))
+      .then((fn) => unlisteners.push(fn))
+      .catch(() => {});
+
     listen<string>("file-changed", (e) => tabs.handleExternalChange(e.payload))
-      .then((fn) => (unlisten = fn))
+      .then((fn) => unlisteners.push(fn))
       .catch(() => {}); // not under Tauri
+
+    // Files dropped onto the window.
+    getCurrentWebview()
+      .onDragDropEvent((e) => {
+        if (e.payload.type === "drop") openPaths(e.payload.paths);
+      })
+      .then((fn) => unlisteners.push(fn))
+      .catch(() => {});
 
     const flush = () => void session.flush();
     window.addEventListener("beforeunload", flush);
 
     return () => {
-      unlisten?.();
+      unlisteners.forEach((fn) => fn());
       window.removeEventListener("beforeunload", flush);
     };
   });

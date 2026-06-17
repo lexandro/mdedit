@@ -79,6 +79,15 @@ export async function unwatchFile(path: string): Promise<void> {
   }
 }
 
+/** Files this instance was launched with (e.g. via "Open with"); consumed once. */
+export async function takeLaunchFiles(): Promise<string[]> {
+  try {
+    return await invoke<string[]>("take_launch_files");
+  } catch {
+    return []; // not under Tauri
+  }
+}
+
 /** Loose path comparison tolerant of separator and extended-length differences. */
 export function samePath(a: string, b: string): boolean {
   const norm = (p: string) =>
