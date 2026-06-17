@@ -38,6 +38,9 @@
         { label: "Paste", id: "paste", shortcut: "Ctrl+V" },
         "sep",
         { label: "Select All", id: "select_all", shortcut: "Ctrl+A" },
+        "sep",
+        { label: "Insert Table", id: "insert_table" },
+        { label: "Format Tables", id: "format_tables" },
       ],
     },
     {

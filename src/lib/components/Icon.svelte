@@ -18,7 +18,8 @@
     | "link"
     | "heading"
     | "list"
-    | "quote";
+    | "quote"
+    | "table";
 </script>
 
 <script lang="ts">
@@ -103,5 +104,10 @@
     <path d="M21 12H8" />
     <path d="M21 18H8" />
     <path d="M3 12v6" />
+  {:else if name === "table"}
+    <rect width="18" height="18" x="3" y="3" rx="2" />
+    <path d="M3 9h18" />
+    <path d="M3 15h18" />
+    <path d="M12 3v18" />
   {/if}
 </svg>

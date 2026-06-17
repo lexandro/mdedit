@@ -8,7 +8,7 @@
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
-  import { editorCommands } from "$lib/editor-commands";
+  import { editorCommands, formatCommands } from "$lib/editor-commands";
   import { exportHtml, exportPdf } from "$lib/export";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
@@ -56,6 +56,8 @@
     copy: () => editorCommands.copy(),
     paste: () => void editorCommands.paste(),
     select_all: () => editorCommands.selectAll(),
+    insert_table: () => formatCommands.table(),
+    format_tables: () => formatCommands.formatTables(),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
     view_preview: () => setViewMode("preview"),

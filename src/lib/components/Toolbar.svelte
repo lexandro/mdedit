@@ -20,6 +20,7 @@
     { icon: "heading", title: "Heading", run: formatCommands.heading },
     { icon: "list", title: "Bulleted list", run: formatCommands.bullet },
     { icon: "quote", title: "Quote", run: formatCommands.quote },
+    { icon: "table", title: "Insert table", run: formatCommands.table },
   ];
 
   function setMode(mode: ViewMode) {

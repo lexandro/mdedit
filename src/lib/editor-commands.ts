@@ -3,6 +3,7 @@
 import { EditorView } from "@codemirror/view";
 import { undo, redo, selectAll } from "@codemirror/commands";
 import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
+import { insertTable, formatTables } from "$lib/md-tables";
 
 let activeView: EditorView | null = null;
 
@@ -79,4 +80,6 @@ export const formatCommands = {
   heading: () => activeView && toggleLinePrefix(activeView, "# "),
   bullet: () => activeView && toggleLinePrefix(activeView, "- "),
   quote: () => activeView && toggleLinePrefix(activeView, "> "),
+  table: () => activeView && insertTable(activeView),
+  formatTables: () => activeView && formatTables(activeView),
 };
