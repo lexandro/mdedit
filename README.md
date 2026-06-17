@@ -78,6 +78,30 @@ To regenerate the key from scratch (only if compromised/lost), repeat
 > warn on first run. The Tauri updater signature above is separate from OS code
 > signing; add a code-signing certificate later for a warning-free install.
 
+## Security
+
+Rendered Markdown is untrusted input, so the preview is defended in depth:
+
+1. `markdown-it` runs with `html: false` (raw HTML in the source is escaped).
+2. The rendered HTML is sanitized with **DOMPurify** before insertion.
+3. A strict **Content Security Policy** is enforced on the WebView
+   (`src-tauri/tauri.conf.json` → `app.security.csp`):
+   - `script-src 'self'` — no inline/injected scripts (Tauri auto-hashes the
+     app's own bootstrap script); `object-src 'none'`, `base-uri 'self'`.
+   - `style-src 'self' 'unsafe-inline'` — required because CodeMirror and Mermaid
+     inject styles at runtime (styles can't execute code, so this is low-risk).
+   - `img-src` also allows `https:` and `data:` so remote/inline preview images load.
+   - A looser `devCsp` (adds `'unsafe-inline' 'unsafe-eval'` + `ws:`/`http:` localhost)
+     is used **only** under `tauri dev` for Vite HMR; it never ships.
+
+> The updater's network requests run in Rust (reqwest), so they are not subject
+> to the WebView CSP — `connect-src` only needs `ipc:`.
+
+> **If Mermaid diagrams ever fail to render in a production build** with a CSP
+> error about `eval`, add `'wasm-unsafe-eval'` (or, as a last resort,
+> `'unsafe-eval'`) to `script-src` in the production `csp`. Current Mermaid (v11)
+> is expected to work without it.
+
 ## Project layout
 
 ```
