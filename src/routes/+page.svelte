@@ -9,6 +9,7 @@
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { editorCommands } from "$lib/editor-commands";
+  import { exportHtml, exportPdf } from "$lib/export";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -37,6 +38,14 @@
       if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
     },
     quit: () => void getCurrentWindow().close(),
+    export_html: () => {
+      const t = tabs.active;
+      if (t) void exportHtml(t.content, tabTitle(t).replace(/\.[^.]+$/, ""));
+    },
+    export_pdf: () => {
+      const t = tabs.active;
+      if (t) exportPdf(t.content, t.path, tabTitle(t).replace(/\.[^.]+$/, ""));
+    },
     undo: () => editorCommands.undo(),
     redo: () => editorCommands.redo(),
     cut: () => editorCommands.cut(),
