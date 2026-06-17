@@ -1,6 +1,6 @@
 // Edit-menu actions that operate on whichever CodeMirror editor is currently
 // active. Editor.svelte registers/clears the active view; the menu calls these.
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { undo, redo, selectAll } from "@codemirror/commands";
 import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
 
@@ -56,6 +56,19 @@ export const editorCommands = {
     }
   },
 };
+
+/** Move the active editor's cursor to a 1-based line and scroll it into view. */
+export function goToLine(line: number) {
+  if (!activeView) return;
+  const doc = activeView.state.doc;
+  if (line < 1 || line > doc.lines) return;
+  const pos = doc.line(line).from;
+  activeView.dispatch({
+    selection: { anchor: pos },
+    effects: EditorView.scrollIntoView(pos, { y: "start", yMargin: 40 }),
+  });
+  activeView.focus();
+}
 
 /** Markdown formatting actions applied to the active editor (toolbar buttons). */
 export const formatCommands = {

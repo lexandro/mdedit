@@ -11,9 +11,11 @@
   import { editorCommands } from "$lib/editor-commands";
   import { exportHtml, exportPdf } from "$lib/export";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
+  import Outline from "$lib/components/Outline.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
+  let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
   $effect(() => {
@@ -60,6 +62,7 @@
         settings.splitOrientation === "vertical" ? "horizontal" : "vertical",
       ),
     settings: () => (settingsOpen = true),
+    toggle_outline: () => (outlineVisible = !outlineVisible),
     check_updates: () => void updater.check(true),
   };
 
@@ -120,38 +123,44 @@
   <TabBar />
 
   <main class="workspace">
-    {#if tabs.tabs.length === 0}
-      <div class="empty">
-        <img class="logo" src="/app-icon.png" alt="mdedit logo" width="96" height="96" />
-        <h1>mdedit</h1>
-        <p>No file open.</p>
-        <div class="empty-actions">
-          <button onclick={() => tabs.newTab()}>New file</button>
-          <button onclick={() => tabs.open()}>Open file…</button>
-        </div>
-        {#if recent.paths.length > 0}
-          <div class="recent">
-            <h2>Recent</h2>
-            <ul>
-              {#each recent.paths as path (path)}
-                <li>
-                  <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
-                    {basename(path)}<span class="path">{path}</span>
-                  </button>
-                </li>
-              {/each}
-            </ul>
-          </div>
-        {/if}
-        <p class="hint">Ctrl+N new · Ctrl+O open · Ctrl+S save · Ctrl+1/2/3 view mode</p>
-      </div>
-    {:else}
-      {#each tabs.tabs as tab (tab.id)}
-        <div class="tab-host" style:display={tab.id === tabs.activeId ? "block" : "none"}>
-          <TabView {tab} />
-        </div>
-      {/each}
+    {#if outlineVisible && tabs.active}
+      <Outline content={tabs.active.content} />
     {/if}
+
+    <div class="tab-area">
+      {#if tabs.tabs.length === 0}
+        <div class="empty">
+          <img class="logo" src="/app-icon.png" alt="mdedit logo" width="96" height="96" />
+          <h1>mdedit</h1>
+          <p>No file open.</p>
+          <div class="empty-actions">
+            <button onclick={() => tabs.newTab()}>New file</button>
+            <button onclick={() => tabs.open()}>Open file…</button>
+          </div>
+          {#if recent.paths.length > 0}
+            <div class="recent">
+              <h2>Recent</h2>
+              <ul>
+                {#each recent.paths as path (path)}
+                  <li>
+                    <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
+                      {basename(path)}<span class="path">{path}</span>
+                    </button>
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          {/if}
+          <p class="hint">Ctrl+N new · Ctrl+O open · Ctrl+S save · Ctrl+1/2/3 view mode</p>
+        </div>
+      {:else}
+        {#each tabs.tabs as tab (tab.id)}
+          <div class="tab-host" style:display={tab.id === tabs.activeId ? "block" : "none"}>
+            <TabView {tab} />
+          </div>
+        {/each}
+      {/if}
+    </div>
   </main>
 
   <footer class="statusbar">
@@ -182,8 +191,14 @@
   }
   .workspace {
     flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .tab-area {
+    flex: 1;
     position: relative;
     overflow: hidden;
+    min-width: 0;
   }
   .tab-host {
     position: absolute;

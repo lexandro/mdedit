@@ -48,6 +48,7 @@
         { label: "Preview", id: "view_preview", shortcut: "Ctrl+3" },
         "sep",
         { label: "Toggle Split Orientation", id: "toggle_orientation" },
+        { label: "Toggle Outline", id: "toggle_outline" },
         "sep",
         { label: "Settings…", id: "settings" },
       ],
