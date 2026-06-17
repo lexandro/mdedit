@@ -16,6 +16,7 @@ vite.config.ts.timestamp-*
 # Editor / OS noise
 Thumbs.db
 *.log
+/.vscode/
 
 # Claude Code local harness state
 /.claude/
