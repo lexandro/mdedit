@@ -10,7 +10,7 @@
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
   import { setActiveEditor, clearActiveEditor } from "$lib/editor-commands";
-  import { wrapSelection, insertLink } from "$lib/md-format";
+  import { wrapSelection, insertLink, continueList } from "$lib/md-format";
   import { savePastedImage } from "$lib/paste-image";
 
   let {
@@ -79,6 +79,7 @@
           EditorView.domEventHandlers({ paste: handlePaste }),
           themeCompartment.of(themeExtension()),
           keymap.of([
+            { key: "Enter", run: continueList },
             { key: "Mod-b", run: (v) => wrapSelection(v, "**") },
             { key: "Mod-i", run: (v) => wrapSelection(v, "*") },
             { key: "Mod-k", run: insertLink },
