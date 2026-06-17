@@ -3,6 +3,21 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## v0.3.0 — 2026-06-17
+
+### Added
+
+- **Open files from the OS** — `.md` file association (double-click / "Open
+  with"), command-line argument, and **drag & drop** onto the window. A second
+  launch reuses the running window (single instance) and focuses it.
+- **Formatting toolbar + shortcuts** — bold/italic/code/link/heading/list/quote
+  buttons, with **Ctrl+B / Ctrl+I / Ctrl+K** in the editor.
+- **Paste images from the clipboard** — saved next to the document (`./images/`)
+  and inserted as a relative Markdown image.
+- **Export to HTML and PDF** (File menu) — standalone HTML; PDF via the system
+  print dialog.
+- **Document outline** — a heading panel (View → Toggle Outline); click to jump.
+
 ## v0.2.0 — 2026-06-17
 
 ### Added
