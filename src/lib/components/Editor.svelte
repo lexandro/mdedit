@@ -103,7 +103,7 @@
   }
 </script>
 
-<div class="editor" bind:this={host}></div>
+<div class="editor" bind:this={host} style="--editor-font-size: {settings.editorFontSize}px"></div>
 
 <style>
   .editor {
@@ -115,6 +115,6 @@
   }
   .editor :global(.cm-scroller) {
     font-family: var(--mono-font);
-    font-size: 14px;
+    font-size: var(--editor-font-size, 14px);
   }
 </style>

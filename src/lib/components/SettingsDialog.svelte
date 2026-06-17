@@ -1,6 +1,11 @@
 <script lang="ts">
   import {
     settings,
+    ZOOM_MIN,
+    ZOOM_MAX,
+    ZOOM_STEP,
+    FONT_MIN,
+    FONT_MAX,
     type ThemeChoice,
     type ViewMode,
     type SplitOrientation,
@@ -51,6 +56,43 @@
       {#each themes as t (t)}
         <button class:active={settings.theme === t} onclick={() => settings.setTheme(t)}>{t}</button>
       {/each}
+    </div>
+  </section>
+
+  <section>
+    <h3>Interface size</h3>
+    <div class="stepper">
+      <button
+        aria-label="Decrease interface size"
+        disabled={settings.uiZoom <= ZOOM_MIN}
+        onclick={() => settings.setUiZoom(settings.uiZoom - ZOOM_STEP)}>−</button
+      >
+      <span class="value">{Math.round(settings.uiZoom * 100)}%</span>
+      <button
+        aria-label="Increase interface size"
+        disabled={settings.uiZoom >= ZOOM_MAX}
+        onclick={() => settings.setUiZoom(settings.uiZoom + ZOOM_STEP)}>+</button
+      >
+      <button class="reset" onclick={() => settings.setUiZoom(1)}>Reset</button>
+    </div>
+    <p class="hint">Scales the whole interface — menu, toolbar, tabs, editor and preview.</p>
+  </section>
+
+  <section>
+    <h3>Editor font size</h3>
+    <div class="stepper">
+      <button
+        aria-label="Decrease editor font size"
+        disabled={settings.editorFontSize <= FONT_MIN}
+        onclick={() => settings.setEditorFontSize(settings.editorFontSize - 1)}>−</button
+      >
+      <span class="value">{settings.editorFontSize}px</span>
+      <button
+        aria-label="Increase editor font size"
+        disabled={settings.editorFontSize >= FONT_MAX}
+        onclick={() => settings.setEditorFontSize(settings.editorFontSize + 1)}>+</button
+      >
+      <button class="reset" onclick={() => settings.setEditorFontSize(14)}>Reset</button>
     </div>
   </section>
 
@@ -157,6 +199,46 @@
     background: var(--accent);
     color: var(--accent-fg);
     border-color: var(--accent);
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stepper button {
+    border: 1px solid var(--border);
+    background: var(--bg-alt);
+    color: var(--fg);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .stepper button:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+  .stepper button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .stepper .value {
+    min-width: 52px;
+    text-align: center;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper .reset {
+    width: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--fg-muted);
+    margin: 8px 0 0;
   }
   .update-row {
     display: flex;
