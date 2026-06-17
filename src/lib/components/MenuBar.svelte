@@ -1,7 +1,10 @@
 <script lang="ts">
   // Custom in-app menu bar (replaces the native OS menu so it scales with the
   // UI zoom and matches the theme). Dispatches every item through onCommand.
-  type Item = { label: string; id: string; shortcut?: string } | "sep";
+  import { recent } from "$lib/stores/recent.svelte";
+  import { basename } from "$lib/stores/tabs.svelte";
+
+  type Item = { label: string; id?: string; shortcut?: string; children?: Item[] } | "sep";
   interface Menu {
     label: string;
     items: Item[];
@@ -9,20 +12,29 @@
 
   let { onCommand }: { onCommand: (id: string) => void } = $props();
 
-  const menus: Menu[] = [
+  let recentItems = $derived<Item[]>(
+    recent.paths.length
+      ? recent.paths.map((p) => ({ label: basename(p), id: `open_recent:${p}` }))
+      : [{ label: "(no recent files)" }],
+  );
+
+  let menus = $derived<Menu[]>([
     {
       label: "File",
       items: [
         { label: "New", id: "new", shortcut: "Ctrl+N" },
         { label: "Open…", id: "open", shortcut: "Ctrl+O" },
+        { label: "Open Recent", children: recentItems },
         "sep",
         { label: "Save", id: "save", shortcut: "Ctrl+S" },
         { label: "Save As…", id: "save_as", shortcut: "Ctrl+Shift+S" },
+        { label: "Save All", id: "save_all", shortcut: "Ctrl+Alt+S" },
         "sep",
         { label: "Export HTML…", id: "export_html" },
         { label: "Export to PDF…", id: "export_pdf" },
         "sep",
         { label: "Close Tab", id: "close_tab", shortcut: "Ctrl+W" },
+        { label: "Reopen Closed Tab", id: "reopen_closed", shortcut: "Ctrl+Shift+T" },
         "sep",
         { label: "Exit", id: "quit" },
       ],
@@ -67,22 +79,32 @@
         { label: "About mdedit", id: "about" },
       ],
     },
-  ];
+  ]);
 
   let open = $state<number | null>(null);
+  let subOpen = $state<string | null>(null);
 
   function toggle(i: number) {
     open = open === i ? null : i;
+    subOpen = null;
   }
   function hover(i: number) {
-    if (open !== null) open = i; // switch menus on hover while one is open
+    if (open !== null) {
+      open = i; // switch menus on hover while one is open
+      subOpen = null;
+    }
   }
-  function choose(id: string) {
+  function choose(id: string | undefined) {
+    if (!id) return; // placeholder / non-actionable row
     open = null;
+    subOpen = null;
     onCommand(id);
   }
   function onWindowPointerDown(e: PointerEvent) {
-    if (open !== null && !(e.target as HTMLElement).closest(".menubar")) open = null;
+    if (open !== null && !(e.target as HTMLElement).closest(".menubar")) {
+      open = null;
+      subOpen = null;
+    }
   }
 </script>
 
@@ -109,7 +131,34 @@
           {#each menu.items as item, j (j)}
             {#if item === "sep"}
               <div class="sep" role="separator"></div>
-            {:else}
+            {:else if item.children}
+              <div
+                class="item sub-parent"
+                role="menuitem"
+                tabindex="-1"
+                aria-haspopup="true"
+                onmouseenter={() => (subOpen = `${i}-${j}`)}
+                onmouseleave={() => (subOpen = null)}
+              >
+                <span class="label">{item.label}</span>
+                <span class="arrow" aria-hidden="true">▸</span>
+                {#if subOpen === `${i}-${j}`}
+                  <div class="dropdown sub" role="menu">
+                    {#each item.children as child, k (k)}
+                      {#if child === "sep"}
+                        <div class="sep" role="separator"></div>
+                      {:else if child.id}
+                        <button class="item" role="menuitem" onclick={() => choose(child.id)}>
+                          <span class="label">{child.label}</span>
+                        </button>
+                      {:else}
+                        <div class="item disabled">{child.label}</div>
+                      {/if}
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {:else if item.id}
               <button class="item" role="menuitem" onclick={() => choose(item.id)}>
                 <span class="label">{item.label}</span>
                 {#if item.shortcut}<span class="shortcut">{item.shortcut}</span>{/if}
@@ -189,5 +238,30 @@
     height: 1px;
     background: var(--border);
     margin: 4px 6px;
+  }
+  .sub-parent {
+    position: relative;
+    cursor: default;
+  }
+  .arrow {
+    color: var(--fg-muted);
+    font-size: 11px;
+  }
+  .sub-parent:hover .arrow {
+    color: var(--accent-fg);
+  }
+  .dropdown.sub {
+    top: -5px;
+    left: 100%;
+    max-height: 70vh;
+    overflow: auto;
+  }
+  .item.disabled {
+    color: var(--fg-muted);
+    cursor: default;
+  }
+  .item.disabled:hover {
+    background: transparent;
+    color: var(--fg-muted);
   }
 </style>

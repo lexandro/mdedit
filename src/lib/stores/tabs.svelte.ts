@@ -245,11 +245,27 @@ class TabsStore {
     return true;
   }
 
+  /** Save every tab with unsaved changes. */
+  async saveAll() {
+    for (const t of this.tabs) {
+      if (isDirty(t)) await this.save(t.id);
+    }
+  }
+
+  // Stack of recently closed tabs, for reopen (most-recent last).
+  #closed: Array<Omit<Tab, "id">> = [];
+
   /** Remove a tab unconditionally (no prompt). */
   close(id: number) {
     const idx = this.tabs.findIndex((t) => t.id === id);
     if (idx === -1) return;
     const closing = this.tabs[idx];
+    // Remember it for "reopen closed tab" (skip blank untitled buffers).
+    if (closing.path || closing.content !== "") {
+      const { id: _id, ...rest } = closing;
+      this.#closed.push({ ...rest });
+      if (this.#closed.length > 25) this.#closed.shift();
+    }
     // Stop watching unless another tab still has the same file open.
     if (
       closing.path &&
@@ -262,6 +278,16 @@ class TabsStore {
       const next = this.tabs[idx] ?? this.tabs[idx - 1] ?? null;
       this.activeId = next?.id ?? null;
     }
+  }
+
+  /** Reopen the most recently closed tab, restoring its buffer and view mode. */
+  reopenClosed() {
+    const restored = this.#closed.pop();
+    if (!restored) return;
+    const tab = this.#makeTab({ ...restored });
+    this.tabs.push(tab);
+    this.activeId = tab.id;
+    if (tab.path) void watchFile(tab.path);
   }
 
   /** Close a tab, prompting if it has unsaved changes. */

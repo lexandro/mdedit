@@ -41,9 +41,11 @@
     open: () => void tabs.open(),
     save: () => void tabs.save(),
     save_as: () => void tabs.saveAs(),
+    save_all: () => void tabs.saveAll(),
     close_tab: () => {
       if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
     },
+    reopen_closed: () => tabs.reopenClosed(),
     quit: () => void getCurrentWindow().close(),
     export_html: () => {
       const t = tabs.active;
@@ -80,6 +82,10 @@
   };
 
   function handleMenu(id: string) {
+    if (id.startsWith("open_recent:")) {
+      void tabs.openPath(id.slice("open_recent:".length));
+      return;
+    }
     commands[id]?.();
   }
 
@@ -102,10 +108,11 @@
     const key = e.key.toLowerCase();
 
     let cmd: string | undefined;
-    if (key === "s") cmd = e.shiftKey ? "save_as" : "save";
+    if (key === "s") cmd = e.altKey ? "save_all" : e.shiftKey ? "save_as" : "save";
     else if (key === "n") cmd = "new";
     else if (key === "o") cmd = "open";
     else if (key === "w") cmd = "close_tab";
+    else if (key === "t" && e.shiftKey) cmd = "reopen_closed";
     else if (["1", "2", "3"].includes(e.key))
       cmd = ["view_source", "view_split", "view_preview"][Number(e.key) - 1];
     else if (e.key === "Tab") {
