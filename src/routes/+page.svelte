@@ -13,10 +13,12 @@
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
   import AboutDialog from "$lib/components/AboutDialog.svelte";
+  import ChangelogDialog from "$lib/components/ChangelogDialog.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
   let aboutOpen = $state(false);
+  let changelogOpen = $state(false);
   let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
@@ -71,6 +73,7 @@
     settings: () => (settingsOpen = true),
     toggle_outline: () => (outlineVisible = !outlineVisible),
     check_updates: () => void updater.check(true),
+    changelog: () => (changelogOpen = true),
     about: () => (aboutOpen = true),
   };
 
@@ -193,6 +196,10 @@
 
 {#if aboutOpen}
   <AboutDialog onClose={() => (aboutOpen = false)} />
+{/if}
+
+{#if changelogOpen}
+  <ChangelogDialog onClose={() => (changelogOpen = false)} />
 {/if}
 
 <style>

@@ -62,6 +62,7 @@
       items: [
         { label: "Check for Updates…", id: "check_updates" },
         "sep",
+        { label: "Changelog", id: "changelog" },
         { label: "About mdedit", id: "about" },
       ],
     },
