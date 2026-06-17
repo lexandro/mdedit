@@ -8,6 +8,8 @@
     "opener:default",
     "dialog:default",
     "store:default",
+    "updater:default",
+    "process:default",
     "fs:default",
     {
       "identifier": "fs:allow-read-text-file",

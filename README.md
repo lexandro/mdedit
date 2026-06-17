@@ -43,6 +43,34 @@ bun run tauri dev    # launch the app in dev mode (hot reload)
 bun run tauri build  # produces a native installer + .exe under src-tauri/target/release
 ```
 
+## Releasing & auto-updates
+
+Releases are built by `.github/workflows/release.yml` when you push a version
+tag (e.g. `v0.1.0`). The app also has an in-app updater (Settings → **Check for
+updates**) backed by `tauri-plugin-updater`.
+
+One-time setup before the first signed release:
+
+1. **Generate a signing key pair** (keep the private key secret):
+   ```bash
+   bun tauri signer generate -w mdedit.key
+   ```
+2. **Public key** → paste into `src-tauri/tauri.conf.json` at
+   `plugins.updater.pubkey` (replaces the placeholder).
+3. **Private key + password** → add as GitHub repository secrets
+   (Settings → Secrets and variables → Actions):
+   - `TAURI_SIGNING_PRIVATE_KEY` — contents of `mdedit.key`
+   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — the password you chose
+4. **Update endpoint** → in `tauri.conf.json`, set the `plugins.updater.endpoints`
+   URL to your repo (`https://github.com/<owner>/mdedit/releases/latest/download/latest.json`).
+5. Tag and push: `git tag v0.1.0 && git push --tags`. The workflow builds the
+   installer, signs it, generates `latest.json`, and attaches everything to a
+   **draft** GitHub Release — review and publish it.
+
+> **Code signing:** without an Authenticode certificate, Windows SmartScreen will
+> warn on first run. The Tauri updater signature above is separate from OS code
+> signing; add a code-signing certificate later for a warning-free install.
+
 ## Project layout
 
 ```
