@@ -1,0 +1,86 @@
+<script lang="ts">
+  import { onMount } from "svelte";
+  import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
+  import { EditorState, Compartment } from "@codemirror/state";
+  import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
+  import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+  import { markdown } from "@codemirror/lang-markdown";
+  import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
+  import { oneDark } from "@codemirror/theme-one-dark";
+  import { tabs, type Tab } from "$lib/stores/tabs.svelte";
+  import { settings } from "$lib/stores/settings.svelte";
+
+  let { tab }: { tab: Tab } = $props();
+
+  let host: HTMLDivElement;
+  let view: EditorView | undefined;
+  const themeCompartment = new Compartment();
+
+  function themeExtension() {
+    return settings.resolvedTheme === "dark"
+      ? oneDark
+      : syntaxHighlighting(defaultHighlightStyle, { fallback: true });
+  }
+
+  onMount(() => {
+    view = new EditorView({
+      parent: host,
+      state: EditorState.create({
+        doc: tab.content,
+        extensions: [
+          lineNumbers(),
+          history(),
+          highlightActiveLine(),
+          highlightSelectionMatches(),
+          EditorView.lineWrapping,
+          markdown(),
+          themeCompartment.of(themeExtension()),
+          keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+          EditorView.updateListener.of((u) => {
+            if (u.docChanged) {
+              tabs.setContent(tab.id, u.state.doc.toString());
+            }
+          }),
+        ],
+      }),
+    });
+    return () => view?.destroy();
+  });
+
+  // Re-apply the editor theme whenever the resolved light/dark value changes.
+  $effect(() => {
+    const _ = settings.resolvedTheme;
+    view?.dispatch({ effects: themeCompartment.reconfigure(themeExtension()) });
+  });
+
+  // Push external content changes (e.g. file reload) into the editor without
+  // clobbering the user's cursor during normal typing.
+  $effect(() => {
+    const incoming = tab.content;
+    if (view && incoming !== view.state.doc.toString()) {
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: incoming },
+      });
+    }
+  });
+
+  export function focus() {
+    view?.focus();
+  }
+</script>
+
+<div class="editor" bind:this={host}></div>
+
+<style>
+  .editor {
+    height: 100%;
+    overflow: hidden;
+  }
+  .editor :global(.cm-editor) {
+    height: 100%;
+  }
+  .editor :global(.cm-scroller) {
+    font-family: var(--mono-font);
+    font-size: 14px;
+  }
+</style>

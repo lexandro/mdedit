@@ -1,0 +1,12 @@
+node_modules/
+src-tauri/target/
+src-tauri/gen/
+build/
+.svelte-kit/
+package/
+bun.lock
+bun.lockb
+*.png
+*.ico
+*.icns
+*.svg
