@@ -12,9 +12,11 @@
   import { exportHtml, exportPdf } from "$lib/export";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
+  import AboutDialog from "$lib/components/AboutDialog.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
+  let aboutOpen = $state(false);
   let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
@@ -64,6 +66,7 @@
     settings: () => (settingsOpen = true),
     toggle_outline: () => (outlineVisible = !outlineVisible),
     check_updates: () => void updater.check(true),
+    about: () => (aboutOpen = true),
   };
 
   function handleMenu(id: string) {
@@ -181,6 +184,10 @@
 
 {#if settingsOpen}
   <SettingsDialog onClose={() => (settingsOpen = false)} />
+{/if}
+
+{#if aboutOpen}
+  <AboutDialog onClose={() => (aboutOpen = false)} />
 {/if}
 
 <style>

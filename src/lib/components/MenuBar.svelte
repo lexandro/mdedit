@@ -55,7 +55,11 @@
     },
     {
       label: "Help",
-      items: [{ label: "Check for Updates…", id: "check_updates" }],
+      items: [
+        { label: "Check for Updates…", id: "check_updates" },
+        "sep",
+        { label: "About mdedit", id: "about" },
+      ],
     },
   ];
 
