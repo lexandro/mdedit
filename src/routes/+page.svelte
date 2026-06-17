@@ -1,4 +1,5 @@
 <script lang="ts">
+  import MenuBar from "$lib/components/MenuBar.svelte";
   import Toolbar from "$lib/components/Toolbar.svelte";
   import TabBar from "$lib/components/TabBar.svelte";
   import TabView from "$lib/components/TabView.svelte";
@@ -6,8 +7,7 @@
   import { tabs, isDirty, tabTitle, basename } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
-  import { onMount } from "svelte";
-  import { listen } from "@tauri-apps/api/event";
+  import { editorCommands } from "$lib/editor-commands";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
@@ -19,15 +19,6 @@
     getCurrentWindow()
       .setTitle(title)
       .catch(() => {}); // not under Tauri
-  });
-
-  // Native menu items emit a "menu" event from Rust; map ids to actions here.
-  onMount(() => {
-    let unlisten: (() => void) | undefined;
-    listen<string>("menu", (e) => handleMenu(e.payload))
-      .then((fn) => (unlisten = fn))
-      .catch(() => {}); // not running under Tauri
-    return () => unlisten?.();
   });
 
   function setViewMode(mode: ViewMode) {
@@ -43,6 +34,13 @@
     close_tab: () => {
       if (tabs.activeId != null) void tabs.closeWithConfirm(tabs.activeId);
     },
+    quit: () => void getCurrentWindow().close(),
+    undo: () => editorCommands.undo(),
+    redo: () => editorCommands.redo(),
+    cut: () => editorCommands.cut(),
+    copy: () => editorCommands.copy(),
+    paste: () => void editorCommands.paste(),
+    select_all: () => editorCommands.selectAll(),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
     view_preview: () => setViewMode("preview"),
@@ -104,6 +102,7 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="app">
+  <MenuBar onCommand={handleMenu} />
   <Toolbar onOpenSettings={() => (settingsOpen = true)} />
   <TabBar />
 

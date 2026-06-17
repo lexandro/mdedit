@@ -2,7 +2,6 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
-use tauri::menu::{MenuBuilder, SubmenuBuilder};
 use tauri::{Emitter, Manager};
 
 /// Holds the filesystem watcher so commands can (un)watch open files.
@@ -61,46 +60,9 @@ pub fn run() {
             })?;
             app.manage(WatcherState(Mutex::new(watcher)));
 
-            // --- Native menu bar. Custom items emit a "menu" event to the
-            // frontend; keyboard shortcuts are handled there (no accelerators
-            // here, to avoid double-firing). Edit uses predefined webview actions.
-            let file = SubmenuBuilder::new(app, "File")
-                .text("new", "New")
-                .text("open", "Open…")
-                .text("save", "Save")
-                .text("save_as", "Save As…")
-                .separator()
-                .text("close_tab", "Close Tab")
-                .separator()
-                .quit()
-                .build()?;
-
-            let edit = SubmenuBuilder::new(app, "Edit")
-                .undo()
-                .redo()
-                .separator()
-                .cut()
-                .copy()
-                .paste()
-                .select_all()
-                .build()?;
-
-            let view = SubmenuBuilder::new(app, "View")
-                .text("view_source", "Source")
-                .text("view_split", "Split")
-                .text("view_preview", "Preview")
-                .separator()
-                .text("toggle_orientation", "Toggle Split Orientation")
-                .separator()
-                .text("settings", "Settings…")
-                .build()?;
-
-            let menu = MenuBuilder::new(app).items(&[&file, &edit, &view]).build()?;
-            app.set_menu(menu)?;
+            // No native menu: the app renders its own in-app menu bar (see
+            // MenuBar.svelte) so it scales with the UI zoom and matches the theme.
             Ok(())
-        })
-        .on_menu_event(|app, event| {
-            let _ = app.emit("menu", event.id().0.as_str());
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

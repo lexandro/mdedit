@@ -9,6 +9,7 @@
   import { oneDark } from "@codemirror/theme-one-dark";
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
+  import { setActiveEditor, clearActiveEditor } from "$lib/editor-commands";
 
   let {
     tab,
@@ -65,10 +66,19 @@
       }),
     });
     view.scrollDOM.addEventListener("scroll", handleScroll, { passive: true });
+    const onFocusIn = () => view && setActiveEditor(view);
+    view.contentDOM.addEventListener("focusin", onFocusIn);
     return () => {
       view?.scrollDOM.removeEventListener("scroll", handleScroll);
+      view?.contentDOM.removeEventListener("focusin", onFocusIn);
+      if (view) clearActiveEditor(view);
       view?.destroy();
     };
+  });
+
+  // Make this the active editor (for Edit-menu actions) when its tab is active.
+  $effect(() => {
+    if (view && tab.id === tabs.activeId) setActiveEditor(view);
   });
 
   // Re-apply the editor theme whenever the resolved light/dark value changes.
