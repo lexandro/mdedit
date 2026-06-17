@@ -4,8 +4,19 @@
   import TabView from "$lib/components/TabView.svelte";
   import SettingsDialog from "$lib/components/SettingsDialog.svelte";
   import { tabs, isDirty } from "$lib/stores/tabs.svelte";
+  import { recent } from "$lib/stores/recent.svelte";
 
   let settingsOpen = $state(false);
+
+  function basename(p: string): string {
+    const parts = p.split(/[\\/]/);
+    return parts[parts.length - 1] || p;
+  }
+
+  function toggleLineEnding() {
+    if (!tabs.active) return;
+    tabs.setLineEnding(tabs.active.id, tabs.active.lineEnding === "lf" ? "crlf" : "lf");
+  }
 
   // Status-bar metrics for the active document.
   let wordCount = $derived.by(() => {
@@ -65,6 +76,20 @@
           <button onclick={() => tabs.newTab()}>New file</button>
           <button onclick={() => tabs.open()}>Open file…</button>
         </div>
+        {#if recent.paths.length > 0}
+          <div class="recent">
+            <h2>Recent</h2>
+            <ul>
+              {#each recent.paths as path (path)}
+                <li>
+                  <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
+                    {basename(path)}<span class="path">{path}</span>
+                  </button>
+                </li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
         <p class="hint">Ctrl+N new · Ctrl+O open · Ctrl+S save · Ctrl+1/2/3 view mode</p>
       </div>
     {:else}
@@ -79,7 +104,9 @@
   <footer class="statusbar">
     {#if tabs.active}
       <span>{isDirty(tabs.active) ? "● Modified" : "Saved"}</span>
-      <span>{tabs.active.lineEnding.toUpperCase()}</span>
+      <button class="status-btn" title="Toggle line ending" onclick={toggleLineEnding}>
+        {tabs.active.lineEnding.toUpperCase()}
+      </button>
       <span>{tabs.active.hadBom ? "UTF-8 BOM" : "UTF-8"}</span>
       <span class="spacer"></span>
       <span>{wordCount} words</span>
@@ -142,6 +169,46 @@
     font-size: 12px;
     margin-top: 12px;
   }
+  .recent {
+    margin-top: 18px;
+    width: min(460px, 80vw);
+  }
+  .recent h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fg-muted);
+    margin: 0 0 6px;
+  }
+  .recent ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .recent-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .recent-item:hover {
+    background: var(--bg-alt);
+  }
+  .recent-item .path {
+    color: var(--fg-muted);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .statusbar {
     display: flex;
     align-items: center;
@@ -154,5 +221,18 @@
   }
   .spacer {
     flex: 1;
+  }
+  .status-btn {
+    border: none;
+    background: transparent;
+    color: var(--fg-muted);
+    font: inherit;
+    padding: 0 4px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .status-btn:hover {
+    background: var(--border);
+    color: var(--fg);
   }
 </style>

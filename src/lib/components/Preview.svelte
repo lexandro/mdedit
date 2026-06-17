@@ -3,11 +3,19 @@
   import { settings } from "$lib/stores/settings.svelte";
   import mermaid from "mermaid";
 
-  let { source }: { source: string } = $props();
+  let { source, scrollFraction }: { source: string; scrollFraction?: number } = $props();
 
   let container: HTMLDivElement;
   let html = $derived(renderMarkdown(source));
   let mermaidSeq = 0;
+
+  // Follow the editor's scroll position (one-way) when driven from a split view.
+  $effect(() => {
+    const f = scrollFraction;
+    if (!container || f == null) return;
+    const max = container.scrollHeight - container.clientHeight;
+    container.scrollTop = f * max;
+  });
 
   // (Re)render after the HTML is in the DOM and whenever the theme flips.
   $effect(() => {

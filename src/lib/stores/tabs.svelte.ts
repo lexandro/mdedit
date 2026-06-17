@@ -9,6 +9,7 @@ import {
   type LineEnding,
 } from "$lib/ipc";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
+import { recent } from "$lib/stores/recent.svelte";
 
 export interface Tab {
   id: number;
@@ -75,10 +76,30 @@ class TabsStore {
     if (tab) tab.viewMode = mode;
   }
 
+  setLineEnding(id: number, lineEnding: LineEnding) {
+    const tab = this.tabs.find((t) => t.id === id);
+    if (tab) tab.lineEnding = lineEnding;
+  }
+
   /** Open via dialog. If the file is already open, just focus its tab. */
   async open() {
     const loaded = await pickAndReadFile();
     if (!loaded) return;
+    this.#openLoaded(loaded);
+  }
+
+  /** Open a known path directly (e.g. from the recent-files list). */
+  async openPath(path: string) {
+    const existing = this.tabs.find((t) => t.path === path);
+    if (existing) {
+      this.activeId = existing.id;
+      return;
+    }
+    const loaded = await readFile(path);
+    this.#openLoaded(loaded);
+  }
+
+  #openLoaded(loaded: { path: string; content: string; lineEnding: LineEnding; hadBom: boolean }) {
     const existing = this.tabs.find((t) => t.path === loaded.path);
     if (existing) {
       this.activeId = existing.id;
@@ -93,6 +114,7 @@ class TabsStore {
     });
     this.tabs.push(tab);
     this.activeId = tab.id;
+    void recent.add(loaded.path);
   }
 
   /** Reload a tab's content from disk (used after external change). */
@@ -125,6 +147,7 @@ class TabsStore {
     await writeFile(path, tab.content, { lineEnding: tab.lineEnding, bom: tab.hadBom });
     tab.path = path;
     tab.savedContent = tab.content;
+    void recent.add(path);
     return true;
   }
 

@@ -11,8 +11,14 @@
   let percent = $state(50);
   let dragging = $state(false);
   let root: HTMLDivElement;
+  let scrollFraction = $state<number | undefined>(undefined);
 
   let orientation = $derived(settings.splitOrientation);
+
+  // Only mirror scrolling when both panes are visible.
+  function onEditorScroll(f: number) {
+    if (tab.viewMode === "split") scrollFraction = f;
+  }
 
   function onPointerDown(e: PointerEvent) {
     dragging = true;
@@ -40,7 +46,7 @@
   style="--first: {percent}%"
 >
   <div class="pane editor-pane">
-    <Editor {tab} />
+    <Editor {tab} onScroll={onEditorScroll} />
   </div>
   <div
     class="divider"
@@ -52,7 +58,7 @@
     onpointerup={onPointerUp}
   ></div>
   <div class="pane preview-pane">
-    <Preview source={tab.content} />
+    <Preview source={tab.content} {scrollFraction} />
   </div>
 </div>
 

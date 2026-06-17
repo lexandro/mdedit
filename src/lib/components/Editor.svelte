@@ -10,11 +10,18 @@
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
 
-  let { tab }: { tab: Tab } = $props();
+  let { tab, onScroll }: { tab: Tab; onScroll?: (fraction: number) => void } = $props();
 
   let host: HTMLDivElement;
   let view: EditorView | undefined;
   const themeCompartment = new Compartment();
+
+  function handleScroll() {
+    if (!view || !onScroll) return;
+    const el = view.scrollDOM;
+    const max = el.scrollHeight - el.clientHeight;
+    onScroll(max > 0 ? el.scrollTop / max : 0);
+  }
 
   function themeExtension() {
     return settings.resolvedTheme === "dark"
@@ -44,7 +51,11 @@
         ],
       }),
     });
-    return () => view?.destroy();
+    view.scrollDOM.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      view?.scrollDOM.removeEventListener("scroll", handleScroll);
+      view?.destroy();
+    };
   });
 
   // Re-apply the editor theme whenever the resolved light/dark value changes.
