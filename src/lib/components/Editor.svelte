@@ -10,17 +10,30 @@
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
 
-  let { tab, onScroll }: { tab: Tab; onScroll?: (fraction: number) => void } = $props();
+  let {
+    tab,
+    onScroll,
+    scrollFraction,
+  }: {
+    tab: Tab;
+    onScroll?: (fraction: number) => void;
+    scrollFraction?: number;
+  } = $props();
 
   let host: HTMLDivElement;
   let view: EditorView | undefined;
   const themeCompartment = new Compartment();
 
+  // Last fraction we programmatically applied, to suppress the echo scroll event.
+  let appliedFraction = -1;
+
   function handleScroll() {
     if (!view || !onScroll) return;
     const el = view.scrollDOM;
     const max = el.scrollHeight - el.clientHeight;
-    onScroll(max > 0 ? el.scrollTop / max : 0);
+    const cur = max > 0 ? el.scrollTop / max : 0;
+    if (Math.abs(cur - appliedFraction) < 0.004) return; // echo from sync
+    onScroll(cur);
   }
 
   function themeExtension() {
@@ -62,6 +75,16 @@
   $effect(() => {
     const _ = settings.resolvedTheme;
     view?.dispatch({ effects: themeCompartment.reconfigure(themeExtension()) });
+  });
+
+  // Follow the preview's scroll position (driven from a split view).
+  $effect(() => {
+    const f = scrollFraction;
+    if (!view || f == null) return;
+    const max = view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight;
+    if (max <= 0) return;
+    appliedFraction = f;
+    view.scrollDOM.scrollTop = f * max;
   });
 
   // Push external content changes (e.g. file reload) into the editor without

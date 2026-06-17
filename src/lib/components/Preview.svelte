@@ -3,19 +3,40 @@
   import { settings } from "$lib/stores/settings.svelte";
   import mermaid from "mermaid";
 
-  let { source, scrollFraction }: { source: string; scrollFraction?: number } = $props();
+  let {
+    source,
+    scrollFraction,
+    onScroll,
+  }: {
+    source: string;
+    scrollFraction?: number;
+    onScroll?: (fraction: number) => void;
+  } = $props();
 
   let container: HTMLDivElement;
   let html = $derived(renderMarkdown(source));
   let mermaidSeq = 0;
 
-  // Follow the editor's scroll position (one-way) when driven from a split view.
+  // Last fraction we programmatically applied, to suppress the echo scroll event.
+  let appliedFraction = -1;
+
+  // Follow the editor's scroll position (driven from a split view).
   $effect(() => {
     const f = scrollFraction;
     if (!container || f == null) return;
     const max = container.scrollHeight - container.clientHeight;
+    if (max <= 0) return;
+    appliedFraction = f;
     container.scrollTop = f * max;
   });
+
+  function handleScroll() {
+    if (!container || !onScroll) return;
+    const max = container.scrollHeight - container.clientHeight;
+    const cur = max > 0 ? container.scrollTop / max : 0;
+    if (Math.abs(cur - appliedFraction) < 0.004) return; // echo from sync
+    onScroll(cur);
+  }
 
   // (Re)render after the HTML is in the DOM and whenever the theme flips.
   $effect(() => {
@@ -46,7 +67,7 @@
   });
 </script>
 
-<div class="preview markdown-body" bind:this={container}>
+<div class="preview markdown-body" bind:this={container} onscroll={handleScroll}>
   {@html html}
 </div>
 
