@@ -11,6 +11,7 @@
   import { settings } from "$lib/stores/settings.svelte";
   import { setActiveEditor, clearActiveEditor } from "$lib/editor-commands";
   import { wrapSelection, insertLink } from "$lib/md-format";
+  import { savePastedImage } from "$lib/paste-image";
 
   let {
     tab,
@@ -28,6 +29,25 @@
 
   // Last fraction we programmatically applied, to suppress the echo scroll event.
   let appliedFraction = -1;
+
+  // Intercept image pastes: save the image and insert a Markdown link instead
+  // of the (unsupported) raw image data. Text pastes fall through to CodeMirror.
+  function handlePaste(event: ClipboardEvent, v: EditorView): boolean {
+    const item = Array.from(event.clipboardData?.items ?? []).find((it) =>
+      it.type.startsWith("image/"),
+    );
+    const file = item?.getAsFile();
+    if (!file) return false;
+    event.preventDefault();
+    void (async () => {
+      const src = await savePastedImage(file, tab.path);
+      if (!src) return;
+      const md = `![](${src})`;
+      const { from, to } = v.state.selection.main;
+      v.dispatch({ changes: { from, to, insert: md }, selection: { anchor: from + md.length } });
+    })();
+    return true;
+  }
 
   function handleScroll() {
     if (!view || !onScroll) return;
@@ -56,6 +76,7 @@
           highlightSelectionMatches(),
           EditorView.lineWrapping,
           markdown(),
+          EditorView.domEventHandlers({ paste: handlePaste }),
           themeCompartment.of(themeExtension()),
           keymap.of([
             { key: "Mod-b", run: (v) => wrapSelection(v, "**") },
