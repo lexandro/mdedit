@@ -2,7 +2,7 @@
   import Editor from "$lib/components/Editor.svelte";
   import Preview from "$lib/components/Preview.svelte";
   import { settings } from "$lib/stores/settings.svelte";
-  import type { Tab } from "$lib/stores/tabs.svelte";
+  import { tabs, type Tab } from "$lib/stores/tabs.svelte";
 
   let { tab }: { tab: Tab } = $props();
 
@@ -69,6 +69,7 @@
         basePath={tab.path}
         scrollFraction={previewFraction}
         onScroll={onPreviewScroll}
+        onSourceChange={(s) => tabs.setContent(tab.id, s)}
       />
     {/if}
   </div>

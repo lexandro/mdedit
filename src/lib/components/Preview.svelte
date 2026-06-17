@@ -8,16 +8,51 @@
     basePath,
     scrollFraction,
     onScroll,
+    onSourceChange,
   }: {
     source: string;
     basePath?: string | null;
     scrollFraction?: number;
     onScroll?: (fraction: number) => void;
+    onSourceChange?: (newSource: string) => void;
   } = $props();
 
   let container: HTMLDivElement;
   let html = $derived(renderMarkdown(source, basePath));
   let mermaidSeq = 0;
+
+  // Toggle the n-th GFM task item (0-based) in the source, matching the order
+  // of rendered checkboxes. Skips fenced code so task syntax there doesn't count.
+  function toggleTaskInSource(src: string, n: number, checked: boolean): string {
+    const lines = src.split("\n");
+    let count = -1;
+    let fence: string | null = null;
+    for (let i = 0; i < lines.length; i++) {
+      const fm = lines[i].match(/^\s*(```+|~~~+)/);
+      if (fm) {
+        const mk = fm[1][0];
+        if (fence === null) fence = mk;
+        else if (lines[i].trim().startsWith(fence)) fence = null;
+        continue;
+      }
+      if (fence !== null) continue;
+      const m = lines[i].match(/^(\s*(?:[-*+]|\d+\.)\s+\[)[ xX](\].*)$/);
+      if (m && ++count === n) {
+        lines[i] = m[1] + (checked ? "x" : " ") + m[2];
+        break;
+      }
+    }
+    return lines.join("\n");
+  }
+
+  // A task checkbox was toggled in the preview — reflect it in the source.
+  function onContainerChange(e: Event) {
+    const target = e.target as HTMLElement;
+    if (!onSourceChange || !(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+    const boxes = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+    const idx = boxes.indexOf(target);
+    if (idx >= 0) onSourceChange(toggleTaskInSource(source, idx, target.checked));
+  }
 
   // Last fraction we programmatically applied, to suppress the echo scroll event.
   let appliedFraction = -1;
@@ -69,7 +104,12 @@
   });
 </script>
 
-<div class="preview markdown-body" bind:this={container} onscroll={handleScroll}>
+<div
+  class="preview markdown-body"
+  bind:this={container}
+  onscroll={handleScroll}
+  onchange={onContainerChange}
+>
   {@html html}
 </div>
 
