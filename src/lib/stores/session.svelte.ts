@@ -4,7 +4,8 @@
 // rather than only on close, so an unexpected shutdown loses at most ~0.4s.
 import { type Store } from "@tauri-apps/plugin-store";
 import { tryLoadStore } from "$lib/stores/persist";
-import { tabs, isDirty, type SessionData } from "$lib/stores/tabs.svelte";
+import { tabs, type SessionData } from "$lib/stores/tabs.svelte";
+import { serializeSession } from "$lib/session-util";
 
 const STORE_FILE = "session.json";
 
@@ -41,22 +42,7 @@ class SessionStore {
 
   async #persist() {
     if (!this.#store) return;
-    const data: SessionData = {
-      activeIndex: tabs.tabs.findIndex((t) => t.id === tabs.activeId),
-      tabs: tabs.tabs
-        .filter((t) => t.path || t.content !== "") // drop empty untitled tabs
-        .map((t) => {
-          const keepBuffer = isDirty(t) || !t.path;
-          return {
-            path: t.path,
-            viewMode: t.viewMode,
-            lineEnding: t.lineEnding,
-            encoding: t.encoding,
-            ...(keepBuffer ? { unsaved: t.content } : {}),
-          };
-        }),
-    };
-    await this.#store.set("session", data);
+    await this.#store.set("session", serializeSession(tabs.tabs, tabs.activeId));
     await this.#store.save();
   }
 }

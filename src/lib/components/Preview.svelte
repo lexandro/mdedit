@@ -1,5 +1,6 @@
 <script lang="ts">
   import { renderMarkdown } from "$lib/markdown/renderer";
+  import { toggleTaskInSource } from "$lib/md-tasks";
   import { settings } from "$lib/stores/settings.svelte";
   import mermaid from "mermaid";
 
@@ -38,30 +39,6 @@
     renderTimer = setTimeout(() => (html = renderMarkdown(s, bp)), delay);
     return () => clearTimeout(renderTimer);
   });
-
-  // Toggle the n-th GFM task item (0-based) in the source, matching the order
-  // of rendered checkboxes. Skips fenced code so task syntax there doesn't count.
-  function toggleTaskInSource(src: string, n: number, checked: boolean): string {
-    const lines = src.split("\n");
-    let count = -1;
-    let fence: string | null = null;
-    for (let i = 0; i < lines.length; i++) {
-      const fm = lines[i].match(/^\s*(```+|~~~+)/);
-      if (fm) {
-        const mk = fm[1][0];
-        if (fence === null) fence = mk;
-        else if (lines[i].trim().startsWith(fence)) fence = null;
-        continue;
-      }
-      if (fence !== null) continue;
-      const m = lines[i].match(/^(\s*(?:[-*+]|\d+\.)\s+\[)[ xX](\].*)$/);
-      if (m && ++count === n) {
-        lines[i] = m[1] + (checked ? "x" : " ") + m[2];
-        break;
-      }
-    }
-    return lines.join("\n");
-  }
 
   // A task checkbox was toggled in the preview — reflect it in the source.
   function onContainerChange(e: Event) {

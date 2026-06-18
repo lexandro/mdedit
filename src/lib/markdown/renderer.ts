@@ -7,37 +7,11 @@ import taskLists from "markdown-it-task-lists";
 import hljs from "highlight.js";
 import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
 
-function dirname(path: string): string {
-  const norm = path.replace(/\\/g, "/");
-  const i = norm.lastIndexOf("/");
-  return i >= 0 ? norm.slice(0, i) : "";
-}
-
-/** Join a relative path onto a base dir, collapsing "." and ".." segments. */
-function joinPath(baseDir: string, rel: string): string {
-  const parts = `${baseDir}/${rel.replace(/\\/g, "/")}`.split("/");
-  const out: string[] = [];
-  for (const p of parts) {
-    if (p === "" || p === ".") continue;
-    if (p === "..") out.pop();
-    else out.push(p);
-  }
-  return out.join("/");
-}
-
-/** Resolve an <img> src so local files load through Tauri's asset protocol.
- *  Absolute URLs and data/blob URIs pass through; a relative path is resolved
- *  against the open document's folder. */
+/** Rewrite a local <img> src to the Tauri asset protocol; pass URLs through. */
 function resolveAssetSrc(src: string, baseDir: string | null): string {
-  if (!src) return src;
-  if (/^(https?|data|blob|asset|mailto|tel):/i.test(src)) return src;
-  let abs: string | null = null;
-  if (/^[a-zA-Z]:[\\/]/.test(src) || src.startsWith("\\\\")) {
-    abs = src.replace(/\\/g, "/"); // already absolute (Windows / UNC)
-  } else if (baseDir && !src.startsWith("/")) {
-    abs = joinPath(baseDir, src); // relative to the document
-  }
+  const abs = toAbsoluteImagePath(src, baseDir);
   if (!abs) return src;
   try {
     return convertFileSrc(abs);

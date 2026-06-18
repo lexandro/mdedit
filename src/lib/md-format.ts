@@ -1,30 +1,27 @@
-// Pure CodeMirror transforms for Markdown formatting. Used by both the editor
-// keymap (Ctrl+B/I/K) and the toolbar buttons (via editor-commands).
+// Thin CodeMirror wrappers around the pure formatting logic in md-format-core.
+// Used by the editor keymap (Ctrl+B/I/K) and the toolbar buttons.
 import { EditorSelection, type ChangeSpec } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
+import { toggleWrap, nextListPrefix } from "$lib/md-format-core";
 
 /** Wrap (or unwrap, if already wrapped) each selection with markers. */
 export function wrapSelection(view: EditorView, before: string, after = before): boolean {
   const { state } = view;
   const tr = state.changeByRange((range) => {
     const text = state.sliceDoc(range.from, range.to);
-    const wrapped =
-      text.length >= before.length + after.length &&
-      text.startsWith(before) &&
-      text.endsWith(after);
-    if (wrapped) {
-      const inner = text.slice(before.length, text.length - after.length);
+    const next = toggleWrap(text, before, after);
+    if (!text.length) {
       return {
-        changes: { from: range.from, to: range.to, insert: inner },
-        range: EditorSelection.range(range.from, range.from + inner.length),
+        changes: { from: range.from, to: range.to, insert: next },
+        range: EditorSelection.cursor(range.from + before.length),
       };
     }
-    const insert = before + text + after;
+    const unwrapped = next.length < text.length;
+    const start = unwrapped ? range.from : range.from + before.length;
+    const len = unwrapped ? next.length : text.length;
     return {
-      changes: { from: range.from, to: range.to, insert },
-      range: text.length
-        ? EditorSelection.range(range.from + before.length, range.to + before.length)
-        : EditorSelection.cursor(range.from + before.length),
+      changes: { from: range.from, to: range.to, insert: next },
+      range: EditorSelection.range(start, start + len),
     };
   });
   view.dispatch(state.update(tr, { scrollIntoView: true, userEvent: "input" }));
@@ -49,8 +46,6 @@ export function insertLink(view: EditorView): boolean {
   return true;
 }
 
-const LIST_RE = /^(\s*)([-*+]|\d+[.)])(\s+)(\[[ xX]\]\s+)?(.*)$/;
-
 /** Enter inside a list continues it (next bullet / incremented number / carried
  *  task box); pressing Enter on an empty item exits the list. Returns false on
  *  non-list lines so the default newline behaviour runs. */
@@ -59,12 +54,10 @@ export function continueList(view: EditorView): boolean {
   const range = state.selection.main;
   if (!range.empty) return false;
   const line = state.doc.lineAt(range.from);
-  const m = line.text.match(LIST_RE);
-  if (!m) return false;
-  const [, indent, marker, space, checkbox, content] = m;
+  const action = nextListPrefix(line.text);
+  if (!action) return false;
 
-  // Empty item -> exit the list (clear the line).
-  if (content.trim() === "") {
+  if ("exit" in action) {
     view.dispatch({
       changes: { from: line.from, to: line.to, insert: "" },
       selection: { anchor: line.from },
@@ -73,12 +66,7 @@ export function continueList(view: EditorView): boolean {
     return true;
   }
 
-  // Continue: build the next marker (bump the number for ordered lists).
-  let nextMarker = marker;
-  if (/^\d+[.)]$/.test(marker)) {
-    nextMarker = `${parseInt(marker, 10) + 1}${marker.slice(-1)}`;
-  }
-  const insert = "\n" + indent + nextMarker + space + (checkbox ? "[ ] " : "");
+  const insert = "\n" + action.prefix;
   view.dispatch({
     changes: { from: range.from, to: range.from, insert },
     selection: { anchor: range.from + insert.length },
