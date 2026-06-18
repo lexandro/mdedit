@@ -6,6 +6,9 @@
     ZOOM_STEP,
     FONT_MIN,
     FONT_MAX,
+    DEBOUNCE_MIN,
+    DEBOUNCE_MAX,
+    DEBOUNCE_STEP,
     type ThemeChoice,
     type ViewMode,
     type SplitOrientation,
@@ -75,6 +78,27 @@
       >
       <button class="reset" onclick={() => settings.setEditorFontSize(14)}>Reset</button>
     </div>
+  </section>
+
+  <section>
+    <h3>Preview update delay</h3>
+    <div class="stepper">
+      <button
+        aria-label="Decrease preview delay"
+        disabled={settings.previewDebounceMs <= DEBOUNCE_MIN}
+        onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs - DEBOUNCE_STEP)}
+        >−</button
+      >
+      <span class="value">{settings.previewDebounceMs} ms</span>
+      <button
+        aria-label="Increase preview delay"
+        disabled={settings.previewDebounceMs >= DEBOUNCE_MAX}
+        onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs + DEBOUNCE_STEP)}
+        >+</button
+      >
+      <button class="reset" onclick={() => settings.setPreviewDebounceMs(100)}>Reset</button>
+    </div>
+    <p class="hint">How long after you stop typing the preview re-renders (0 = instant).</p>
   </section>
 
   <section>

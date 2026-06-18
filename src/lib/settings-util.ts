@@ -6,6 +6,9 @@ export const ZOOM_MAX = 1.8;
 export const ZOOM_STEP = 0.1;
 export const FONT_MIN = 10;
 export const FONT_MAX = 28;
+export const DEBOUNCE_MIN = 0;
+export const DEBOUNCE_MAX = 1000;
+export const DEBOUNCE_STEP = 25;
 
 export function clamp(value: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, value));
@@ -18,6 +21,11 @@ export function clampZoom(zoom: number): number {
 
 export function clampFontSize(px: number): number {
   return clamp(Math.round(px), FONT_MIN, FONT_MAX);
+}
+
+/** Clamp the preview render debounce (milliseconds). */
+export function clampDebounce(ms: number): number {
+  return clamp(Math.round(ms), DEBOUNCE_MIN, DEBOUNCE_MAX);
 }
 
 /** Next editor font size for a Ctrl+wheel step (wheel up = bigger). */

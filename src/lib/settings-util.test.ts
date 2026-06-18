@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import {
   clampFontSize,
   clampZoom,
+  clampDebounce,
   fontSizeForWheel,
   FONT_MIN,
   FONT_MAX,
   ZOOM_MIN,
   ZOOM_MAX,
+  DEBOUNCE_MAX,
 } from "./settings-util";
 
 describe("clampFontSize", () => {
@@ -22,6 +24,14 @@ describe("clampZoom", () => {
     expect(clampZoom(0.1)).toBe(ZOOM_MIN);
     expect(clampZoom(5)).toBe(ZOOM_MAX);
     expect(clampZoom(1.234)).toBe(1.23);
+  });
+});
+
+describe("clampDebounce", () => {
+  it("clamps to 0..max and rounds", () => {
+    expect(clampDebounce(-50)).toBe(0);
+    expect(clampDebounce(99999)).toBe(DEBOUNCE_MAX);
+    expect(clampDebounce(100.4)).toBe(100);
   });
 });
 

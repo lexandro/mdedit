@@ -3,9 +3,18 @@
 import { type Store } from "@tauri-apps/plugin-store";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { tryLoadStore } from "$lib/stores/persist";
-import { clampZoom, clampFontSize } from "$lib/settings-util";
+import { clampZoom, clampFontSize, clampDebounce } from "$lib/settings-util";
 
-export { ZOOM_MIN, ZOOM_MAX, ZOOM_STEP, FONT_MIN, FONT_MAX } from "$lib/settings-util";
+export {
+  ZOOM_MIN,
+  ZOOM_MAX,
+  ZOOM_STEP,
+  FONT_MIN,
+  FONT_MAX,
+  DEBOUNCE_MIN,
+  DEBOUNCE_MAX,
+  DEBOUNCE_STEP,
+} from "$lib/settings-util";
 
 export type ThemeChoice = "light" | "dark" | "system";
 export type SplitOrientation = "horizontal" | "vertical";
@@ -20,6 +29,7 @@ interface PersistShape {
   uiZoom: number;
   editorFontSize: number;
   wordWrap: boolean;
+  previewDebounceMs: number;
 }
 
 const DEFAULTS: PersistShape = {
@@ -29,6 +39,7 @@ const DEFAULTS: PersistShape = {
   uiZoom: 1,
   editorFontSize: 14,
   wordWrap: true,
+  previewDebounceMs: 100,
 };
 
 class SettingsStore {
@@ -38,6 +49,7 @@ class SettingsStore {
   uiZoom = $state<number>(DEFAULTS.uiZoom);
   editorFontSize = $state<number>(DEFAULTS.editorFontSize);
   wordWrap = $state<boolean>(DEFAULTS.wordWrap);
+  previewDebounceMs = $state<number>(DEFAULTS.previewDebounceMs);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -57,6 +69,8 @@ class SettingsStore {
       this.editorFontSize =
         (await this.#store.get<number>("editorFontSize")) ?? DEFAULTS.editorFontSize;
       this.wordWrap = (await this.#store.get<boolean>("wordWrap")) ?? DEFAULTS.wordWrap;
+      this.previewDebounceMs =
+        (await this.#store.get<number>("previewDebounceMs")) ?? DEFAULTS.previewDebounceMs;
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -107,6 +121,11 @@ class SettingsStore {
   async setWordWrap(on: boolean) {
     this.wordWrap = on;
     await this.#store?.set("wordWrap", on);
+  }
+
+  async setPreviewDebounceMs(ms: number) {
+    this.previewDebounceMs = clampDebounce(ms);
+    await this.#store?.set("previewDebounceMs", this.previewDebounceMs);
   }
 }
 

@@ -18,8 +18,26 @@
   } = $props();
 
   let container: HTMLDivElement;
-  let html = $derived(renderMarkdown(source, basePath));
   let mermaidSeq = 0;
+
+  // Re-render is debounced (configurable) so fast typing in big documents stays
+  // smooth. The first render and delay <= 0 are immediate.
+  let html = $state("");
+  let firstRender = true;
+  let renderTimer: ReturnType<typeof setTimeout> | undefined;
+  $effect(() => {
+    const s = source;
+    const bp = basePath;
+    const delay = settings.previewDebounceMs;
+    if (firstRender || delay <= 0) {
+      firstRender = false;
+      html = renderMarkdown(s, bp);
+      return;
+    }
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => (html = renderMarkdown(s, bp)), delay);
+    return () => clearTimeout(renderTimer);
+  });
 
   // Toggle the n-th GFM task item (0-based) in the source, matching the order
   // of rendered checkboxes. Skips fenced code so task syntax there doesn't count.
