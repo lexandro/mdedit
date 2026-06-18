@@ -4,6 +4,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { renderMarkdown } from "$lib/markdown/renderer";
 import { toasts } from "$lib/stores/toasts.svelte";
+import { t } from "$lib/i18n";
 
 // Self-contained light-theme styling so the exported file looks good anywhere.
 const EXPORT_CSS = `
@@ -55,9 +56,9 @@ export async function exportHtml(content: string, title: string): Promise<void> 
     });
     if (!path) return;
     await writeTextFile(path, html);
-    toasts.success("Exported HTML");
+    toasts.success(t("toast.exportedHtml"));
   } catch (e) {
-    toasts.error("HTML export failed", e);
+    toasts.error(t("toast.exportHtmlFail"), e);
   }
 }
 
@@ -71,13 +72,13 @@ export async function copyAsHtml(content: string): Promise<void> {
         "text/plain": new Blob([html], { type: "text/plain" }),
       }),
     ]);
-    toasts.success("Copied as HTML");
+    toasts.success(t("toast.copiedHtml"));
   } catch {
     try {
       await navigator.clipboard.writeText(html); // fallback: plain text only
-      toasts.success("Copied as HTML (plain text)");
+      toasts.success(t("toast.copiedHtmlPlain"));
     } catch (e) {
-      toasts.error("Copy failed", e);
+      toasts.error(t("toast.copyFail"), e);
     }
   }
 }
@@ -88,7 +89,7 @@ export function exportPdf(content: string, basePath: string | null, title: strin
   try {
     html = standaloneHtml(renderMarkdown(content, basePath), title);
   } catch (e) {
-    toasts.error("PDF export failed", e);
+    toasts.error(t("toast.pdfFail"), e);
     return;
   }
   const iframe = document.createElement("iframe");

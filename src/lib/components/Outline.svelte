@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goToLine } from "$lib/editor-commands";
+  import { t } from "$lib/i18n";
 
   let { content }: { content: string } = $props();
 
@@ -34,9 +35,9 @@
 </script>
 
 <aside class="outline">
-  <div class="title">Outline</div>
+  <div class="title">{t("outline.title")}</div>
   {#if headings.length === 0}
-    <p class="empty">No headings</p>
+    <p class="empty">{t("outline.empty")}</p>
   {:else}
     <ul>
       {#each headings as h (h.line)}

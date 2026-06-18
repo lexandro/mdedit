@@ -1,5 +1,6 @@
 <script lang="ts">
   import { updater } from "$lib/stores/updater.svelte";
+  import { t } from "$lib/i18n";
 
   // Show the offer when an update is available and not dismissed; otherwise show
   // transient status (downloading / checking / up-to-date / error).
@@ -9,13 +10,13 @@
   let statusText = $derived.by(() => {
     switch (updater.status) {
       case "checking":
-        return "Checking for updates…";
+        return t("update.checking");
       case "downloading":
-        return `Downloading and installing ${updater.availableVersion ?? ""}…`;
+        return t("update.downloading", { v: updater.availableVersion ?? "" });
       case "uptodate":
-        return "You're up to date.";
+        return t("update.uptodate");
       case "error":
-        return `Update check failed: ${updater.message}`;
+        return t("update.error", { msg: updater.message });
       default:
         return "";
     }
@@ -24,10 +25,10 @@
 
 {#if showOffer}
   <div class="banner offer" role="status">
-    <span>Update available — <strong>v{updater.availableVersion}</strong></span>
+    <span>{t("update.available")} <strong>v{updater.availableVersion}</strong></span>
     <div class="actions">
-      <button class="install" onclick={() => updater.install()}>Install &amp; restart</button>
-      <button class="later" onclick={() => updater.dismiss()}>Later</button>
+      <button class="install" onclick={() => updater.install()}>{t("update.install")}</button>
+      <button class="later" onclick={() => updater.dismiss()}>{t("update.later")}</button>
     </div>
   </div>
 {:else if statusText}

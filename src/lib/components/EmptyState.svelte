@@ -1,21 +1,22 @@
 <script lang="ts">
   import { tabs, basename } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
+  import { t } from "$lib/i18n";
 </script>
 
 <div class="empty">
   <img class="logo" src="/app-icon.png" alt="mdedit logo" width="96" height="96" />
   <h1>mdedit</h1>
-  <p>No file open.</p>
+  <p>{t("empty.noFile")}</p>
   <div class="empty-actions">
-    <button onclick={() => tabs.newTab()}>New file</button>
-    <button onclick={() => tabs.open()}>Open file…</button>
+    <button onclick={() => tabs.newTab()}>{t("empty.new")}</button>
+    <button onclick={() => tabs.open()}>{t("empty.open")}</button>
   </div>
   {#if recent.entries.length > 0}
     <div class="recent">
       <div class="recent-head">
-        <h2>Recent</h2>
-        <button class="clear" onclick={() => recent.clearRecent()}>Clear</button>
+        <h2>{t("empty.recent")}</h2>
+        <button class="clear" onclick={() => recent.clearRecent()}>{t("empty.clear")}</button>
       </div>
       <ul>
         {#each recent.entries as { path, pinned } (path)}
@@ -23,8 +24,8 @@
             <button
               class="pin"
               class:pinned
-              title={pinned ? "Unpin" : "Pin"}
-              aria-label={pinned ? "Unpin" : "Pin"}
+              title={pinned ? t("empty.unpin") : t("empty.pin")}
+              aria-label={pinned ? t("empty.unpin") : t("empty.pin")}
               onclick={() => (pinned ? recent.unpin(path) : recent.pin(path))}>📌</button
             >
             <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
@@ -35,7 +36,7 @@
       </ul>
     </div>
   {/if}
-  <p class="hint">Ctrl+N new · Ctrl+O open · Ctrl+S save · Ctrl+1/2/3 view mode</p>
+  <p class="hint">{t("empty.hint")}</p>
 </div>
 
 <style>

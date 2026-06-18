@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fuzzyFilter } from "$lib/fuzzy";
   import { paletteCommands } from "$lib/command-list";
+  import { t } from "$lib/i18n";
 
   let { onRun, onClose }: { onRun: (id: string) => void; onClose: () => void } = $props();
 
@@ -10,7 +11,8 @@
 
   $effect(() => input?.focus());
 
-  const filtered = $derived(fuzzyFilter(query, paletteCommands, (c) => c.label));
+  const items = $derived(paletteCommands.map((c) => ({ id: c.id, label: t(c.key) })));
+  const filtered = $derived(fuzzyFilter(query, items, (c) => c.label));
   // Keep the selection within bounds as the list shrinks/grows.
   $effect(() => {
     if (sel >= filtered.length) sel = Math.max(0, filtered.length - 1);
@@ -42,7 +44,7 @@
     bind:this={input}
     bind:value={query}
     type="text"
-    placeholder="Type a command…"
+    placeholder={t("palette.placeholder")}
     aria-label="Command"
     onkeydown={onKeydown}
   />
@@ -61,7 +63,7 @@
       </button>
     {/each}
     {#if filtered.length === 0}
-      <div class="empty">No matching command</div>
+      <div class="empty">{t("palette.empty")}</div>
     {/if}
   </div>
 </div>

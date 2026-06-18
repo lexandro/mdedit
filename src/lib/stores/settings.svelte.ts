@@ -19,6 +19,7 @@ export {
 export type ThemeChoice = "light" | "dark" | "system";
 export type SplitOrientation = "horizontal" | "vertical";
 export type ViewMode = "source" | "preview" | "split";
+export type Language = "en" | "hu";
 
 const STORE_FILE = "settings.json";
 
@@ -31,6 +32,7 @@ interface PersistShape {
   wordWrap: boolean;
   previewDebounceMs: number;
   startupMaximized: boolean;
+  language: Language;
 }
 
 const DEFAULTS: PersistShape = {
@@ -42,6 +44,7 @@ const DEFAULTS: PersistShape = {
   wordWrap: true,
   previewDebounceMs: 100,
   startupMaximized: true,
+  language: "en",
 };
 
 class SettingsStore {
@@ -53,6 +56,7 @@ class SettingsStore {
   wordWrap = $state<boolean>(DEFAULTS.wordWrap);
   previewDebounceMs = $state<number>(DEFAULTS.previewDebounceMs);
   startupMaximized = $state<boolean>(DEFAULTS.startupMaximized);
+  language = $state<Language>(DEFAULTS.language);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -76,6 +80,10 @@ class SettingsStore {
         (await this.#store.get<number>("previewDebounceMs")) ?? DEFAULTS.previewDebounceMs;
       this.startupMaximized =
         (await this.#store.get<boolean>("startupMaximized")) ?? DEFAULTS.startupMaximized;
+      // First run: follow the OS language (Hungarian → hu, otherwise English).
+      this.language =
+        (await this.#store.get<Language>("language")) ??
+        (navigator.language?.toLowerCase().startsWith("hu") ? "hu" : "en");
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -136,6 +144,11 @@ class SettingsStore {
   async setStartupMaximized(on: boolean) {
     this.startupMaximized = on;
     await this.#store?.set("startupMaximized", on);
+  }
+
+  async setLanguage(lang: Language) {
+    this.language = lang;
+    await this.#store?.set("language", lang);
   }
 }
 

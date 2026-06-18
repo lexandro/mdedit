@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goToLine } from "$lib/editor-commands";
+  import { t } from "$lib/i18n";
 
   let { onClose }: { onClose: () => void } = $props();
   let value = $state("");
@@ -21,15 +22,15 @@
   onclick={onClose}
   onkeydown={(e) => e.key === "Escape" && onClose()}
 ></div>
-<div class="dialog" role="dialog" aria-modal="true" aria-label="Go to line">
-  <label for="goto-line">Go to line</label>
+<div class="dialog" role="dialog" aria-modal="true" aria-label={t("goto.title")}>
+  <label for="goto-line">{t("goto.title")}</label>
   <input
     id="goto-line"
     bind:this={input}
     bind:value
     type="number"
     min="1"
-    placeholder="Line number"
+    placeholder={t("goto.placeholder")}
     onkeydown={(e) => {
       if (e.key === "Enter") submit();
       else if (e.key === "Escape") onClose();

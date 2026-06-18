@@ -3,6 +3,7 @@
   import { getVersion } from "@tauri-apps/api/app";
   import { openUrl } from "@tauri-apps/plugin-opener";
   import { updater } from "$lib/stores/updater.svelte";
+  import { t } from "$lib/i18n";
 
   let { onClose }: { onClose: () => void } = $props();
 
@@ -30,17 +31,17 @@
   onkeydown={(e) => e.key === "Escape" && onClose()}
 ></div>
 <div class="dialog" role="dialog" aria-modal="true" aria-label="About mdedit">
-  <button class="x" onclick={onClose} aria-label="Close">×</button>
+  <button class="x" onclick={onClose} aria-label={t("settings.close")}>×</button>
 
   <img class="logo" src="/app-icon.png" alt="mdedit logo" width="72" height="72" />
   <h2>mdedit</h2>
-  <p class="version">Version {version || "…"}</p>
-  <p class="tagline">A fast, native Windows Markdown editor — Tauri 2 + Svelte.</p>
+  <p class="version">{t("about.version", { v: version || "…" })}</p>
+  <p class="tagline">{t("about.tagline")}</p>
 
   <div class="links">
-    <button onclick={() => open(REPO)}>GitHub repository</button>
-    <button onclick={() => open(`${REPO}/releases`)}>Releases</button>
-    <button onclick={() => open(`${REPO}/blob/main/LICENSE`)}>License (MIT)</button>
+    <button onclick={() => open(REPO)}>{t("about.repo")}</button>
+    <button onclick={() => open(`${REPO}/releases`)}>{t("about.releases")}</button>
+    <button onclick={() => open(`${REPO}/blob/main/LICENSE`)}>{t("about.license")}</button>
   </div>
 
   <button
@@ -50,10 +51,10 @@
       onClose();
     }}
   >
-    Check for updates
+    {t("about.check")}
   </button>
 
-  <p class="copyright">© 2026 lexandro · MIT License</p>
+  <p class="copyright">{t("about.copyright")}</p>
 </div>
 
 <style>

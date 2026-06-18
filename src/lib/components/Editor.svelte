@@ -17,6 +17,7 @@
   import { savePastedImage } from "$lib/paste-image";
   import { fontSizeForWheel } from "$lib/settings-util";
   import { toasts } from "$lib/stores/toasts.svelte";
+  import { t } from "$lib/i18n";
 
   let {
     tab,
@@ -55,7 +56,7 @@
       void (async () => {
         const src = await savePastedImage(file, tab.path);
         if (!src) {
-          toasts.error("Couldn't save pasted image");
+          toasts.error(t("toast.pasteImageFail"));
           return;
         }
         insertAtSelection(v, `![](${src})`);
@@ -230,11 +231,15 @@
     }}
   ></div>
   <div class="ctx-menu" style="left: {ctxMenu.x}px; top: {ctxMenu.y}px" role="menu">
-    <button role="menuitem" onclick={() => runCtx(editorCommands.cut)}>Cut</button>
-    <button role="menuitem" onclick={() => runCtx(editorCommands.copy)}>Copy</button>
-    <button role="menuitem" onclick={() => runCtx(() => void editorCommands.paste())}>Paste</button>
+    <button role="menuitem" onclick={() => runCtx(editorCommands.cut)}>{t("cmd.cut")}</button>
+    <button role="menuitem" onclick={() => runCtx(editorCommands.copy)}>{t("cmd.copy")}</button>
+    <button role="menuitem" onclick={() => runCtx(() => void editorCommands.paste())}
+      >{t("cmd.paste")}</button
+    >
     <div class="ctx-sep" role="separator"></div>
-    <button role="menuitem" onclick={() => runCtx(editorCommands.selectAll)}>Select All</button>
+    <button role="menuitem" onclick={() => runCtx(editorCommands.selectAll)}
+      >{t("cmd.select_all")}</button
+    >
   </div>
 {/if}
 

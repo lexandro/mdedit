@@ -12,13 +12,19 @@
     type ThemeChoice,
     type ViewMode,
     type SplitOrientation,
+    type Language,
   } from "$lib/stores/settings.svelte";
+  import { t } from "$lib/i18n";
 
   let { onClose }: { onClose: () => void } = $props();
 
   const themes: ThemeChoice[] = ["light", "dark", "system"];
   const modes: ViewMode[] = ["source", "split", "preview"];
   const orientations: SplitOrientation[] = ["vertical", "horizontal"];
+  const languages: { id: Language; label: string }[] = [
+    { id: "en", label: "English" },
+    { id: "hu", label: "Magyar" },
+  ];
 </script>
 
 <div
@@ -28,113 +34,126 @@
   onclick={onClose}
   onkeydown={(e) => e.key === "Escape" && onClose()}
 ></div>
-<div class="dialog" role="dialog" aria-modal="true" aria-label="Settings">
+<div class="dialog" role="dialog" aria-modal="true" aria-label={t("settings.title")}>
   <header>
-    <h2>Settings</h2>
-    <button class="x" onclick={onClose} aria-label="Close">×</button>
+    <h2>{t("settings.title")}</h2>
+    <button class="x" onclick={onClose} aria-label={t("settings.close")}>×</button>
   </header>
 
   <section>
-    <h3>Theme</h3>
+    <h3>{t("settings.language")}</h3>
     <div class="seg">
-      {#each themes as t (t)}
-        <button class:active={settings.theme === t} onclick={() => settings.setTheme(t)}>{t}</button>
+      {#each languages as l (l.id)}
+        <button class:active={settings.language === l.id} onclick={() => settings.setLanguage(l.id)}
+          >{l.label}</button
+        >
       {/each}
     </div>
   </section>
 
   <section>
-    <h3>Interface size</h3>
+    <h3>{t("settings.theme")}</h3>
+    <div class="seg">
+      {#each themes as th (th)}
+        <button class:active={settings.theme === th} onclick={() => settings.setTheme(th)}
+          >{t(`theme.${th}`)}</button
+        >
+      {/each}
+    </div>
+  </section>
+
+  <section>
+    <h3>{t("settings.uiSize")}</h3>
     <div class="stepper">
       <button
-        aria-label="Decrease interface size"
+        aria-label={t("settings.decUi")}
         disabled={settings.uiZoom <= ZOOM_MIN}
         onclick={() => settings.setUiZoom(settings.uiZoom - ZOOM_STEP)}>−</button
       >
       <span class="value">{Math.round(settings.uiZoom * 100)}%</span>
       <button
-        aria-label="Increase interface size"
+        aria-label={t("settings.incUi")}
         disabled={settings.uiZoom >= ZOOM_MAX}
         onclick={() => settings.setUiZoom(settings.uiZoom + ZOOM_STEP)}>+</button
       >
-      <button class="reset" onclick={() => settings.setUiZoom(1)}>Reset</button>
+      <button class="reset" onclick={() => settings.setUiZoom(1)}>{t("settings.reset")}</button>
     </div>
-    <p class="hint">Scales the whole interface — menu, toolbar, tabs, editor and preview.</p>
+    <p class="hint">{t("settings.uiSizeHint")}</p>
   </section>
 
   <section>
-    <h3>Editor font size</h3>
+    <h3>{t("settings.fontSize")}</h3>
     <div class="stepper">
       <button
-        aria-label="Decrease editor font size"
+        aria-label={t("settings.decFont")}
         disabled={settings.editorFontSize <= FONT_MIN}
         onclick={() => settings.setEditorFontSize(settings.editorFontSize - 1)}>−</button
       >
       <span class="value">{settings.editorFontSize}px</span>
       <button
-        aria-label="Increase editor font size"
+        aria-label={t("settings.incFont")}
         disabled={settings.editorFontSize >= FONT_MAX}
         onclick={() => settings.setEditorFontSize(settings.editorFontSize + 1)}>+</button
       >
-      <button class="reset" onclick={() => settings.setEditorFontSize(14)}>Reset</button>
+      <button class="reset" onclick={() => settings.setEditorFontSize(14)}>{t("settings.reset")}</button>
     </div>
   </section>
 
   <section>
-    <h3>Preview update delay</h3>
+    <h3>{t("settings.previewDelay")}</h3>
     <div class="stepper">
       <button
-        aria-label="Decrease preview delay"
+        aria-label={t("settings.decDelay")}
         disabled={settings.previewDebounceMs <= DEBOUNCE_MIN}
         onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs - DEBOUNCE_STEP)}
         >−</button
       >
       <span class="value">{settings.previewDebounceMs} ms</span>
       <button
-        aria-label="Increase preview delay"
+        aria-label={t("settings.incDelay")}
         disabled={settings.previewDebounceMs >= DEBOUNCE_MAX}
         onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs + DEBOUNCE_STEP)}
         >+</button
       >
-      <button class="reset" onclick={() => settings.setPreviewDebounceMs(100)}>Reset</button>
+      <button class="reset" onclick={() => settings.setPreviewDebounceMs(100)}>{t("settings.reset")}</button>
     </div>
-    <p class="hint">How long after you stop typing the preview re-renders (0 = instant).</p>
+    <p class="hint">{t("settings.previewDelayHint")}</p>
   </section>
 
   <section>
-    <h3>Default view mode</h3>
+    <h3>{t("settings.defaultView")}</h3>
     <div class="seg">
       {#each modes as m (m)}
         <button
           class:active={settings.defaultViewMode === m}
-          onclick={() => settings.setDefaultViewMode(m)}>{m}</button
+          onclick={() => settings.setDefaultViewMode(m)}>{t(`view.${m}`)}</button
         >
       {/each}
     </div>
   </section>
 
   <section>
-    <h3>Split orientation</h3>
+    <h3>{t("settings.splitOrientation")}</h3>
     <div class="seg">
       {#each orientations as o (o)}
         <button
           class:active={settings.splitOrientation === o}
-          onclick={() => settings.setSplitOrientation(o)}>{o}</button
+          onclick={() => settings.setSplitOrientation(o)}>{t(`orientation.${o}`)}</button
         >
       {/each}
     </div>
   </section>
 
   <section>
-    <h3>Startup window</h3>
+    <h3>{t("settings.startup")}</h3>
     <div class="seg">
       <button
         class:active={settings.startupMaximized}
-        onclick={() => settings.setStartupMaximized(true)}>Maximized</button
+        onclick={() => settings.setStartupMaximized(true)}>{t("settings.maximized")}</button
       >
       <button
         class:active={!settings.startupMaximized}
-        onclick={() => settings.setStartupMaximized(false)}>Normal</button
+        onclick={() => settings.setStartupMaximized(false)}>{t("settings.normal")}</button
       >
     </div>
   </section>

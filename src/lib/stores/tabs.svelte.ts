@@ -17,6 +17,7 @@ import { moveItem } from "$lib/array-util";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
 import { recent } from "$lib/stores/recent.svelte";
 import { toasts } from "$lib/stores/toasts.svelte";
+import { t } from "$lib/i18n";
 
 export interface Tab {
   id: number;
@@ -108,7 +109,7 @@ class TabsStore {
       const loaded = await pickAndReadFile();
       if (loaded) this.#openLoaded(loaded);
     } catch (e) {
-      toasts.error("Couldn't open file", e);
+      toasts.error(t("toast.openFail"), e);
     }
   }
 
@@ -117,7 +118,7 @@ class TabsStore {
     try {
       this.#openLoaded(await readFile(path));
     } catch (e) {
-      toasts.error(`Couldn't open ${basename(path)}`, e);
+      toasts.error(t("toast.openFailName", { name: basename(path) }), e);
     }
   }
 
@@ -213,9 +214,9 @@ class TabsStore {
     // Notepad++-style: notice the external edit and offer to reload.
     const name = tabTitle(tab);
     const msg = isDirty(tab)
-      ? `"${name}" was modified by another program.\nReload and discard your unsaved changes?`
-      : `"${name}" was modified by another program.\nReload it?`;
-    if (!(await this.#confirm(msg, "File changed on disk"))) return;
+      ? t("confirm.reloadDiscard", { name })
+      : t("confirm.reload", { name });
+    if (!(await this.#confirm(msg, t("confirm.fileChangedTitle")))) return;
 
     tab.content = loaded.content;
     tab.savedContent = loaded.content;
@@ -246,7 +247,7 @@ class TabsStore {
     try {
       await writeFile(tab.path, tab.content, { lineEnding: tab.lineEnding, encoding });
     } catch (e) {
-      toasts.error(`Couldn't save ${tabTitle(tab)}`, e);
+      toasts.error(t("toast.saveFailName", { name: tabTitle(tab) }), e);
       return false;
     }
     tab.encoding = encoding;
@@ -264,7 +265,7 @@ class TabsStore {
     try {
       await writeFile(path, tab.content, { lineEnding: tab.lineEnding, encoding });
     } catch (e) {
-      toasts.error(`Couldn't save ${basename(path)}`, e);
+      toasts.error(t("toast.saveFailName", { name: basename(path) }), e);
       return false;
     }
     tab.encoding = encoding;
@@ -325,8 +326,8 @@ class TabsStore {
     const tab = this.tabs.find((t) => t.id === id);
     if (!tab) return;
     if (isDirty(tab)) {
-      const msg = `Discard unsaved changes to "${tabTitle(tab)}"?`;
-      if (!(await this.#confirm(msg, "Unsaved changes"))) return;
+      const msg = t("confirm.discard", { name: tabTitle(tab) });
+      if (!(await this.#confirm(msg, t("confirm.unsavedTitle")))) return;
     }
     this.close(id);
   }
@@ -354,9 +355,9 @@ class TabsStore {
     if (!tab?.path) return;
     try {
       await navigator.clipboard.writeText(tab.path);
-      toasts.success("Path copied");
+      toasts.success(t("toast.pathCopied"));
     } catch (e) {
-      toasts.error("Couldn't copy path", e);
+      toasts.error(t("toast.copyPathFail"), e);
     }
   }
 

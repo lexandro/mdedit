@@ -2,6 +2,7 @@
   import { filterEmoji } from "$lib/emoji-search";
   import { emojiList } from "$lib/emoji-data";
   import { insertText } from "$lib/editor-commands";
+  import { t } from "$lib/i18n";
 
   let { onClose }: { onClose: () => void } = $props();
 
@@ -23,8 +24,8 @@
     bind:this={input}
     bind:value={query}
     type="text"
-    placeholder="Search emoji (e.g. smile, heart)…"
-    aria-label="Search emoji"
+    placeholder={t("emoji.placeholder")}
+    aria-label={t("emoji.placeholder")}
     onkeydown={(e) => {
       if (e.key === "Escape") onClose();
       else if (e.key === "Enter" && results[0]) pick(results[0].char);
@@ -36,7 +37,7 @@
       >
     {/each}
     {#if results.length === 0}
-      <div class="empty">No emoji found</div>
+      <div class="empty">{t("emoji.empty")}</div>
     {/if}
   </div>
 </div>

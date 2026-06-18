@@ -1,12 +1,15 @@
 <script lang="ts">
   import { toasts } from "$lib/stores/toasts.svelte";
+  import { t } from "$lib/i18n";
 </script>
 
-<div class="toasts" role="region" aria-label="Notifications" aria-live="polite">
-  {#each toasts.items as t (t.id)}
-    <div class="toast {t.kind}" role="alert">
-      <span class="msg">{t.message}</span>
-      <button class="x" aria-label="Dismiss" onclick={() => toasts.dismiss(t.id)}>×</button>
+<div class="toasts" role="region" aria-label={t("a11y.notifications")} aria-live="polite">
+  {#each toasts.items as item (item.id)}
+    <div class="toast {item.kind}" role="alert">
+      <span class="msg">{item.message}</span>
+      <button class="x" aria-label={t("a11y.dismiss")} onclick={() => toasts.dismiss(item.id)}
+        >×</button
+      >
     </div>
   {/each}
 </div>

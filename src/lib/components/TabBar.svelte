@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tabs, tabTitle, isDirty, type Tab } from "$lib/stores/tabs.svelte";
+  import { t } from "$lib/i18n";
 
   function requestClose(tab: Tab, e: MouseEvent) {
     e.stopPropagation();
@@ -52,32 +53,36 @@
     >
       <span class="dot" class:dirty={isDirty(tab)} aria-hidden="true"></span>
       <span class="title">{tabTitle(tab)}</span>
-      <button class="close" title="Close" onclick={(e) => requestClose(tab, e)}>×</button>
+      <button class="close" title={t("tab.close")} onclick={(e) => requestClose(tab, e)}>×</button>
     </div>
   {/each}
-  <button class="new-tab" title="New tab (Ctrl+N)" onclick={() => tabs.newTab()}>+</button>
+  <button class="new-tab" title={t("tip.new")} onclick={() => tabs.newTab()}>+</button>
 </div>
 
 {#if ctx}
-  {@const t = ctx.tab}
+  {@const tab = ctx.tab}
   <div class="tab-ctx" role="menu" style:left="{ctx.x}px" style:top="{ctx.y}px">
-    <button role="menuitem" onclick={() => run(() => tabs.closeWithConfirm(t.id))}>Close</button>
+    <button role="menuitem" onclick={() => run(() => tabs.closeWithConfirm(tab.id))}
+      >{t("tab.close")}</button
+    >
     <button
       role="menuitem"
       disabled={tabs.tabs.length < 2}
-      onclick={() => run(() => tabs.closeOthers(t.id))}>Close Others</button
+      onclick={() => run(() => tabs.closeOthers(tab.id))}>{t("tab.closeOthers")}</button
     >
     <button
       role="menuitem"
-      disabled={tabs.tabs.findIndex((x) => x.id === t.id) >= tabs.tabs.length - 1}
-      onclick={() => run(() => tabs.closeToRight(t.id))}>Close to the Right</button
+      disabled={tabs.tabs.findIndex((x) => x.id === tab.id) >= tabs.tabs.length - 1}
+      onclick={() => run(() => tabs.closeToRight(tab.id))}>{t("tab.closeRight")}</button
     >
     <div class="sep" role="separator"></div>
-    <button role="menuitem" disabled={!t.path} onclick={() => run(() => tabs.copyPath(t.id))}
-      >Copy Path</button
+    <button role="menuitem" disabled={!tab.path} onclick={() => run(() => tabs.copyPath(tab.id))}
+      >{t("tab.copyPath")}</button
     >
-    <button role="menuitem" disabled={!t.path} onclick={() => run(() => tabs.revealInExplorer(t.id))}
-      >Open Containing Folder</button
+    <button
+      role="menuitem"
+      disabled={!tab.path}
+      onclick={() => run(() => tabs.revealInExplorer(tab.id))}>{t("tab.reveal")}</button
     >
   </div>
 {/if}

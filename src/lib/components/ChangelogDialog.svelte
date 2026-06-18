@@ -1,5 +1,6 @@
 <script lang="ts">
   import { renderMarkdown } from "$lib/markdown/renderer";
+  import { t } from "$lib/i18n";
   // Inlined at build time so the changelog always matches the shipped version.
   import changelog from "../../../CHANGELOG.md?raw";
 
@@ -15,10 +16,10 @@
   onclick={onClose}
   onkeydown={(e) => e.key === "Escape" && onClose()}
 ></div>
-<div class="dialog" role="dialog" aria-modal="true" aria-label="Changelog">
+<div class="dialog" role="dialog" aria-modal="true" aria-label={t("changelog.title")}>
   <header>
-    <h2>Changelog</h2>
-    <button class="x" onclick={onClose} aria-label="Close">×</button>
+    <h2>{t("changelog.title")}</h2>
+    <button class="x" onclick={onClose} aria-label={t("settings.close")}>×</button>
   </header>
   <div class="body markdown-body">
     {@html html}
