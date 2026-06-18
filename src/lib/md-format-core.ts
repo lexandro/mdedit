@@ -8,6 +8,14 @@ export function toggleWrap(text: string, before: string, after = before): string
   return wrapped ? text.slice(before.length, text.length - after.length) : before + text + after;
 }
 
+/** If `pasted` is a bare URL/mailto and there is a selection, return a Markdown
+ *  link wrapping the selection; otherwise null (paste normally). */
+export function linkFromPaste(selected: string, pasted: string): string | null {
+  const url = pasted.trim();
+  if (!selected || /\s/.test(url) || !/^(https?:\/\/|mailto:)\S+$/i.test(url)) return null;
+  return `[${selected}](${url})`;
+}
+
 const LIST_RE = /^(\s*)([-*+]|\d+[.)])(\s+)(\[[ xX]\]\s+)?(.*)$/;
 
 export type ListAction = { exit: true } | { prefix: string } | null;

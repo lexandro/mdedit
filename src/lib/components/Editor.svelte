@@ -4,6 +4,7 @@
   import { EditorState, Compartment } from "@codemirror/state";
   import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
   import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+  import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
   import { markdown } from "@codemirror/lang-markdown";
   import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
   import { oneDark } from "@codemirror/theme-one-dark";
@@ -12,6 +13,7 @@
   import { setActiveEditor, clearActiveEditor, editorCommands } from "$lib/editor-commands";
   import { editorStatus } from "$lib/stores/editor-status.svelte";
   import { wrapSelection, insertLink, continueList } from "$lib/md-format";
+  import { linkFromPaste } from "$lib/md-format-core";
   import { savePastedImage } from "$lib/paste-image";
   import { fontSizeForWheel } from "$lib/settings-util";
   import { toasts } from "$lib/stores/toasts.svelte";
@@ -45,23 +47,38 @@
   // Intercept image pastes: save the image and insert a Markdown link instead
   // of the (unsupported) raw image data. Text pastes fall through to CodeMirror.
   function handlePaste(event: ClipboardEvent, v: EditorView): boolean {
-    const item = Array.from(event.clipboardData?.items ?? []).find((it) =>
-      it.type.startsWith("image/"),
+    const file = Array.from(event.clipboardData?.items ?? [])
+      .find((it) => it.type.startsWith("image/"))
+      ?.getAsFile();
+    if (file) {
+      event.preventDefault();
+      void (async () => {
+        const src = await savePastedImage(file, tab.path);
+        if (!src) {
+          toasts.error("Couldn't save pasted image");
+          return;
+        }
+        insertAtSelection(v, `![](${src})`);
+      })();
+      return true;
+    }
+    // Pasting a URL over a selection turns it into a Markdown link.
+    const { from, to } = v.state.selection.main;
+    const link = linkFromPaste(
+      v.state.sliceDoc(from, to),
+      event.clipboardData?.getData("text/plain") ?? "",
     );
-    const file = item?.getAsFile();
-    if (!file) return false;
-    event.preventDefault();
-    void (async () => {
-      const src = await savePastedImage(file, tab.path);
-      if (!src) {
-        toasts.error("Couldn't save pasted image");
-        return;
-      }
-      const md = `![](${src})`;
-      const { from, to } = v.state.selection.main;
-      v.dispatch({ changes: { from, to, insert: md }, selection: { anchor: from + md.length } });
-    })();
-    return true;
+    if (link) {
+      event.preventDefault();
+      insertAtSelection(v, link);
+      return true;
+    }
+    return false;
+  }
+
+  function insertAtSelection(v: EditorView, text: string) {
+    const { from, to } = v.state.selection.main;
+    v.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length } });
   }
 
   // Custom right-click menu (the WebView's default menu is the browser one).
@@ -109,6 +126,7 @@
           history(),
           highlightActiveLine(),
           highlightSelectionMatches(),
+          closeBrackets(),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
           markdown(),
           EditorView.domEventHandlers({ paste: handlePaste }),
@@ -118,6 +136,7 @@
             { key: "Mod-b", run: (v) => wrapSelection(v, "**") },
             { key: "Mod-i", run: (v) => wrapSelection(v, "*") },
             { key: "Mod-k", run: insertLink },
+            ...closeBracketsKeymap,
             ...defaultKeymap,
             ...historyKeymap,
             ...searchKeymap,

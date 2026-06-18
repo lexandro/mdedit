@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toggleWrap, nextListPrefix } from "./md-format-core";
+import { toggleWrap, nextListPrefix, linkFromPaste } from "./md-format-core";
 
 describe("toggleWrap", () => {
   it("wraps unwrapped text", () => {
@@ -35,5 +35,17 @@ describe("nextListPrefix", () => {
   it("exits on an empty item", () => {
     expect(nextListPrefix("- ")).toEqual({ exit: true });
     expect(nextListPrefix("- [ ] ")).toEqual({ exit: true });
+  });
+});
+
+describe("linkFromPaste", () => {
+  it("wraps a selection when a URL is pasted", () => {
+    expect(linkFromPaste("docs", "https://x.com/a")).toBe("[docs](https://x.com/a)");
+    expect(linkFromPaste("mail", "mailto:a@b.com")).toBe("[mail](mailto:a@b.com)");
+  });
+  it("returns null without a selection, for non-URLs, or multi-token text", () => {
+    expect(linkFromPaste("", "https://x.com")).toBeNull();
+    expect(linkFromPaste("sel", "just text")).toBeNull();
+    expect(linkFromPaste("sel", "https://x.com and more")).toBeNull();
   });
 });
