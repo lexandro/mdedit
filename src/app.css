@@ -118,6 +118,23 @@ body {
   background: none;
   text-align: center;
 }
+.markdown-body dt {
+  font-weight: 600;
+  margin-top: 0.6em;
+}
+.markdown-body dd {
+  margin: 0 0 0.4em 1.5em;
+}
+.markdown-body .footnotes {
+  border-top: 1px solid var(--border);
+  margin-top: 2em;
+  padding-top: 0.5em;
+  font-size: 0.9em;
+  color: var(--fg-muted);
+}
+.markdown-body sup.footnote-ref a {
+  text-decoration: none;
+}
 
 /* highlight.js token palette, theme-aware via CSS vars */
 .hljs-keyword,

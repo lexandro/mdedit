@@ -4,6 +4,11 @@
 // are emitted as <pre class="mermaid"> for Preview.svelte to render client-side.
 import MarkdownIt from "markdown-it";
 import taskLists from "markdown-it-task-lists";
+import footnote from "markdown-it-footnote";
+import deflist from "markdown-it-deflist";
+import sub from "markdown-it-sub";
+import sup from "markdown-it-sup";
+import { full as emoji } from "markdown-it-emoji";
 import hljs from "highlight.js";
 import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -37,7 +42,12 @@ const md = new MarkdownIt({
   },
 });
 
-md.use(taskLists, { enabled: true, label: true });
+md.use(taskLists, { enabled: true, label: true })
+  .use(footnote)
+  .use(deflist)
+  .use(sub)
+  .use(sup)
+  .use(emoji);
 
 // Override fenced code so ```mermaid blocks become Mermaid containers.
 const defaultFence =
