@@ -83,6 +83,20 @@
     if (!(e.ctrlKey || e.metaKey)) return;
     const key = e.key.toLowerCase();
 
+    // Editor font zoom: Ctrl with +/-/0 (main row or numpad).
+    if (e.key === "+" || e.key === "=" || e.code === "NumpadAdd") {
+      e.preventDefault();
+      return void settings.setEditorFontSize(settings.editorFontSize + 1);
+    }
+    if (e.key === "-" || e.key === "_" || e.code === "NumpadSubtract") {
+      e.preventDefault();
+      return void settings.setEditorFontSize(settings.editorFontSize - 1);
+    }
+    if (e.key === "0" || e.code === "Numpad0") {
+      e.preventDefault();
+      return void settings.setEditorFontSize(14);
+    }
+
     let cmd: string | undefined;
     if (key === "s") cmd = e.altKey ? "save_all" : e.shiftKey ? "save_as" : "save";
     else if (key === "n") cmd = "new";
