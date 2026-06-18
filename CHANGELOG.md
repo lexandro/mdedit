@@ -3,7 +3,7 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## v0.6.0 — 2026-06-18
 
 ### Added
 
