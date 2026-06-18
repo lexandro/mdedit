@@ -25,6 +25,7 @@ export const paletteCommands: PaletteCommand[] = [
   { id: "select_all", label: "Select All" },
   { id: "goto_line", label: "Go to Line…" },
   { id: "insert_table", label: "Insert Table" },
+  { id: "insert_emoji", label: "Insert Emoji…" },
   { id: "format_tables", label: "Format Tables" },
   { id: "view_source", label: "View: Source" },
   { id: "view_split", label: "View: Split" },

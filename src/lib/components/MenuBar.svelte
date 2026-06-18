@@ -61,6 +61,7 @@
         { label: "Go to Line…", id: "goto_line", shortcut: "Ctrl+G" },
         "sep",
         { label: "Insert Table", id: "insert_table" },
+        { label: "Insert Emoji…", id: "insert_emoji" },
         { label: "Format Tables", id: "format_tables" },
         { label: "Copy as HTML", id: "copy_html" },
       ],

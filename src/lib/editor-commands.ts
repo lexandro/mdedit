@@ -58,6 +58,17 @@ export const editorCommands = {
   },
 };
 
+/** Insert text at the active editor's cursor, replacing any selection. */
+export function insertText(text: string) {
+  if (!activeView) return;
+  const { from, to } = activeView.state.selection.main;
+  activeView.dispatch({
+    changes: { from, to, insert: text },
+    selection: { anchor: from + text.length },
+  });
+  activeView.focus();
+}
+
 /** Move the active editor's cursor to a 1-based line and scroll it into view. */
 export function goToLine(line: number) {
   if (!activeView) return;

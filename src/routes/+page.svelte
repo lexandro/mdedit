@@ -12,6 +12,7 @@
   import ChangelogDialog from "$lib/components/ChangelogDialog.svelte";
   import GoToLineDialog from "$lib/components/GoToLineDialog.svelte";
   import CommandPalette from "$lib/components/CommandPalette.svelte";
+  import EmojiPicker from "$lib/components/EmojiPicker.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
@@ -26,6 +27,7 @@
   let changelogOpen = $state(false);
   let gotoOpen = $state(false);
   let paletteOpen = $state(false);
+  let emojiOpen = $state(false);
   let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
@@ -64,6 +66,7 @@
     insert_table: () => formatCommands.table(),
     format_tables: () => formatCommands.formatTables(),
     goto_line: () => (gotoOpen = true),
+    insert_emoji: () => (emojiOpen = true),
     clear_recent: () => void recent.clearRecent(),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
@@ -178,6 +181,7 @@
     onClose={() => (paletteOpen = false)}
   />
 {/if}
+{#if emojiOpen}<EmojiPicker onClose={() => (emojiOpen = false)} />{/if}
 <Toasts />
 
 <style>
