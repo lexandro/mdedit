@@ -3,6 +3,29 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- **GFM extensions** in the preview: footnotes, definition lists, sub/super-script,
+  and `:shortcode:` emoji.
+- **Auto-close brackets/quotes**, and pasting a URL over a selection turns it
+  into a Markdown link.
+- **Go to Line** (Ctrl+G, also in the Edit menu).
+- **Recent files: pin & clear** — pin files above the list (surviving Clear);
+  clear from the empty-state list or File → Open Recent.
+- **Tab context menu** (Close / Close Others / Close to the Right / Copy Path /
+  Open Containing Folder) and **drag-to-reorder** tabs.
+- **Command palette** (Ctrl+Shift+P) — fuzzy search over every command.
+- **In-app emoji picker** (Edit → Insert Emoji…, and in the command palette) —
+  a reliable replacement for the flaky OS picker.
+- **Localization** — full English and Hungarian UI with a Language switch in
+  Settings; first run follows the OS language.
+
+### Internal
+
+- jsdom component tests (@testing-library/svelte) alongside the pure-logic suite.
+
 ## v0.5.0 — 2026-06-18
 
 ### Added
