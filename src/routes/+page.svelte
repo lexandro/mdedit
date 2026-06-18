@@ -10,6 +10,7 @@
   import SettingsDialog from "$lib/components/SettingsDialog.svelte";
   import AboutDialog from "$lib/components/AboutDialog.svelte";
   import ChangelogDialog from "$lib/components/ChangelogDialog.svelte";
+  import GoToLineDialog from "$lib/components/GoToLineDialog.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
@@ -21,6 +22,7 @@
   let settingsOpen = $state(false);
   let aboutOpen = $state(false);
   let changelogOpen = $state(false);
+  let gotoOpen = $state(false);
   let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
@@ -58,6 +60,7 @@
     select_all: () => editorCommands.selectAll(),
     insert_table: () => formatCommands.table(),
     format_tables: () => formatCommands.formatTables(),
+    goto_line: () => (gotoOpen = true),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
     view_preview: () => setViewMode("preview"),
@@ -102,6 +105,7 @@
     else if (key === "n") cmd = "new";
     else if (key === "o") cmd = "open";
     else if (key === "w") cmd = "close_tab";
+    else if (key === "g") cmd = "goto_line";
     else if (key === "t" && e.shiftKey) cmd = "reopen_closed";
     else if (["1", "2", "3"].includes(e.key))
       cmd = ["view_source", "view_split", "view_preview"][Number(e.key) - 1];
@@ -154,6 +158,7 @@
 {#if settingsOpen}<SettingsDialog onClose={() => (settingsOpen = false)} />{/if}
 {#if aboutOpen}<AboutDialog onClose={() => (aboutOpen = false)} />{/if}
 {#if changelogOpen}<ChangelogDialog onClose={() => (changelogOpen = false)} />{/if}
+{#if gotoOpen}<GoToLineDialog onClose={() => (gotoOpen = false)} />{/if}
 <Toasts />
 
 <style>

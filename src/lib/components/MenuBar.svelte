@@ -51,6 +51,7 @@
         { label: "Paste", id: "paste", shortcut: "Ctrl+V" },
         "sep",
         { label: "Select All", id: "select_all", shortcut: "Ctrl+A" },
+        { label: "Go to Line…", id: "goto_line", shortcut: "Ctrl+G" },
         "sep",
         { label: "Insert Table", id: "insert_table" },
         { label: "Format Tables", id: "format_tables" },
