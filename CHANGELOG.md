@@ -3,6 +3,30 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## v0.5.0 — 2026-06-18
+
+### Added
+
+- **Encoding support** — files are read by detected encoding: UTF-8 (+BOM),
+  UTF-16 LE/BE, and a **Windows-1250** fallback for legacy (e.g. Hungarian)
+  files; the status bar shows it. Saving a Windows-1250 file converts to UTF-8.
+- **Smart list continuation** — Enter continues a list/quote (incrementing
+  numbers, carrying task boxes); an empty item exits.
+- **Ctrl + mouse wheel** zooms the editor font.
+- **Alt** shows menu access keys; **Alt+F/E/V/H** opens that menu.
+- **Custom right-click menu** in the editor (Cut/Copy/Paste/Select All).
+- **Configurable preview render debounce** (Settings → Preview update delay).
+- **Word-wrap toggle**, status bar **cursor position** + **reading time**.
+- **File menu**: Open Recent, Save All (Ctrl+Alt+S), Reopen Closed Tab (Ctrl+Shift+T).
+- **Start maximized** by default, with a Startup window setting.
+- **Error toasts** — failed save/open/export/paste now surface a notification
+  instead of failing silently.
+
+### Internal
+
+- First unit tests (vitest) for encoding, table formatting, settings math, and
+  error formatting; CI runs type-check + tests + build on every push.
+
 ## v0.4.0 — 2026-06-17
 
 ### Added
