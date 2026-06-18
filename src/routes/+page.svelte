@@ -11,6 +11,7 @@
   import AboutDialog from "$lib/components/AboutDialog.svelte";
   import ChangelogDialog from "$lib/components/ChangelogDialog.svelte";
   import GoToLineDialog from "$lib/components/GoToLineDialog.svelte";
+  import CommandPalette from "$lib/components/CommandPalette.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
@@ -24,6 +25,7 @@
   let aboutOpen = $state(false);
   let changelogOpen = $state(false);
   let gotoOpen = $state(false);
+  let paletteOpen = $state(false);
   let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
@@ -102,6 +104,12 @@
       return void settings.setEditorFontSize(14);
     }
 
+    if (key === "p" && e.shiftKey) {
+      e.preventDefault();
+      paletteOpen = true;
+      return;
+    }
+
     let cmd: string | undefined;
     if (key === "s") cmd = e.altKey ? "save_all" : e.shiftKey ? "save_as" : "save";
     else if (key === "n") cmd = "new";
@@ -161,6 +169,15 @@
 {#if aboutOpen}<AboutDialog onClose={() => (aboutOpen = false)} />{/if}
 {#if changelogOpen}<ChangelogDialog onClose={() => (changelogOpen = false)} />{/if}
 {#if gotoOpen}<GoToLineDialog onClose={() => (gotoOpen = false)} />{/if}
+{#if paletteOpen}
+  <CommandPalette
+    onRun={(id) => {
+      paletteOpen = false;
+      handleMenu(id);
+    }}
+    onClose={() => (paletteOpen = false)}
+  />
+{/if}
 <Toasts />
 
 <style>
