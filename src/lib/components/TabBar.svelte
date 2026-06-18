@@ -5,18 +5,50 @@
     e.stopPropagation();
     void tabs.closeWithConfirm(tab.id);
   }
+
+  // Right-click context menu.
+  let ctx = $state<{ x: number; y: number; tab: Tab } | null>(null);
+  function openCtx(tab: Tab, e: MouseEvent) {
+    e.preventDefault();
+    ctx = { x: e.clientX, y: e.clientY, tab };
+  }
+  function run(fn: () => void) {
+    ctx = null;
+    fn();
+  }
+
+  // Drag-to-reorder.
+  let dragFrom = $state<number | null>(null);
+  function onDrop(to: number) {
+    if (dragFrom !== null && dragFrom !== to) tabs.moveTab(dragFrom, to);
+    dragFrom = null;
+  }
 </script>
 
+<svelte:window
+  onpointerdown={(e) => {
+    if (ctx && !(e.target as HTMLElement).closest(".tab-ctx")) ctx = null;
+  }}
+  onkeydown={(e) => e.key === "Escape" && (ctx = null)}
+/>
+
 <div class="tabbar" role="tablist">
-  {#each tabs.tabs as tab (tab.id)}
+  {#each tabs.tabs as tab, i (tab.id)}
     <div
       class="tab"
       class:active={tab.id === tabs.activeId}
+      class:dragover={dragFrom !== null && dragFrom !== i}
       role="tab"
       tabindex="0"
       aria-selected={tab.id === tabs.activeId}
+      draggable="true"
       onclick={() => tabs.select(tab.id)}
+      oncontextmenu={(e) => openCtx(tab, e)}
       onkeydown={(e) => (e.key === "Enter" || e.key === " ") && tabs.select(tab.id)}
+      ondragstart={() => (dragFrom = i)}
+      ondragover={(e) => e.preventDefault()}
+      ondrop={() => onDrop(i)}
+      ondragend={() => (dragFrom = null)}
     >
       <span class="dot" class:dirty={isDirty(tab)} aria-hidden="true"></span>
       <span class="title">{tabTitle(tab)}</span>
@@ -25,6 +57,30 @@
   {/each}
   <button class="new-tab" title="New tab (Ctrl+N)" onclick={() => tabs.newTab()}>+</button>
 </div>
+
+{#if ctx}
+  {@const t = ctx.tab}
+  <div class="tab-ctx" role="menu" style:left="{ctx.x}px" style:top="{ctx.y}px">
+    <button role="menuitem" onclick={() => run(() => tabs.closeWithConfirm(t.id))}>Close</button>
+    <button
+      role="menuitem"
+      disabled={tabs.tabs.length < 2}
+      onclick={() => run(() => tabs.closeOthers(t.id))}>Close Others</button
+    >
+    <button
+      role="menuitem"
+      disabled={tabs.tabs.findIndex((x) => x.id === t.id) >= tabs.tabs.length - 1}
+      onclick={() => run(() => tabs.closeToRight(t.id))}>Close to the Right</button
+    >
+    <div class="sep" role="separator"></div>
+    <button role="menuitem" disabled={!t.path} onclick={() => run(() => tabs.copyPath(t.id))}
+      >Copy Path</button
+    >
+    <button role="menuitem" disabled={!t.path} onclick={() => run(() => tabs.revealInExplorer(t.id))}
+      >Open Containing Folder</button
+    >
+  </div>
+{/if}
 
 <style>
   .tabbar {
@@ -49,6 +105,9 @@
   .tab.active {
     background: var(--bg);
     color: var(--fg);
+  }
+  .tab.dragover {
+    box-shadow: inset 2px 0 0 var(--accent);
   }
   .dot {
     width: 8px;
@@ -85,5 +144,40 @@
   }
   .new-tab:hover {
     color: var(--fg);
+  }
+  .tab-ctx {
+    position: fixed;
+    z-index: 30;
+    min-width: 190px;
+    padding: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  }
+  .tab-ctx button {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+  }
+  .tab-ctx button:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .tab-ctx button:disabled {
+    color: var(--fg-muted);
+    cursor: default;
+  }
+  .tab-ctx .sep {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 6px;
   }
 </style>

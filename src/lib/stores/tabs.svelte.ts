@@ -6,12 +6,14 @@ import {
   pickSavePath,
   readFile,
   samePath,
+  revealInDir,
   unwatchFile,
   watchFile,
   writeFile,
   type LineEnding,
   type Encoding,
 } from "$lib/ipc";
+import { moveItem } from "$lib/array-util";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
 import { recent } from "$lib/stores/recent.svelte";
 import { toasts } from "$lib/stores/toasts.svelte";
@@ -327,6 +329,41 @@ class TabsStore {
       if (!(await this.#confirm(msg, "Unsaved changes"))) return;
     }
     this.close(id);
+  }
+
+  /** Close every tab except the given one (prompting per dirty tab). */
+  async closeOthers(id: number) {
+    for (const t of this.tabs.filter((t) => t.id !== id)) await this.closeWithConfirm(t.id);
+  }
+
+  /** Close every tab to the right of the given one. */
+  async closeToRight(id: number) {
+    const idx = this.tabs.findIndex((t) => t.id === id);
+    if (idx === -1) return;
+    for (const t of this.tabs.slice(idx + 1)) await this.closeWithConfirm(t.id);
+  }
+
+  /** Reorder tabs (drag-and-drop). */
+  moveTab(from: number, to: number) {
+    this.tabs = moveItem(this.tabs, from, to);
+  }
+
+  /** Copy a tab's full file path to the clipboard. */
+  async copyPath(id: number) {
+    const tab = this.tabs.find((t) => t.id === id);
+    if (!tab?.path) return;
+    try {
+      await navigator.clipboard.writeText(tab.path);
+      toasts.success("Path copied");
+    } catch (e) {
+      toasts.error("Couldn't copy path", e);
+    }
+  }
+
+  /** Reveal a tab's file in the OS file manager. */
+  async revealInExplorer(id: number) {
+    const tab = this.tabs.find((t) => t.id === id);
+    if (tab?.path) await revealInDir(tab.path);
   }
 }
 

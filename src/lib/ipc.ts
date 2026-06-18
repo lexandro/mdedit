@@ -2,6 +2,7 @@
 // never imports the plugin packages directly. Keeps file I/O in one place.
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { readFile as fsReadFile, writeFile as fsWriteFile } from "@tauri-apps/plugin-fs";
 import {
   decodeBytes,
@@ -73,6 +74,15 @@ export async function unwatchFile(path: string): Promise<void> {
     await invoke("unwatch_file", { path });
   } catch {
     /* ignore */
+  }
+}
+
+/** Reveal a file in the OS file manager (Explorer), selecting it. */
+export async function revealInDir(path: string): Promise<void> {
+  try {
+    await revealItemInDir(path);
+  } catch {
+    /* not under Tauri */
   }
 }
 
