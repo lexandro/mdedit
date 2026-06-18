@@ -14,6 +14,7 @@
   import { wrapSelection, insertLink, continueList } from "$lib/md-format";
   import { savePastedImage } from "$lib/paste-image";
   import { fontSizeForWheel } from "$lib/settings-util";
+  import { toasts } from "$lib/stores/toasts.svelte";
 
   let {
     tab,
@@ -52,7 +53,10 @@
     event.preventDefault();
     void (async () => {
       const src = await savePastedImage(file, tab.path);
-      if (!src) return;
+      if (!src) {
+        toasts.error("Couldn't save pasted image");
+        return;
+      }
       const md = `![](${src})`;
       const { from, to } = v.state.selection.main;
       v.dispatch({ changes: { from, to, insert: md }, selection: { anchor: from + md.length } });

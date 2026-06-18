@@ -14,6 +14,7 @@ import {
 } from "$lib/ipc";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
 import { recent } from "$lib/stores/recent.svelte";
+import { toasts } from "$lib/stores/toasts.svelte";
 
 export interface Tab {
   id: number;
@@ -101,14 +102,21 @@ class TabsStore {
 
   /** Open via dialog. If the file is already open, just focus its tab. */
   async open() {
-    const loaded = await pickAndReadFile();
-    if (!loaded) return;
-    this.#openLoaded(loaded);
+    try {
+      const loaded = await pickAndReadFile();
+      if (loaded) this.#openLoaded(loaded);
+    } catch (e) {
+      toasts.error("Couldn't open file", e);
+    }
   }
 
   /** Open a known path directly (e.g. from the recent-files list). */
   async openPath(path: string) {
-    this.#openLoaded(await readFile(path));
+    try {
+      this.#openLoaded(await readFile(path));
+    } catch (e) {
+      toasts.error(`Couldn't open ${basename(path)}`, e);
+    }
   }
 
   #openLoaded(loaded: { path: string; content: string; lineEnding: LineEnding; encoding: Encoding }) {
@@ -233,7 +241,12 @@ class TabsStore {
     if (!tab) return false;
     if (!tab.path) return this.saveAs(tab.id);
     const encoding = this.#writeEncoding(tab);
-    await writeFile(tab.path, tab.content, { lineEnding: tab.lineEnding, encoding });
+    try {
+      await writeFile(tab.path, tab.content, { lineEnding: tab.lineEnding, encoding });
+    } catch (e) {
+      toasts.error(`Couldn't save ${tabTitle(tab)}`, e);
+      return false;
+    }
     tab.encoding = encoding;
     tab.savedContent = tab.content;
     return true;
@@ -246,7 +259,12 @@ class TabsStore {
     const path = await pickSavePath(suggested);
     if (!path) return false;
     const encoding = this.#writeEncoding(tab);
-    await writeFile(path, tab.content, { lineEnding: tab.lineEnding, encoding });
+    try {
+      await writeFile(path, tab.content, { lineEnding: tab.lineEnding, encoding });
+    } catch (e) {
+      toasts.error(`Couldn't save ${basename(path)}`, e);
+      return false;
+    }
     tab.encoding = encoding;
     tab.path = path;
     tab.savedContent = tab.content;

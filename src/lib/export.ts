@@ -3,6 +3,7 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { renderMarkdown } from "$lib/markdown/renderer";
+import { toasts } from "$lib/stores/toasts.svelte";
 
 // Self-contained light-theme styling so the exported file looks good anywhere.
 const EXPORT_CSS = `
@@ -46,12 +47,18 @@ function standaloneHtml(bodyHtml: string, title: string): string {
 
 /** Save the document as a standalone .html file (relative image paths kept). */
 export async function exportHtml(content: string, title: string): Promise<void> {
-  const html = standaloneHtml(renderMarkdown(content, null), title);
-  const path = await save({
-    filters: [{ name: "HTML", extensions: ["html"] }],
-    defaultPath: `${title}.html`,
-  });
-  if (path) await writeTextFile(path, html);
+  try {
+    const html = standaloneHtml(renderMarkdown(content, null), title);
+    const path = await save({
+      filters: [{ name: "HTML", extensions: ["html"] }],
+      defaultPath: `${title}.html`,
+    });
+    if (!path) return;
+    await writeTextFile(path, html);
+    toasts.success("Exported HTML");
+  } catch (e) {
+    toasts.error("HTML export failed", e);
+  }
 }
 
 /** Copy the rendered document to the clipboard as rich HTML (and plain text). */
@@ -64,14 +71,26 @@ export async function copyAsHtml(content: string): Promise<void> {
         "text/plain": new Blob([html], { type: "text/plain" }),
       }),
     ]);
+    toasts.success("Copied as HTML");
   } catch {
-    await navigator.clipboard.writeText(html); // fallback: plain text only
+    try {
+      await navigator.clipboard.writeText(html); // fallback: plain text only
+      toasts.success("Copied as HTML (plain text)");
+    } catch (e) {
+      toasts.error("Copy failed", e);
+    }
   }
 }
 
 /** Print the document via an isolated iframe so the user can "Save as PDF". */
 export function exportPdf(content: string, basePath: string | null, title: string): void {
-  const html = standaloneHtml(renderMarkdown(content, basePath), title);
+  let html: string;
+  try {
+    html = standaloneHtml(renderMarkdown(content, basePath), title);
+  } catch (e) {
+    toasts.error("PDF export failed", e);
+    return;
+  }
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";

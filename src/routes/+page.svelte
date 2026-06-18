@@ -15,6 +15,7 @@
   import Outline from "$lib/components/Outline.svelte";
   import AboutDialog from "$lib/components/AboutDialog.svelte";
   import ChangelogDialog from "$lib/components/ChangelogDialog.svelte";
+  import Toasts from "$lib/components/Toasts.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let settingsOpen = $state(false);
@@ -221,6 +222,8 @@
 {#if changelogOpen}
   <ChangelogDialog onClose={() => (changelogOpen = false)} />
 {/if}
+
+<Toasts />
 
 <style>
   .app {
