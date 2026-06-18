@@ -14,8 +14,15 @@
   let { onCommand }: { onCommand: (id: string) => void } = $props();
 
   let recentItems = $derived<Item[]>(
-    recent.paths.length
-      ? recent.paths.map((p) => ({ label: basename(p), id: `open_recent:${p}` }))
+    recent.entries.length
+      ? [
+          ...recent.entries.map((e) => ({
+            label: (e.pinned ? "📌 " : "") + basename(e.path),
+            id: `open_recent:${e.path}`,
+          })),
+          "sep" as const,
+          { label: "Clear Recent", id: "clear_recent" },
+        ]
       : [{ label: "(no recent files)" }],
   );
 

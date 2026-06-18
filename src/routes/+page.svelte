@@ -13,6 +13,7 @@
   import GoToLineDialog from "$lib/components/GoToLineDialog.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
+  import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { editorCommands, formatCommands } from "$lib/editor-commands";
@@ -61,6 +62,7 @@
     insert_table: () => formatCommands.table(),
     format_tables: () => formatCommands.formatTables(),
     goto_line: () => (gotoOpen = true),
+    clear_recent: () => void recent.clearRecent(),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
     view_preview: () => setViewMode("preview"),

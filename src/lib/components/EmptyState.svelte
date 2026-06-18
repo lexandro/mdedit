@@ -11,12 +11,22 @@
     <button onclick={() => tabs.newTab()}>New file</button>
     <button onclick={() => tabs.open()}>Open file…</button>
   </div>
-  {#if recent.paths.length > 0}
+  {#if recent.entries.length > 0}
     <div class="recent">
-      <h2>Recent</h2>
+      <div class="recent-head">
+        <h2>Recent</h2>
+        <button class="clear" onclick={() => recent.clearRecent()}>Clear</button>
+      </div>
       <ul>
-        {#each recent.paths as path (path)}
+        {#each recent.entries as { path, pinned } (path)}
           <li>
+            <button
+              class="pin"
+              class:pinned
+              title={pinned ? "Unpin" : "Pin"}
+              aria-label={pinned ? "Unpin" : "Pin"}
+              onclick={() => (pinned ? recent.unpin(path) : recent.pin(path))}>📌</button
+            >
             <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
               {basename(path)}<span class="path">{path}</span>
             </button>
@@ -70,17 +80,51 @@
     margin-top: 18px;
     width: min(460px, 80vw);
   }
+  .recent-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 0 6px;
+  }
   .recent h2 {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--fg-muted);
-    margin: 0 0 6px;
+    margin: 0;
+  }
+  .clear {
+    border: none;
+    background: transparent;
+    color: var(--fg-muted);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .clear:hover {
+    color: var(--accent);
   }
   .recent ul {
     list-style: none;
     margin: 0;
     padding: 0;
+  }
+  .recent li {
+    display: flex;
+    align-items: center;
+  }
+  .pin {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 12px;
+    opacity: 0.25;
+    filter: grayscale(1);
+  }
+  .pin:hover,
+  .pin.pinned {
+    opacity: 1;
+    filter: none;
   }
   .recent-item {
     display: flex;
