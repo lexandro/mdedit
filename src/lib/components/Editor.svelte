@@ -13,6 +13,7 @@
   import { editorStatus } from "$lib/stores/editor-status.svelte";
   import { wrapSelection, insertLink, continueList } from "$lib/md-format";
   import { savePastedImage } from "$lib/paste-image";
+  import { fontSizeForWheel } from "$lib/settings-util";
 
   let {
     tab,
@@ -57,6 +58,14 @@
       v.dispatch({ changes: { from, to, insert: md }, selection: { anchor: from + md.length } });
     })();
     return true;
+  }
+
+  // Ctrl + mouse wheel zooms the editor font (like Notepad), overriding the
+  // WebView's default page zoom.
+  function handleWheel(e: WheelEvent) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    void settings.setEditorFontSize(fontSizeForWheel(settings.editorFontSize, e.deltaY));
   }
 
   function handleScroll() {
@@ -110,10 +119,12 @@
       }),
     });
     view.scrollDOM.addEventListener("scroll", handleScroll, { passive: true });
+    view.scrollDOM.addEventListener("wheel", handleWheel, { passive: false });
     const onFocusIn = () => view && setActiveEditor(view);
     view.contentDOM.addEventListener("focusin", onFocusIn);
     return () => {
       view?.scrollDOM.removeEventListener("scroll", handleScroll);
+      view?.scrollDOM.removeEventListener("wheel", handleWheel);
       view?.contentDOM.removeEventListener("focusin", onFocusIn);
       if (view) clearActiveEditor(view);
       view?.destroy();

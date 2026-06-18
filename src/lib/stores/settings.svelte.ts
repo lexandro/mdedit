@@ -3,18 +3,15 @@
 import { type Store } from "@tauri-apps/plugin-store";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { tryLoadStore } from "$lib/stores/persist";
+import { clampZoom, clampFontSize } from "$lib/settings-util";
+
+export { ZOOM_MIN, ZOOM_MAX, ZOOM_STEP, FONT_MIN, FONT_MAX } from "$lib/settings-util";
 
 export type ThemeChoice = "light" | "dark" | "system";
 export type SplitOrientation = "horizontal" | "vertical";
 export type ViewMode = "source" | "preview" | "split";
 
 const STORE_FILE = "settings.json";
-
-export const ZOOM_MIN = 0.8;
-export const ZOOM_MAX = 1.8;
-export const ZOOM_STEP = 0.1;
-export const FONT_MIN = 10;
-export const FONT_MAX = 28;
 
 interface PersistShape {
   theme: ThemeChoice;
@@ -33,8 +30,6 @@ const DEFAULTS: PersistShape = {
   editorFontSize: 14,
   wordWrap: true,
 };
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 class SettingsStore {
   theme = $state<ThemeChoice>(DEFAULTS.theme);
@@ -99,13 +94,13 @@ class SettingsStore {
   }
 
   async setUiZoom(z: number) {
-    this.uiZoom = clamp(Math.round(z * 100) / 100, ZOOM_MIN, ZOOM_MAX);
+    this.uiZoom = clampZoom(z);
     this.applyZoom();
     await this.#store?.set("uiZoom", this.uiZoom);
   }
 
   async setEditorFontSize(px: number) {
-    this.editorFontSize = clamp(Math.round(px), FONT_MIN, FONT_MAX);
+    this.editorFontSize = clampFontSize(px);
     await this.#store?.set("editorFontSize", this.editorFontSize);
   }
 
