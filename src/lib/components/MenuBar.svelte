@@ -3,6 +3,7 @@
   // UI zoom and matches the theme). Dispatches every item through onCommand.
   import { recent } from "$lib/stores/recent.svelte";
   import { basename } from "$lib/stores/tabs.svelte";
+  import { mnemonicIndex } from "$lib/menu-util";
 
   type Item = { label: string; id?: string; shortcut?: string; children?: Item[] } | "sep";
   interface Menu {
@@ -83,6 +84,7 @@
 
   let open = $state<number | null>(null);
   let subOpen = $state<string | null>(null);
+  let altMode = $state(false); // show access-key underlines while Alt is held
 
   function toggle(i: number) {
     open = open === i ? null : i;
@@ -106,12 +108,32 @@
       subOpen = null;
     }
   }
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      open = null;
+      subOpen = null;
+      altMode = false;
+    } else if (e.key === "Alt" && !e.repeat) {
+      altMode = true;
+    } else if (e.altKey && /^[a-z]$/i.test(e.key)) {
+      const idx = mnemonicIndex(
+        menus.map((m) => m.label),
+        e.key,
+      );
+      if (idx >= 0) {
+        e.preventDefault();
+        open = idx;
+        subOpen = null;
+        altMode = true;
+      }
+    }
+  }
+  function onKeyup(e: KeyboardEvent) {
+    if (e.key === "Alt") altMode = false;
+  }
 </script>
 
-<svelte:window
-  onpointerdown={onWindowPointerDown}
-  onkeydown={(e) => e.key === "Escape" && (open = null)}
-/>
+<svelte:window onpointerdown={onWindowPointerDown} onkeydown={onKeydown} onkeyup={onKeyup} />
 
 <div class="menubar" role="menubar">
   {#each menus as menu, i (menu.label)}
@@ -124,7 +146,7 @@
         onclick={() => toggle(i)}
         onmouseenter={() => hover(i)}
       >
-        {menu.label}
+        {#if altMode}<u>{menu.label[0]}</u>{menu.label.slice(1)}{:else}{menu.label}{/if}
       </button>
       {#if open === i}
         <div class="dropdown" role="menu">

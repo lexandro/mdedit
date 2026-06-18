@@ -9,7 +9,7 @@
   import { oneDark } from "@codemirror/theme-one-dark";
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
-  import { setActiveEditor, clearActiveEditor } from "$lib/editor-commands";
+  import { setActiveEditor, clearActiveEditor, editorCommands } from "$lib/editor-commands";
   import { editorStatus } from "$lib/stores/editor-status.svelte";
   import { wrapSelection, insertLink, continueList } from "$lib/md-format";
   import { savePastedImage } from "$lib/paste-image";
@@ -58,6 +58,18 @@
       v.dispatch({ changes: { from, to, insert: md }, selection: { anchor: from + md.length } });
     })();
     return true;
+  }
+
+  // Custom right-click menu (the WebView's default menu is the browser one).
+  let ctxMenu = $state<{ x: number; y: number } | null>(null);
+  function handleContextMenu(e: MouseEvent) {
+    e.preventDefault();
+    view?.focus();
+    ctxMenu = { x: e.clientX, y: e.clientY };
+  }
+  function runCtx(action: () => void) {
+    ctxMenu = null;
+    action();
   }
 
   // Ctrl + mouse wheel zooms the editor font (like Notepad), overriding the
@@ -120,11 +132,13 @@
     });
     view.scrollDOM.addEventListener("scroll", handleScroll, { passive: true });
     view.scrollDOM.addEventListener("wheel", handleWheel, { passive: false });
+    view.scrollDOM.addEventListener("contextmenu", handleContextMenu);
     const onFocusIn = () => view && setActiveEditor(view);
     view.contentDOM.addEventListener("focusin", onFocusIn);
     return () => {
       view?.scrollDOM.removeEventListener("scroll", handleScroll);
       view?.scrollDOM.removeEventListener("wheel", handleWheel);
+      view?.scrollDOM.removeEventListener("contextmenu", handleContextMenu);
       view?.contentDOM.removeEventListener("focusin", onFocusIn);
       if (view) clearActiveEditor(view);
       view?.destroy();
@@ -182,10 +196,65 @@
 
 <div class="editor" bind:this={host} style="--editor-font-size: {settings.editorFontSize}px"></div>
 
+{#if ctxMenu}
+  <div
+    class="ctx-backdrop"
+    role="presentation"
+    onpointerdown={() => (ctxMenu = null)}
+    oncontextmenu={(e) => {
+      e.preventDefault();
+      ctxMenu = null;
+    }}
+  ></div>
+  <div class="ctx-menu" style="left: {ctxMenu.x}px; top: {ctxMenu.y}px" role="menu">
+    <button role="menuitem" onclick={() => runCtx(editorCommands.cut)}>Cut</button>
+    <button role="menuitem" onclick={() => runCtx(editorCommands.copy)}>Copy</button>
+    <button role="menuitem" onclick={() => runCtx(() => void editorCommands.paste())}>Paste</button>
+    <div class="ctx-sep" role="separator"></div>
+    <button role="menuitem" onclick={() => runCtx(editorCommands.selectAll)}>Select All</button>
+  </div>
+{/if}
+
 <style>
   .editor {
     height: 100%;
     overflow: hidden;
+  }
+  .ctx-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+  }
+  .ctx-menu {
+    position: fixed;
+    z-index: 31;
+    min-width: 160px;
+    padding: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  }
+  .ctx-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .ctx-menu button:hover {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .ctx-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 6px;
   }
   .editor :global(.cm-editor) {
     height: 100%;
