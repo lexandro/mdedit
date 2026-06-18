@@ -9,6 +9,7 @@
   import { takeLaunchFiles } from "$lib/ipc";
   import { listen } from "@tauri-apps/api/event";
   import { getCurrentWebview } from "@tauri-apps/api/webview";
+  import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let { children } = $props();
 
@@ -25,6 +26,10 @@
     // concurrently, then restore the session, then open any launch files.
     void (async () => {
       await Promise.all([settings.init(), recent.init()]);
+      // Apply the startup window state (maximized by default; the OS window
+      // already opens maximized, so this only matters when set to normal).
+      const win = getCurrentWindow();
+      (settings.startupMaximized ? win.maximize() : win.unmaximize()).catch(() => {});
       await session.restore();
       openPaths(await takeLaunchFiles());
     })();

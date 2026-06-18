@@ -30,6 +30,7 @@ interface PersistShape {
   editorFontSize: number;
   wordWrap: boolean;
   previewDebounceMs: number;
+  startupMaximized: boolean;
 }
 
 const DEFAULTS: PersistShape = {
@@ -40,6 +41,7 @@ const DEFAULTS: PersistShape = {
   editorFontSize: 14,
   wordWrap: true,
   previewDebounceMs: 100,
+  startupMaximized: true,
 };
 
 class SettingsStore {
@@ -50,6 +52,7 @@ class SettingsStore {
   editorFontSize = $state<number>(DEFAULTS.editorFontSize);
   wordWrap = $state<boolean>(DEFAULTS.wordWrap);
   previewDebounceMs = $state<number>(DEFAULTS.previewDebounceMs);
+  startupMaximized = $state<boolean>(DEFAULTS.startupMaximized);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -71,6 +74,8 @@ class SettingsStore {
       this.wordWrap = (await this.#store.get<boolean>("wordWrap")) ?? DEFAULTS.wordWrap;
       this.previewDebounceMs =
         (await this.#store.get<number>("previewDebounceMs")) ?? DEFAULTS.previewDebounceMs;
+      this.startupMaximized =
+        (await this.#store.get<boolean>("startupMaximized")) ?? DEFAULTS.startupMaximized;
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -126,6 +131,11 @@ class SettingsStore {
   async setPreviewDebounceMs(ms: number) {
     this.previewDebounceMs = clampDebounce(ms);
     await this.#store?.set("previewDebounceMs", this.previewDebounceMs);
+  }
+
+  async setStartupMaximized(on: boolean) {
+    this.startupMaximized = on;
+    await this.#store?.set("startupMaximized", on);
   }
 }
 

@@ -124,6 +124,20 @@
       {/each}
     </div>
   </section>
+
+  <section>
+    <h3>Startup window</h3>
+    <div class="seg">
+      <button
+        class:active={settings.startupMaximized}
+        onclick={() => settings.setStartupMaximized(true)}>Maximized</button
+      >
+      <button
+        class:active={!settings.startupMaximized}
+        onclick={() => settings.setStartupMaximized(false)}>Normal</button
+      >
+    </div>
+  </section>
 </div>
 
 <style>
