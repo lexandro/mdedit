@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import { sveltekit } from "@sveltejs/kit/vite";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -6,6 +6,15 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [sveltekit()],
+
+  // Under Vitest, resolve Svelte's browser build so components mount in jsdom.
+  resolve: process.env.VITEST ? { conditions: ["browser"] } : undefined,
+
+  test: {
+    // jsdom for component tests; pure-logic tests don't care about the env.
+    environment: "jsdom",
+    setupFiles: ["./vitest-setup.ts"],
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
