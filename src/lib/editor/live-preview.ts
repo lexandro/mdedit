@@ -10,12 +10,16 @@ import {
   type ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
+import { StateField, type EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
 import type { SyntaxNode } from "@lezer/common";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import katex from "katex";
+import mermaid from "mermaid";
 import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
+import { renderMarkdown } from "$lib/markdown/renderer";
+import { settings } from "$lib/stores/settings.svelte";
 import {
   headingClass,
   STYLE_CLASS,
@@ -76,6 +80,52 @@ class MathWidget extends WidgetType {
   }
 }
 
+/** Rendered block (table / fenced code) — reuses the preview's sanitized HTML. */
+class HtmlWidget extends WidgetType {
+  constructor(readonly html: string) {
+    super();
+  }
+  eq(o: HtmlWidget) {
+    return o.html === this.html;
+  }
+  toDOM() {
+    const el = document.createElement("div");
+    el.className = "cm-lp-block markdown-body";
+    el.innerHTML = this.html; // already sanitized by renderMarkdown
+    return el;
+  }
+}
+
+let mermaidSeq = 0;
+async function renderMermaidInto(host: HTMLElement, code: string) {
+  try {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: settings.resolvedTheme === "dark" ? "dark" : "default",
+      securityLevel: "strict",
+    });
+    const { svg } = await mermaid.render(`lp-mmd-${mermaidSeq++}`, code);
+    host.innerHTML = svg;
+  } catch (e) {
+    host.textContent = `Mermaid error: ${(e as Error).message}`;
+  }
+}
+
+class MermaidWidget extends WidgetType {
+  constructor(readonly code: string) {
+    super();
+  }
+  eq(o: MermaidWidget) {
+    return o.code === this.code;
+  }
+  toDOM() {
+    const el = document.createElement("div");
+    el.className = "cm-lp-block cm-lp-mermaid";
+    void renderMermaidInto(el, this.code);
+    return el;
+  }
+}
+
 /** Resolve a Markdown image src to something the WebView can load. */
 function resolveSrc(url: string, baseDir: string | null): string {
   const abs = toAbsoluteImagePath(url, baseDir);
@@ -88,10 +138,10 @@ function resolveSrc(url: string, baseDir: string | null): string {
 }
 
 /** Line numbers currently touched by any selection — there we reveal raw Markdown. */
-function activeLines(view: EditorView): Set<number> {
+function activeLines(state: EditorState): Set<number> {
   const lines = new Set<number>();
-  const doc = view.state.doc;
-  for (const r of view.state.selection.ranges) {
+  const doc = state.doc;
+  for (const r of state.selection.ranges) {
     const first = doc.lineAt(r.from).number;
     const last = doc.lineAt(r.to).number;
     for (let n = first; n <= last; n++) lines.add(n);
@@ -99,10 +149,19 @@ function activeLines(view: EditorView): Set<number> {
   return lines;
 }
 
-function buildDecorations(view: EditorView, baseDir: string | null): DecorationSet {
+/** True if a position sits inside a fenced/inline code or table node. */
+function inCodeOrTable(tree: ReturnType<typeof syntaxTree>, pos: number): boolean {
+  for (let n: SyntaxNode | null = tree.resolveInner(pos, 1); n; n = n.parent) {
+    if (/Code/i.test(n.name) || n.name === "Table") return true;
+  }
+  return false;
+}
+
+function buildDecorations(view: EditorView, basePath: string | null): DecorationSet {
   const decos: { from: number; to: number; deco: Decoration }[] = [];
-  const active = activeLines(view);
+  const active = activeLines(view.state);
   const doc = view.state.doc;
+  const baseDir = basePath ? dirname(basePath) : null;
 
   const tree = syntaxTree(view.state);
   for (const { from, to } of view.visibleRanges) {
@@ -119,6 +178,8 @@ function buildDecorations(view: EditorView, baseDir: string | null): DecorationS
         } else if (node.name.startsWith("ATXHeading")) {
           const level = Number(node.name.slice("ATXHeading".length)) || 1;
           decos.push({ from: node.from, to: node.to, deco: Decoration.mark({ class: headingClass(level) }) });
+        } else if (node.name === "FencedCode" || node.name === "Table") {
+          return false; // handled by the block-decoration field; don't style inside
         } else if (node.name === "Image") {
           if (!markerHidden(line, active)) return;
           const img = parseImage(doc.sliceString(node.from, node.to));
@@ -161,7 +222,7 @@ function buildDecorations(view: EditorView, baseDir: string | null): DecorationS
       let activeHere = false;
       for (let n = firstLine; n <= lastLine && !activeHere; n++) activeHere = active.has(n);
       if (activeHere) continue;
-      if (/Code/i.test(tree.resolveInner(sFrom, 1).name)) continue; // skip code spans/blocks
+      if (inCodeOrTable(tree, sFrom)) continue; // skip code spans/blocks and tables
       let html: string;
       try {
         html = katex.renderToString(span.tex, { displayMode: span.display, throwOnError: false });
@@ -211,13 +272,67 @@ const openLinkOnClick = EditorView.domEventHandlers({
   },
 });
 
+// Block widgets (tables, fenced code, Mermaid) must come from a StateField — CM
+// forbids block decorations from view plugins. Scans the whole doc (blocks are
+// few) and reveals raw source when the cursor is inside a block.
+function buildBlockDecorations(state: EditorState, basePath: string | null): DecorationSet {
+  const decos: { from: number; to: number; deco: Decoration }[] = [];
+  const doc = state.doc;
+  const active = activeLines(state);
+  syntaxTree(state).iterate({
+    enter: (node) => {
+      if (node.name !== "FencedCode" && node.name !== "Table") return;
+      const firstLine = doc.lineAt(node.from).number;
+      const lastLine = doc.lineAt(node.to).number;
+      let act = false;
+      for (let n = firstLine; n <= lastLine && !act; n++) act = active.has(n);
+      if (!act) {
+        const bFrom = doc.line(firstLine).from;
+        const bTo = doc.line(lastLine).to;
+        const info = node.node.getChild("CodeInfo");
+        const lang = info ? doc.sliceString(info.from, info.to).trim().toLowerCase() : "";
+        if (node.name === "FencedCode" && lang === "mermaid") {
+          const code = node.node.getChild("CodeText");
+          const widget = new MermaidWidget(code ? doc.sliceString(code.from, code.to) : "");
+          decos.push({ from: bFrom, to: bTo, deco: Decoration.replace({ widget, block: true }) });
+        } else {
+          const widget = new HtmlWidget(renderMarkdown(doc.sliceString(bFrom, bTo), basePath));
+          decos.push({ from: bFrom, to: bTo, deco: Decoration.replace({ widget, block: true }) });
+        }
+      }
+      return false; // never descend into a block
+    },
+  });
+  decos.sort((a, b) => a.from - b.from || a.to - b.to);
+  return Decoration.set(
+    decos.map((d) => d.deco.range(d.from, d.to)),
+    true,
+  );
+}
+
+function blockField(basePath: string | null) {
+  return StateField.define<DecorationSet>({
+    create: (state) => buildBlockDecorations(state, basePath),
+    update(value, tr) {
+      if (
+        tr.docChanged ||
+        tr.selection ||
+        syntaxTree(tr.state) !== syntaxTree(tr.startState)
+      ) {
+        return buildBlockDecorations(tr.state, basePath);
+      }
+      return value.map(tr.changes);
+    },
+    provide: (f) => EditorView.decorations.from(f),
+  });
+}
+
 export function livePreview(basePath: string | null = null) {
-  const baseDir = basePath ? dirname(basePath) : null;
   const plugin = ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
       constructor(view: EditorView) {
-        this.decorations = buildDecorations(view, baseDir);
+        this.decorations = buildDecorations(view, basePath);
       }
       update(u: ViewUpdate) {
         // Also rebuild when the background parser advances (tree identity changes),
@@ -228,11 +343,11 @@ export function livePreview(basePath: string | null = null) {
           u.selectionSet ||
           syntaxTree(u.state) !== syntaxTree(u.startState)
         ) {
-          this.decorations = buildDecorations(u.view, baseDir);
+          this.decorations = buildDecorations(u.view, basePath);
         }
       }
     },
     { decorations: (v) => v.decorations },
   );
-  return [plugin, openLinkOnClick];
+  return [plugin, blockField(basePath), openLinkOnClick];
 }

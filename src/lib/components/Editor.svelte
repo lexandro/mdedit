@@ -5,7 +5,7 @@
   import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
   import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
   import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
-  import { markdown } from "@codemirror/lang-markdown";
+  import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
   import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
   import { oneDark } from "@codemirror/theme-one-dark";
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
@@ -134,7 +134,7 @@
           closeBrackets(),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
           liveCompartment.of(live ? livePreview(tab.path) : []),
-          markdown(),
+          markdown({ base: markdownLanguage }), // GFM: tables, strikethrough, task lists
           EditorView.domEventHandlers({ paste: handlePaste }),
           themeCompartment.of(themeExtension()),
           keymap.of([

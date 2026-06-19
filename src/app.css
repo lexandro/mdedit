@@ -37,6 +37,24 @@
 .cm-lp-math .katex-display {
   margin: 0.3em 0;
 }
+.cm-lp-block {
+  margin: 0.4em 0;
+  cursor: default;
+}
+.cm-lp-block table {
+  border-collapse: collapse;
+}
+.cm-lp-block :is(th, td) {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+}
+.cm-lp-block pre {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg-alt);
+  border-radius: 6px;
+  overflow: auto;
+}
 .cm-lp-h1,
 .cm-lp-h2,
 .cm-lp-h3,
