@@ -33,3 +33,39 @@ export function parseImage(text: string): { alt: string; url: string } | null {
   const m = /^!\[([^\]]*)\]\(\s*(\S+?)\s*(?:"[^"]*")?\)$/.exec(text.trim());
   return m ? { alt: m[1], url: m[2] } : null;
 }
+
+export interface MathSpan {
+  from: number;
+  to: number;
+  tex: string;
+  display: boolean;
+}
+
+/**
+ * Find TeX math spans in plain text: display `$$…$$` (may span lines) and inline
+ * `$…$`. Conservative inline rule (no inner `$`, no surrounding whitespace, not
+ * adjacent to digits) so prose like "$5 and $10" is left alone. Offsets are
+ * indices into `text`. Code-context filtering happens in the CodeMirror layer.
+ */
+export function findMath(text: string): MathSpan[] {
+  const spans: MathSpan[] = [];
+  const covered: Array<[number, number]> = [];
+  let m: RegExpExecArray | null;
+
+  const display = /(?<!\\)\$\$([\s\S]+?)(?<!\\)\$\$/g;
+  while ((m = display.exec(text))) {
+    const to = m.index + m[0].length;
+    spans.push({ from: m.index, to, tex: m[1].trim(), display: true });
+    covered.push([m.index, to]);
+  }
+
+  const inline = /(?<![\\\d$])\$(?!\s)([^$\n]+?)(?<![\s\\])\$(?![\d$])/g;
+  while ((m = inline.exec(text))) {
+    const from = m.index;
+    const to = from + m[0].length;
+    if (covered.some(([a, b]) => from < b && to > a)) continue; // inside a $$…$$ span
+    spans.push({ from, to, tex: m[1].trim(), display: false });
+  }
+
+  return spans.sort((a, b) => a.from - b.from);
+}

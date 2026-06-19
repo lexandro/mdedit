@@ -14,6 +14,7 @@ import { syntaxTree } from "@codemirror/language";
 import type { SyntaxNode } from "@lezer/common";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import katex from "katex";
 import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
 import {
   headingClass,
@@ -22,6 +23,7 @@ import {
   markerHidden,
   isFollowableUrl,
   parseImage,
+  findMath,
 } from "./live-preview-core";
 
 const HIDE = Decoration.replace({});
@@ -56,6 +58,24 @@ class HrWidget extends WidgetType {
   }
 }
 
+class MathWidget extends WidgetType {
+  constructor(
+    readonly html: string,
+    readonly display: boolean,
+  ) {
+    super();
+  }
+  eq(o: MathWidget) {
+    return o.html === this.html && o.display === this.display;
+  }
+  toDOM() {
+    const el = document.createElement(this.display ? "div" : "span");
+    el.className = "cm-lp-math";
+    el.innerHTML = this.html; // KaTeX output is trusted markup
+    return el;
+  }
+}
+
 /** Resolve a Markdown image src to something the WebView can load. */
 function resolveSrc(url: string, baseDir: string | null): string {
   const abs = toAbsoluteImagePath(url, baseDir);
@@ -84,8 +104,9 @@ function buildDecorations(view: EditorView, baseDir: string | null): DecorationS
   const active = activeLines(view);
   const doc = view.state.doc;
 
+  const tree = syntaxTree(view.state);
   for (const { from, to } of view.visibleRanges) {
-    syntaxTree(view.state).iterate({
+    tree.iterate({
       from,
       to,
       enter: (node) => {
@@ -129,6 +150,30 @@ function buildDecorations(view: EditorView, baseDir: string | null): DecorationS
         }
       },
     });
+
+    // Math isn't in the Markdown syntax tree, so scan the text for $…$ / $$…$$.
+    const text = doc.sliceString(from, to);
+    for (const span of findMath(text)) {
+      const sFrom = from + span.from;
+      const sTo = from + span.to;
+      const firstLine = doc.lineAt(sFrom).number;
+      const lastLine = doc.lineAt(sTo).number;
+      let activeHere = false;
+      for (let n = firstLine; n <= lastLine && !activeHere; n++) activeHere = active.has(n);
+      if (activeHere) continue;
+      if (/Code/i.test(tree.resolveInner(sFrom, 1).name)) continue; // skip code spans/blocks
+      let html: string;
+      try {
+        html = katex.renderToString(span.tex, { displayMode: span.display, throwOnError: false });
+      } catch {
+        continue;
+      }
+      decos.push({
+        from: sFrom,
+        to: sTo,
+        deco: Decoration.replace({ widget: new MathWidget(html, span.display) }),
+      });
+    }
   }
 
   decos.sort((a, b) => a.from - b.from || a.to - b.to);

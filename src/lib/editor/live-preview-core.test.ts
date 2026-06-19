@@ -6,6 +6,7 @@ import {
   markerHidden,
   isFollowableUrl,
   parseImage,
+  findMath,
 } from "./live-preview-core";
 
 describe("headingClass", () => {
@@ -56,5 +57,23 @@ describe("parseImage", () => {
   it("returns null for non-image text", () => {
     expect(parseImage("[link](url)")).toBeNull();
     expect(parseImage("plain")).toBeNull();
+  });
+});
+
+describe("findMath", () => {
+  it("finds inline $…$ math", () => {
+    expect(findMath("see $x^2$ here")).toEqual([{ from: 4, to: 9, tex: "x^2", display: false }]);
+  });
+  it("finds display $$…$$ math across lines", () => {
+    const out = findMath("$$\na+b\n$$");
+    expect(out).toHaveLength(1);
+    expect(out[0].display).toBe(true);
+    expect(out[0].tex).toBe("a+b");
+  });
+  it("ignores currency-like prose", () => {
+    expect(findMath("it costs $5 and $10 total")).toEqual([]);
+  });
+  it("does not double-match inline inside a display span", () => {
+    expect(findMath("$$x$$").filter((s) => !s.display)).toEqual([]);
   });
 });
