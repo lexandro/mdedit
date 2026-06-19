@@ -3,6 +3,22 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- **LaTeX math** in the preview via KaTeX — inline `$…$` and display `$$…$$`.
+- **Autosave** (off by default) — saves the active saved file after a configurable
+  delay; toggled in Settings → Editor.
+
+### Changed
+
+- **Settings dialog** split into General / Appearance / Editor / Preview tabs and
+  made scrollable, so it fits in a non-maximized window.
+- **View menu** now shows toggle state — checkmarks for Word Wrap and Outline,
+  and the current orientation for Split.
+- README features section rewritten to reflect the full feature set.
+
 ## v0.6.0 — 2026-06-18
 
 ### Added
