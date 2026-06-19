@@ -84,6 +84,10 @@ export const hu: Record<string, string> = {
   // Settings dialog
   "settings.title": "Beállítások",
   "settings.close": "Bezárás",
+  "settings.tab.general": "Általános",
+  "settings.tab.appearance": "Megjelenés",
+  "settings.tab.editor": "Szerkesztő",
+  "settings.tab.preview": "Előnézet",
   "settings.theme": "Téma",
   "settings.uiSize": "Felület mérete",
   "settings.uiSizeHint":

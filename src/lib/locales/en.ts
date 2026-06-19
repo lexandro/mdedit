@@ -85,6 +85,10 @@ export const en: Record<string, string> = {
   // Settings dialog
   "settings.title": "Settings",
   "settings.close": "Close",
+  "settings.tab.general": "General",
+  "settings.tab.appearance": "Appearance",
+  "settings.tab.editor": "Editor",
+  "settings.tab.preview": "Preview",
   "settings.theme": "Theme",
   "settings.uiSize": "Interface size",
   "settings.uiSizeHint": "Scales the whole interface — menu, toolbar, tabs, editor and preview.",

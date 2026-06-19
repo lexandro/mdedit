@@ -25,6 +25,15 @@
     { id: "en", label: "English" },
     { id: "hu", label: "Magyar" },
   ];
+
+  type TabId = "general" | "appearance" | "editor" | "preview";
+  const tabs: { id: TabId; key: string }[] = [
+    { id: "general", key: "settings.tab.general" },
+    { id: "appearance", key: "settings.tab.appearance" },
+    { id: "editor", key: "settings.tab.editor" },
+    { id: "preview", key: "settings.tab.preview" },
+  ];
+  let tab = $state<TabId>("general");
 </script>
 
 <div
@@ -40,123 +49,145 @@
     <button class="x" onclick={onClose} aria-label={t("settings.close")}>×</button>
   </header>
 
-  <section>
-    <h3>{t("settings.language")}</h3>
-    <div class="seg">
-      {#each languages as l (l.id)}
-        <button class:active={settings.language === l.id} onclick={() => settings.setLanguage(l.id)}
-          >{l.label}</button
-        >
-      {/each}
-    </div>
-  </section>
-
-  <section>
-    <h3>{t("settings.theme")}</h3>
-    <div class="seg">
-      {#each themes as th (th)}
-        <button class:active={settings.theme === th} onclick={() => settings.setTheme(th)}
-          >{t(`theme.${th}`)}</button
-        >
-      {/each}
-    </div>
-  </section>
-
-  <section>
-    <h3>{t("settings.uiSize")}</h3>
-    <div class="stepper">
-      <button
-        aria-label={t("settings.decUi")}
-        disabled={settings.uiZoom <= ZOOM_MIN}
-        onclick={() => settings.setUiZoom(settings.uiZoom - ZOOM_STEP)}>−</button
-      >
-      <span class="value">{Math.round(settings.uiZoom * 100)}%</span>
-      <button
-        aria-label={t("settings.incUi")}
-        disabled={settings.uiZoom >= ZOOM_MAX}
-        onclick={() => settings.setUiZoom(settings.uiZoom + ZOOM_STEP)}>+</button
-      >
-      <button class="reset" onclick={() => settings.setUiZoom(1)}>{t("settings.reset")}</button>
-    </div>
-    <p class="hint">{t("settings.uiSizeHint")}</p>
-  </section>
-
-  <section>
-    <h3>{t("settings.fontSize")}</h3>
-    <div class="stepper">
-      <button
-        aria-label={t("settings.decFont")}
-        disabled={settings.editorFontSize <= FONT_MIN}
-        onclick={() => settings.setEditorFontSize(settings.editorFontSize - 1)}>−</button
-      >
-      <span class="value">{settings.editorFontSize}px</span>
-      <button
-        aria-label={t("settings.incFont")}
-        disabled={settings.editorFontSize >= FONT_MAX}
-        onclick={() => settings.setEditorFontSize(settings.editorFontSize + 1)}>+</button
-      >
-      <button class="reset" onclick={() => settings.setEditorFontSize(14)}>{t("settings.reset")}</button>
-    </div>
-  </section>
-
-  <section>
-    <h3>{t("settings.previewDelay")}</h3>
-    <div class="stepper">
-      <button
-        aria-label={t("settings.decDelay")}
-        disabled={settings.previewDebounceMs <= DEBOUNCE_MIN}
-        onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs - DEBOUNCE_STEP)}
-        >−</button
-      >
-      <span class="value">{settings.previewDebounceMs} ms</span>
-      <button
-        aria-label={t("settings.incDelay")}
-        disabled={settings.previewDebounceMs >= DEBOUNCE_MAX}
-        onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs + DEBOUNCE_STEP)}
-        >+</button
-      >
-      <button class="reset" onclick={() => settings.setPreviewDebounceMs(100)}>{t("settings.reset")}</button>
-    </div>
-    <p class="hint">{t("settings.previewDelayHint")}</p>
-  </section>
-
-  <section>
-    <h3>{t("settings.defaultView")}</h3>
-    <div class="seg">
-      {#each modes as m (m)}
+  <div class="layout">
+    <div class="tabs" role="tablist">
+      {#each tabs as tb (tb.id)}
         <button
-          class:active={settings.defaultViewMode === m}
-          onclick={() => settings.setDefaultViewMode(m)}>{t(`view.${m}`)}</button
+          role="tab"
+          aria-selected={tab === tb.id}
+          class:active={tab === tb.id}
+          onclick={() => (tab = tb.id)}>{t(tb.key)}</button
         >
       {/each}
     </div>
-  </section>
 
-  <section>
-    <h3>{t("settings.splitOrientation")}</h3>
-    <div class="seg">
-      {#each orientations as o (o)}
-        <button
-          class:active={settings.splitOrientation === o}
-          onclick={() => settings.setSplitOrientation(o)}>{t(`orientation.${o}`)}</button
-        >
-      {/each}
-    </div>
-  </section>
+    <div class="panel" role="tabpanel">
+      {#if tab === "general"}
+        <section>
+          <h3>{t("settings.language")}</h3>
+          <div class="seg">
+            {#each languages as l (l.id)}
+              <button
+                class:active={settings.language === l.id}
+                onclick={() => settings.setLanguage(l.id)}>{l.label}</button
+              >
+            {/each}
+          </div>
+        </section>
 
-  <section>
-    <h3>{t("settings.startup")}</h3>
-    <div class="seg">
-      <button
-        class:active={settings.startupMaximized}
-        onclick={() => settings.setStartupMaximized(true)}>{t("settings.maximized")}</button
-      >
-      <button
-        class:active={!settings.startupMaximized}
-        onclick={() => settings.setStartupMaximized(false)}>{t("settings.normal")}</button
-      >
+        <section>
+          <h3>{t("settings.startup")}</h3>
+          <div class="seg">
+            <button
+              class:active={settings.startupMaximized}
+              onclick={() => settings.setStartupMaximized(true)}>{t("settings.maximized")}</button
+            >
+            <button
+              class:active={!settings.startupMaximized}
+              onclick={() => settings.setStartupMaximized(false)}>{t("settings.normal")}</button
+            >
+          </div>
+        </section>
+      {:else if tab === "appearance"}
+        <section>
+          <h3>{t("settings.theme")}</h3>
+          <div class="seg">
+            {#each themes as th (th)}
+              <button class:active={settings.theme === th} onclick={() => settings.setTheme(th)}
+                >{t(`theme.${th}`)}</button
+              >
+            {/each}
+          </div>
+        </section>
+
+        <section>
+          <h3>{t("settings.uiSize")}</h3>
+          <div class="stepper">
+            <button
+              aria-label={t("settings.decUi")}
+              disabled={settings.uiZoom <= ZOOM_MIN}
+              onclick={() => settings.setUiZoom(settings.uiZoom - ZOOM_STEP)}>−</button
+            >
+            <span class="value">{Math.round(settings.uiZoom * 100)}%</span>
+            <button
+              aria-label={t("settings.incUi")}
+              disabled={settings.uiZoom >= ZOOM_MAX}
+              onclick={() => settings.setUiZoom(settings.uiZoom + ZOOM_STEP)}>+</button
+            >
+            <button class="reset" onclick={() => settings.setUiZoom(1)}>{t("settings.reset")}</button>
+          </div>
+          <p class="hint">{t("settings.uiSizeHint")}</p>
+        </section>
+      {:else if tab === "editor"}
+        <section>
+          <h3>{t("settings.fontSize")}</h3>
+          <div class="stepper">
+            <button
+              aria-label={t("settings.decFont")}
+              disabled={settings.editorFontSize <= FONT_MIN}
+              onclick={() => settings.setEditorFontSize(settings.editorFontSize - 1)}>−</button
+            >
+            <span class="value">{settings.editorFontSize}px</span>
+            <button
+              aria-label={t("settings.incFont")}
+              disabled={settings.editorFontSize >= FONT_MAX}
+              onclick={() => settings.setEditorFontSize(settings.editorFontSize + 1)}>+</button
+            >
+            <button class="reset" onclick={() => settings.setEditorFontSize(14)}
+              >{t("settings.reset")}</button
+            >
+          </div>
+        </section>
+      {:else if tab === "preview"}
+        <section>
+          <h3>{t("settings.defaultView")}</h3>
+          <div class="seg">
+            {#each modes as m (m)}
+              <button
+                class:active={settings.defaultViewMode === m}
+                onclick={() => settings.setDefaultViewMode(m)}>{t(`view.${m}`)}</button
+              >
+            {/each}
+          </div>
+        </section>
+
+        <section>
+          <h3>{t("settings.splitOrientation")}</h3>
+          <div class="seg">
+            {#each orientations as o (o)}
+              <button
+                class:active={settings.splitOrientation === o}
+                onclick={() => settings.setSplitOrientation(o)}>{t(`orientation.${o}`)}</button
+              >
+            {/each}
+          </div>
+        </section>
+
+        <section>
+          <h3>{t("settings.previewDelay")}</h3>
+          <div class="stepper">
+            <button
+              aria-label={t("settings.decDelay")}
+              disabled={settings.previewDebounceMs <= DEBOUNCE_MIN}
+              onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs - DEBOUNCE_STEP)}
+              >−</button
+            >
+            <span class="value">{settings.previewDebounceMs} ms</span>
+            <button
+              aria-label={t("settings.incDelay")}
+              disabled={settings.previewDebounceMs >= DEBOUNCE_MAX}
+              onclick={() => settings.setPreviewDebounceMs(settings.previewDebounceMs + DEBOUNCE_STEP)}
+              >+</button
+            >
+            <button class="reset" onclick={() => settings.setPreviewDebounceMs(100)}
+              >{t("settings.reset")}</button
+            >
+          </div>
+          <p class="hint">{t("settings.previewDelayHint")}</p>
+        </section>
+      {/if}
     </div>
-  </section>
+  </div>
 </div>
 
 <style>
@@ -171,31 +202,28 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(420px, 90vw);
+    width: min(560px, 92vw);
+    max-height: min(80vh, 560px);
+    display: flex;
+    flex-direction: column;
     background: var(--bg);
     color: var(--fg);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 16px 20px 20px;
     z-index: 11;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
   }
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
   }
   h2 {
     font-size: 16px;
     margin: 0;
-  }
-  h3 {
-    font-size: 13px;
-    color: var(--fg-muted);
-    margin: 16px 0 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
   .x {
     border: none;
@@ -203,6 +231,51 @@
     color: var(--fg-muted);
     font-size: 20px;
     cursor: pointer;
+  }
+  .layout {
+    display: flex;
+    flex: 1;
+    min-height: 0; /* let the panel scroll instead of growing the dialog */
+  }
+  .tabs {
+    flex: 0 0 130px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 2px;
+    border-right: 1px solid var(--border);
+    background: var(--bg-alt);
+    overflow-y: auto;
+  }
+  .tabs button {
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    text-align: left;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .tabs button:hover {
+    background: var(--border);
+  }
+  .tabs button.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .panel {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 4px 20px 20px;
+  }
+  h3 {
+    font-size: 13px;
+    color: var(--fg-muted);
+    margin: 16px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
   .seg {
     display: flex;
@@ -216,7 +289,6 @@
     padding: 6px;
     border-radius: 6px;
     cursor: pointer;
-    text-transform: capitalize;
     font-size: 13px;
   }
   .seg button.active {
