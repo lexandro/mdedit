@@ -220,7 +220,14 @@ export function livePreview(basePath: string | null = null) {
         this.decorations = buildDecorations(view, baseDir);
       }
       update(u: ViewUpdate) {
-        if (u.docChanged || u.viewportChanged || u.selectionSet) {
+        // Also rebuild when the background parser advances (tree identity changes),
+        // otherwise large docs stay unstyled until the first edit/cursor move.
+        if (
+          u.docChanged ||
+          u.viewportChanged ||
+          u.selectionSet ||
+          syntaxTree(u.state) !== syntaxTree(u.startState)
+        ) {
           this.decorations = buildDecorations(u.view, baseDir);
         }
       }
