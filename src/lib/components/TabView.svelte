@@ -51,7 +51,12 @@
   style="--first: {percent}%"
 >
   <div class="pane editor-pane">
-    <Editor {tab} onScroll={onEditorScroll} scrollFraction={editorFraction} />
+    <Editor
+      {tab}
+      live={tab.viewMode === "live"}
+      onScroll={onEditorScroll}
+      scrollFraction={editorFraction}
+    />
   </div>
   <div
     class="divider"
@@ -63,7 +68,7 @@
     onpointerup={onPointerUp}
   ></div>
   <div class="pane preview-pane">
-    {#if tab.viewMode !== "source"}
+    {#if tab.viewMode === "split" || tab.viewMode === "preview"}
       <Preview
         source={tab.content}
         basePath={tab.path}
@@ -94,12 +99,15 @@
     min-height: 0;
   }
 
-  /* --- source only --- */
-  .mode-source .editor-pane {
+  /* --- source / live (editor fills, no preview pane) --- */
+  .mode-source .editor-pane,
+  .mode-live .editor-pane {
     flex: 1;
   }
   .mode-source .preview-pane,
-  .mode-source .divider {
+  .mode-source .divider,
+  .mode-live .preview-pane,
+  .mode-live .divider {
     display: none;
   }
 

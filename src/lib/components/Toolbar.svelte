@@ -11,6 +11,7 @@
     { id: "source", key: "view.source", icon: "source" },
     { id: "split", key: "view.split", icon: "split" },
     { id: "preview", key: "view.preview", icon: "preview" },
+    { id: "live", key: "view.live", icon: "live" },
   ];
 
   const formats: { icon: IconName; tip: string; run: () => void }[] = [

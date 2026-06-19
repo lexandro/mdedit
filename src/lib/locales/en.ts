@@ -44,6 +44,7 @@ export const en: Record<string, string> = {
   "view.source": "Source",
   "view.split": "Split",
   "view.preview": "Preview",
+  "view.live": "Live",
 
   // Toolbar tooltips
   "tip.new": "New (Ctrl+N)",

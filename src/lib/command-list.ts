@@ -30,6 +30,7 @@ export const paletteCommands: PaletteCommand[] = [
   { id: "view_source", key: "view.source" },
   { id: "view_split", key: "view.split" },
   { id: "view_preview", key: "view.preview" },
+  { id: "view_live", key: "view.live" },
   { id: "toggle_orientation", key: "cmd.toggle_orientation" },
   { id: "toggle_outline", key: "cmd.toggle_outline" },
   { id: "toggle_word_wrap", key: "cmd.toggle_word_wrap" },

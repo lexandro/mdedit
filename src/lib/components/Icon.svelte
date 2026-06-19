@@ -10,6 +10,7 @@
     | "source"
     | "split"
     | "preview"
+    | "live"
     | "columns"
     | "rows"
     | "bold"
@@ -76,6 +77,9 @@
       d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
     />
     <circle cx="12" cy="12" r="3" />
+  {:else if name === "live"}
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
   {:else if name === "bold"}
     <path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8" />
   {:else if name === "italic"}

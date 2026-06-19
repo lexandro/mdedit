@@ -43,6 +43,7 @@ export const hu: Record<string, string> = {
   "view.source": "Forrás",
   "view.split": "Megosztott",
   "view.preview": "Előnézet",
+  "view.live": "Élő",
 
   // Toolbar tooltips
   "tip.new": "Új (Ctrl+N)",

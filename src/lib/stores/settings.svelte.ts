@@ -21,7 +21,7 @@ export {
 
 export type ThemeChoice = "light" | "dark" | "system";
 export type SplitOrientation = "horizontal" | "vertical";
-export type ViewMode = "source" | "preview" | "split";
+export type ViewMode = "source" | "preview" | "split" | "live";
 export type Language = "en" | "hu";
 
 const STORE_FILE = "settings.json";

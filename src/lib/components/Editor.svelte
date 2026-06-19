@@ -18,21 +18,25 @@
   import { fontSizeForWheel } from "$lib/settings-util";
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
+  import { livePreview } from "$lib/editor/live-preview";
 
   let {
     tab,
     onScroll,
     scrollFraction,
+    live = false,
   }: {
     tab: Tab;
     onScroll?: (fraction: number) => void;
     scrollFraction?: number;
+    live?: boolean;
   } = $props();
 
   let host: HTMLDivElement;
   let view: EditorView | undefined;
   const themeCompartment = new Compartment();
   const wrapCompartment = new Compartment();
+  const liveCompartment = new Compartment();
 
   // Report the cursor position to the status bar (only for the active tab).
   function reportCursor(v: EditorView) {
@@ -129,6 +133,7 @@
           highlightSelectionMatches(),
           closeBrackets(),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
+          liveCompartment.of(live ? livePreview() : []),
           markdown(),
           EditorView.domEventHandlers({ paste: handlePaste }),
           themeCompartment.of(themeExtension()),
@@ -184,6 +189,12 @@
     view?.dispatch({
       effects: wrapCompartment.reconfigure(wrap ? EditorView.lineWrapping : []),
     });
+  });
+
+  // Toggle live-preview (WYSIWYG) decorations when the tab enters/leaves Live mode.
+  $effect(() => {
+    const on = live;
+    view?.dispatch({ effects: liveCompartment.reconfigure(on ? livePreview() : []) });
   });
 
   // Re-apply the editor theme whenever the resolved light/dark value changes.

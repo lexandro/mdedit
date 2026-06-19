@@ -81,6 +81,7 @@
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
     view_preview: () => setViewMode("preview"),
+    view_live: () => setViewMode("live"),
     toggle_orientation: () =>
       settings.setSplitOrientation(
         settings.splitOrientation === "vertical" ? "horizontal" : "vertical",
@@ -130,8 +131,8 @@
     else if (key === "w") cmd = "close_tab";
     else if (key === "g") cmd = "goto_line";
     else if (key === "t" && e.shiftKey) cmd = "reopen_closed";
-    else if (["1", "2", "3"].includes(e.key))
-      cmd = ["view_source", "view_split", "view_preview"][Number(e.key) - 1];
+    else if (["1", "2", "3", "4"].includes(e.key))
+      cmd = ["view_source", "view_split", "view_preview", "view_live"][Number(e.key) - 1];
     else if (e.key === "Tab") {
       e.preventDefault();
       cycleTab(e.shiftKey ? -1 : 1);

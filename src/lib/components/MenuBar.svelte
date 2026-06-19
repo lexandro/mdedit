@@ -77,6 +77,7 @@
         { label: t("view.source"), id: "view_source", shortcut: "Ctrl+1" },
         { label: t("view.split"), id: "view_split", shortcut: "Ctrl+2" },
         { label: t("view.preview"), id: "view_preview", shortcut: "Ctrl+3" },
+        { label: t("view.live"), id: "view_live", shortcut: "Ctrl+4" },
         "sep",
         {
           label: t("cmd.toggle_orientation"),

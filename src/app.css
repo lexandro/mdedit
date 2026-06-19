@@ -1,5 +1,50 @@
 @import "katex/dist/katex.min.css"; /* LaTeX math rendering in the preview */
 
+/* Live-preview (WYSIWYG) inline styling — applied to CodeMirror content. */
+.cm-lp-strong {
+  font-weight: 700;
+}
+.cm-lp-em {
+  font-style: italic;
+}
+.cm-lp-strike {
+  text-decoration: line-through;
+}
+.cm-lp-code {
+  font-family: var(--mono-font);
+  background: var(--bg-alt);
+  border-radius: 4px;
+  padding: 0 0.25em;
+}
+.cm-lp-h1,
+.cm-lp-h2,
+.cm-lp-h3,
+.cm-lp-h4,
+.cm-lp-h5,
+.cm-lp-h6 {
+  font-weight: 700;
+  line-height: 1.25;
+}
+.cm-lp-h1 {
+  font-size: 1.8em;
+}
+.cm-lp-h2 {
+  font-size: 1.5em;
+}
+.cm-lp-h3 {
+  font-size: 1.3em;
+}
+.cm-lp-h4 {
+  font-size: 1.15em;
+}
+.cm-lp-h5 {
+  font-size: 1.05em;
+}
+.cm-lp-h6 {
+  font-size: 1em;
+  color: var(--fg-muted);
+}
+
 /* Theme tokens. data-theme is set on <html> by settings.svelte.ts. */
 :root {
   --mono-font: "Cascadia Code", "Consolas", "Fira Code", ui-monospace, monospace;
