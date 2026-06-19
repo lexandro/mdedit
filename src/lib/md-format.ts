@@ -2,26 +2,30 @@
 // Used by the editor keymap (Ctrl+B/I/K) and the toolbar buttons.
 import { EditorSelection, type ChangeSpec } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
-import { toggleWrap, nextListPrefix } from "$lib/md-format-core";
+import { toggleEmphasis, nextListPrefix } from "$lib/md-format-core";
 
-/** Wrap (or unwrap, if already wrapped) each selection with markers. */
+/** Wrap (or unwrap, if already wrapped) each selection with markers. Detects
+ *  markers whether they're inside or just outside the selection, so the toolbar
+ *  / Ctrl+B|I buttons truly toggle instead of stacking `**…**`. */
 export function wrapSelection(view: EditorView, before: string, after = before): boolean {
   const { state } = view;
   const tr = state.changeByRange((range) => {
     const text = state.sliceDoc(range.from, range.to);
-    const next = toggleWrap(text, before, after);
     if (!text.length) {
       return {
-        changes: { from: range.from, to: range.to, insert: next },
+        changes: { from: range.from, to: range.to, insert: before + after },
         range: EditorSelection.cursor(range.from + before.length),
       };
     }
-    const unwrapped = next.length < text.length;
-    const start = unwrapped ? range.from : range.from + before.length;
-    const len = unwrapped ? next.length : text.length;
+    const ctxLeft = state.sliceDoc(Math.max(0, range.from - before.length - 1), range.from);
+    const ctxRight = state.sliceDoc(range.to, Math.min(state.doc.length, range.to + after.length + 1));
+    const edit = toggleEmphasis(text, ctxLeft, ctxRight, before, after);
+    const from = range.from + edit.fromDelta;
+    const to = range.to + edit.toDelta;
+    const selStart = from + edit.selStart;
     return {
-      changes: { from: range.from, to: range.to, insert: next },
-      range: EditorSelection.range(start, start + len),
+      changes: { from, to, insert: edit.insert },
+      range: EditorSelection.range(selStart, selStart + edit.selLen),
     };
   });
   view.dispatch(state.update(tr, { scrollIntoView: true, userEvent: "input" }));

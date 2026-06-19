@@ -1,19 +1,42 @@
 import { describe, it, expect } from "vitest";
-import { toggleWrap, nextListPrefix, linkFromPaste } from "./md-format-core";
+import { toggleEmphasis, nextListPrefix, linkFromPaste } from "./md-format-core";
 
-describe("toggleWrap", () => {
-  it("wraps unwrapped text", () => {
-    expect(toggleWrap("bold", "**")).toBe("**bold**");
-    expect(toggleWrap("x", "`")).toBe("`x`");
+describe("toggleEmphasis", () => {
+  it("wraps unwrapped text, selecting the inner text", () => {
+    expect(toggleEmphasis("bold", "", "", "**")).toEqual({
+      insert: "**bold**",
+      fromDelta: 0,
+      toDelta: 0,
+      selStart: 2,
+      selLen: 4,
+    });
   });
-  it("unwraps already-wrapped text (toggle off)", () => {
-    expect(toggleWrap("**bold**", "**")).toBe("bold");
+  it("unwraps when the markers are inside the selection", () => {
+    expect(toggleEmphasis("**bold**", "", "", "**")).toEqual({
+      insert: "bold",
+      fromDelta: 0,
+      toDelta: 0,
+      selStart: 0,
+      selLen: 4,
+    });
   });
-  it("wraps empty selection into bare markers", () => {
-    expect(toggleWrap("", "**")).toBe("****");
+  it("unwraps when the markers sit just outside the selection (the toggle bug)", () => {
+    // doc: **bold**, with only "bold" selected
+    expect(toggleEmphasis("bold", "**", "**", "**")).toEqual({
+      insert: "bold",
+      fromDelta: -2,
+      toDelta: 2,
+      selStart: 0,
+      selLen: 4,
+    });
   });
-  it("supports distinct before/after", () => {
-    expect(toggleWrap("x", "<", ">")).toBe("<x>");
+  it("does not treat a surrounding bold `**` as italic `*`", () => {
+    // applying italic inside **bold** should add italic, not peel a bold star
+    expect(toggleEmphasis("foo", "**", "**", "*").insert).toBe("*foo*");
+  });
+  it("toggles inline code too", () => {
+    expect(toggleEmphasis("x", "", "", "`").insert).toBe("`x`");
+    expect(toggleEmphasis("x", "`", "`", "`").insert).toBe("x");
   });
 });
 
