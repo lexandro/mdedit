@@ -39,3 +39,13 @@ declare module "markdown-it-emoji/lib/data/full.mjs" {
   const data: Record<string, string>;
   export default data;
 }
+declare module "markdown-it-texmath" {
+  import type { PluginWithOptions } from "markdown-it";
+  interface TexmathOptions {
+    engine: unknown;
+    delimiters?: string;
+    katexOptions?: Record<string, unknown>;
+  }
+  const texmath: PluginWithOptions<TexmathOptions>;
+  export default texmath;
+}

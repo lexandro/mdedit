@@ -1,3 +1,5 @@
+@import "katex/dist/katex.min.css"; /* LaTeX math rendering in the preview */
+
 /* Theme tokens. data-theme is set on <html> by settings.svelte.ts. */
 :root {
   --mono-font: "Cascadia Code", "Consolas", "Fira Code", ui-monospace, monospace;

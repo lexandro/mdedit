@@ -9,6 +9,8 @@ import deflist from "markdown-it-deflist";
 import sub from "markdown-it-sub";
 import sup from "markdown-it-sup";
 import { full as emoji } from "markdown-it-emoji";
+import texmath from "markdown-it-texmath";
+import katex from "katex";
 import hljs from "highlight.js";
 import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -47,7 +49,9 @@ md.use(taskLists, { enabled: true, label: true })
   .use(deflist)
   .use(sub)
   .use(sup)
-  .use(emoji);
+  .use(emoji)
+  // LaTeX math: $inline$ and $$display$$ rendered to HTML+MathML by KaTeX.
+  .use(texmath, { engine: katex, delimiters: "dollars", katexOptions: { throwOnError: false } });
 
 // Override fenced code so ```mermaid blocks become Mermaid containers.
 const defaultFence =
@@ -104,6 +108,6 @@ export function renderMarkdown(source: string, basePath?: string | null): string
   const dirty = md.render(source, { baseDir });
   return DOMPurify.sanitize(dirty, {
     ADD_ATTR: ["target", "class", "type", "checked", "disabled"],
-    ADD_TAGS: ["input"],
+    ADD_TAGS: ["input", "eq", "eqn"], // KaTeX wrappers from markdown-it-texmath
   });
 }
