@@ -9,6 +9,9 @@
     DEBOUNCE_MIN,
     DEBOUNCE_MAX,
     DEBOUNCE_STEP,
+    AUTOSAVE_MIN,
+    AUTOSAVE_MAX,
+    AUTOSAVE_STEP,
     type ThemeChoice,
     type ViewMode,
     type SplitOrientation,
@@ -138,6 +141,43 @@
             >
           </div>
         </section>
+
+        <section>
+          <h3>{t("settings.autosave")}</h3>
+          <div class="seg">
+            <button class:active={settings.autosave} onclick={() => settings.setAutosave(true)}
+              >{t("settings.on")}</button
+            >
+            <button class:active={!settings.autosave} onclick={() => settings.setAutosave(false)}
+              >{t("settings.off")}</button
+            >
+          </div>
+          <p class="hint">{t("settings.autosaveHint")}</p>
+        </section>
+
+        {#if settings.autosave}
+          <section>
+            <h3>{t("settings.autosaveDelay")}</h3>
+            <div class="stepper">
+              <button
+                aria-label={t("settings.decAutosave")}
+                disabled={settings.autosaveDelayMs <= AUTOSAVE_MIN}
+                onclick={() => settings.setAutosaveDelayMs(settings.autosaveDelayMs - AUTOSAVE_STEP)}
+                >−</button
+              >
+              <span class="value">{(settings.autosaveDelayMs / 1000).toFixed(1)} s</span>
+              <button
+                aria-label={t("settings.incAutosave")}
+                disabled={settings.autosaveDelayMs >= AUTOSAVE_MAX}
+                onclick={() => settings.setAutosaveDelayMs(settings.autosaveDelayMs + AUTOSAVE_STEP)}
+                >+</button
+              >
+              <button class="reset" onclick={() => settings.setAutosaveDelayMs(2000)}
+                >{t("settings.reset")}</button
+              >
+            </div>
+          </section>
+        {/if}
       {:else if tab === "preview"}
         <section>
           <h3>{t("settings.defaultView")}</h3>

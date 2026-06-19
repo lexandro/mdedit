@@ -3,7 +3,7 @@
 import { type Store } from "@tauri-apps/plugin-store";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { tryLoadStore } from "$lib/stores/persist";
-import { clampZoom, clampFontSize, clampDebounce } from "$lib/settings-util";
+import { clampZoom, clampFontSize, clampDebounce, clampAutosaveDelay } from "$lib/settings-util";
 
 export {
   ZOOM_MIN,
@@ -14,6 +14,9 @@ export {
   DEBOUNCE_MIN,
   DEBOUNCE_MAX,
   DEBOUNCE_STEP,
+  AUTOSAVE_MIN,
+  AUTOSAVE_MAX,
+  AUTOSAVE_STEP,
 } from "$lib/settings-util";
 
 export type ThemeChoice = "light" | "dark" | "system";
@@ -33,6 +36,8 @@ interface PersistShape {
   previewDebounceMs: number;
   startupMaximized: boolean;
   language: Language;
+  autosave: boolean;
+  autosaveDelayMs: number;
 }
 
 const DEFAULTS: PersistShape = {
@@ -45,6 +50,8 @@ const DEFAULTS: PersistShape = {
   previewDebounceMs: 100,
   startupMaximized: true,
   language: "en",
+  autosave: false,
+  autosaveDelayMs: 2000,
 };
 
 class SettingsStore {
@@ -57,6 +64,8 @@ class SettingsStore {
   previewDebounceMs = $state<number>(DEFAULTS.previewDebounceMs);
   startupMaximized = $state<boolean>(DEFAULTS.startupMaximized);
   language = $state<Language>(DEFAULTS.language);
+  autosave = $state<boolean>(DEFAULTS.autosave);
+  autosaveDelayMs = $state<number>(DEFAULTS.autosaveDelayMs);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -84,6 +93,9 @@ class SettingsStore {
       this.language =
         (await this.#store.get<Language>("language")) ??
         (navigator.language?.toLowerCase().startsWith("hu") ? "hu" : "en");
+      this.autosave = (await this.#store.get<boolean>("autosave")) ?? DEFAULTS.autosave;
+      this.autosaveDelayMs =
+        (await this.#store.get<number>("autosaveDelayMs")) ?? DEFAULTS.autosaveDelayMs;
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -149,6 +161,16 @@ class SettingsStore {
   async setLanguage(lang: Language) {
     this.language = lang;
     await this.#store?.set("language", lang);
+  }
+
+  async setAutosave(on: boolean) {
+    this.autosave = on;
+    await this.#store?.set("autosave", on);
+  }
+
+  async setAutosaveDelayMs(ms: number) {
+    this.autosaveDelayMs = clampAutosaveDelay(ms);
+    await this.#store?.set("autosaveDelayMs", this.autosaveDelayMs);
   }
 }
 

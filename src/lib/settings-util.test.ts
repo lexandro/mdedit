@@ -3,12 +3,15 @@ import {
   clampFontSize,
   clampZoom,
   clampDebounce,
+  clampAutosaveDelay,
   fontSizeForWheel,
   FONT_MIN,
   FONT_MAX,
   ZOOM_MIN,
   ZOOM_MAX,
   DEBOUNCE_MAX,
+  AUTOSAVE_MIN,
+  AUTOSAVE_MAX,
 } from "./settings-util";
 
 describe("clampFontSize", () => {
@@ -32,6 +35,14 @@ describe("clampDebounce", () => {
     expect(clampDebounce(-50)).toBe(0);
     expect(clampDebounce(99999)).toBe(DEBOUNCE_MAX);
     expect(clampDebounce(100.4)).toBe(100);
+  });
+});
+
+describe("clampAutosaveDelay", () => {
+  it("clamps to the allowed range and rounds", () => {
+    expect(clampAutosaveDelay(0)).toBe(AUTOSAVE_MIN);
+    expect(clampAutosaveDelay(99999)).toBe(AUTOSAVE_MAX);
+    expect(clampAutosaveDelay(2000.6)).toBe(2001);
   });
 });
 

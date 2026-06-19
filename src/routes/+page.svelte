@@ -39,6 +39,16 @@
       .catch(() => {}); // not under Tauri
   });
 
+  // Autosave: when enabled, save the active path-backed tab after the user stops
+  // typing for the configured delay. Editing resets the timer (debounce).
+  $effect(() => {
+    const tab = tabs.active;
+    const content = tab?.content; // tracked so edits re-run the effect
+    if (!settings.autosave || !tab || !tab.path || content === tab.savedContent) return;
+    const timer = setTimeout(() => void tabs.save(tab.id), settings.autosaveDelayMs);
+    return () => clearTimeout(timer);
+  });
+
   function setViewMode(mode: ViewMode) {
     if (tabs.active) tabs.setViewMode(tabs.active.id, mode);
   }

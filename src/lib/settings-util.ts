@@ -9,6 +9,9 @@ export const FONT_MAX = 28;
 export const DEBOUNCE_MIN = 0;
 export const DEBOUNCE_MAX = 1000;
 export const DEBOUNCE_STEP = 25;
+export const AUTOSAVE_MIN = 500;
+export const AUTOSAVE_MAX = 30000;
+export const AUTOSAVE_STEP = 500;
 
 export function clamp(value: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, value));
@@ -26,6 +29,11 @@ export function clampFontSize(px: number): number {
 /** Clamp the preview render debounce (milliseconds). */
 export function clampDebounce(ms: number): number {
   return clamp(Math.round(ms), DEBOUNCE_MIN, DEBOUNCE_MAX);
+}
+
+/** Clamp the autosave delay (milliseconds). */
+export function clampAutosaveDelay(ms: number): number {
+  return clamp(Math.round(ms), AUTOSAVE_MIN, AUTOSAVE_MAX);
 }
 
 /** Next editor font size for a Ctrl+wheel step (wheel up = bigger). */
