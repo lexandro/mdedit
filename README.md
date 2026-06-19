@@ -4,15 +4,45 @@ A fast, native Windows **Markdown editor** built with [Tauri 2](https://tauri.ap
 
 ## Features
 
-- **Three view modes** — source-only, rendered preview, and split view (with switchable vertical / horizontal orientation)
-- **Multi-tab** editing — work on several files at once, with per-tab unsaved-changes tracking
-- **Markdown syntax highlighting** in the source editor ([CodeMirror 6](https://codemirror.net))
-- **GitHub Flavored Markdown** rendering — tables, task lists, autolinks, fenced code
-- **Mermaid diagrams** and **code block syntax highlighting** in the preview
-- **Standard editor functions** — New, Open, Save, Save As, Find & Replace
-- **Themes** — Dark / Light / System, configurable in settings
+**Editing**
+
+- **Three view modes** — source, rendered preview, and split (switchable vertical / horizontal, with the current orientation shown in the View menu)
+- **Multi-tab** editing — drag to reorder, right-click for Close / Close Others / Close to the Right / Copy Path / Open Containing Folder, **Reopen Closed Tab**, and full **session restore** on restart
+- **CodeMirror 6** source editor — Markdown syntax highlighting, **auto-closing** brackets/quotes, smart list continuation, **Find & Replace** (Ctrl+F), word-wrap toggle, and font zoom (Ctrl + wheel or Ctrl +/−/0)
+- **Optional autosave** with a configurable delay (off by default)
+
+**Rendering**
+
+- **GitHub Flavored Markdown** — tables, task lists, autolinks, fenced code
+- **Extensions** — footnotes, definition lists, sub/superscript, and `:shortcode:` **emoji**
+- **LaTeX math** via [KaTeX](https://katex.org) — inline `$…$` and display `$$…$$`
+- **Mermaid diagrams** and **code block syntax highlighting** (highlight.js)
+
+**Productivity**
+
+- **Command palette** (Ctrl+Shift+P) — fuzzy search over every command
+- **In-app emoji picker** (Edit → Insert Emoji…) and **Go to Line** (Ctrl+G)
+- **Document outline**, and **Recent files** with pin & clear
+- **Export to HTML / PDF**, and **Copy as HTML**
+
+**Files & UI**
+
+- **Encoding-aware** I/O — UTF-8 (+BOM), UTF-16 LE/BE, and a **Windows-1250** fallback; line-ending toggle (LF/CRLF)
+- **Paste images** from the clipboard (saved next to the document) and **drag-and-drop** files to open
+- **Themes** (Dark / Light / System), interface zoom, and **localized UI** (English / Hungarian)
+- **Auto-updater**, error toasts, and a status bar with cursor position, word/character count and reading time
 
 > WYSIWYG inline editing (Typora-style) is planned for a later release. The current "rendered" mode is a live preview.
+
+## Screenshots
+
+| Split view | Command palette |
+|---|---|
+| ![Split view](docs/screenshots/split.png) | ![Command palette](docs/screenshots/palette.png) |
+
+| Math & diagrams | Settings |
+|---|---|
+| ![Math and Mermaid](docs/screenshots/math.png) | ![Settings](docs/screenshots/settings.png) |
 
 ## Tech stack
 
