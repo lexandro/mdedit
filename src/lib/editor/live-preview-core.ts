@@ -27,3 +27,9 @@ export function markerHidden(markerLine: number, activeLines: Set<number>): bool
 export function isFollowableUrl(url: string): boolean {
   return /^(https?:|mailto:)/i.test(url.trim());
 }
+
+/** Parse a standalone image token `![alt](url "title")` into its alt + url. */
+export function parseImage(text: string): { alt: string; url: string } | null {
+  const m = /^!\[([^\]]*)\]\(\s*(\S+?)\s*(?:"[^"]*")?\)$/.exec(text.trim());
+  return m ? { alt: m[1], url: m[2] } : null;
+}

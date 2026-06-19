@@ -5,6 +5,7 @@ import {
   MARKER_NODES,
   markerHidden,
   isFollowableUrl,
+  parseImage,
 } from "./live-preview-core";
 
 describe("headingClass", () => {
@@ -44,5 +45,16 @@ describe("isFollowableUrl", () => {
     expect(isFollowableUrl("mailto:a@b.com")).toBe(true);
     expect(isFollowableUrl("./local.md")).toBe(false);
     expect(isFollowableUrl("javascript:alert(1)")).toBe(false);
+  });
+});
+
+describe("parseImage", () => {
+  it("parses alt + url, with or without a title", () => {
+    expect(parseImage("![cat](img/cat.png)")).toEqual({ alt: "cat", url: "img/cat.png" });
+    expect(parseImage('![](https://x/y.jpg "t")')).toEqual({ alt: "", url: "https://x/y.jpg" });
+  });
+  it("returns null for non-image text", () => {
+    expect(parseImage("[link](url)")).toBeNull();
+    expect(parseImage("plain")).toBeNull();
   });
 });

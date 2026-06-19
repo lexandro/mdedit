@@ -21,6 +21,19 @@
   text-decoration: underline;
   cursor: pointer;
 }
+.cm-lp-img {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 6px;
+  vertical-align: middle;
+}
+.cm-lp-hr {
+  display: inline-block;
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
 .cm-lp-h1,
 .cm-lp-h2,
 .cm-lp-h3,

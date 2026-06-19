@@ -133,7 +133,7 @@
           highlightSelectionMatches(),
           closeBrackets(),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
-          liveCompartment.of(live ? livePreview() : []),
+          liveCompartment.of(live ? livePreview(tab.path) : []),
           markdown(),
           EditorView.domEventHandlers({ paste: handlePaste }),
           themeCompartment.of(themeExtension()),
@@ -191,10 +191,12 @@
     });
   });
 
-  // Toggle live-preview (WYSIWYG) decorations when the tab enters/leaves Live mode.
+  // Toggle live-preview (WYSIWYG) decorations when the tab enters/leaves Live mode
+  // (also re-runs if the file path changes, so image base paths stay correct).
   $effect(() => {
     const on = live;
-    view?.dispatch({ effects: liveCompartment.reconfigure(on ? livePreview() : []) });
+    const path = tab.path;
+    view?.dispatch({ effects: liveCompartment.reconfigure(on ? livePreview(path) : []) });
   });
 
   // Re-apply the editor theme whenever the resolved light/dark value changes.
