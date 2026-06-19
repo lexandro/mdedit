@@ -3,16 +3,20 @@
   // UI zoom and matches the theme). Dispatches every item through onCommand.
   import { recent } from "$lib/stores/recent.svelte";
   import { basename } from "$lib/stores/tabs.svelte";
+  import { settings } from "$lib/stores/settings.svelte";
   import { mnemonicIndex } from "$lib/menu-util";
   import { t } from "$lib/i18n";
 
-  type Item = { label: string; id?: string; shortcut?: string; children?: Item[] } | "sep";
+  type Item =
+    | { label: string; id?: string; shortcut?: string; children?: Item[]; checked?: boolean; hint?: string }
+    | "sep";
   interface Menu {
     label: string;
     items: Item[];
   }
 
-  let { onCommand }: { onCommand: (id: string) => void } = $props();
+  let { onCommand, outlineVisible }: { onCommand: (id: string) => void; outlineVisible: boolean } =
+    $props();
 
   let recentItems = $derived<Item[]>(
     recent.entries.length
@@ -74,9 +78,13 @@
         { label: t("view.split"), id: "view_split", shortcut: "Ctrl+2" },
         { label: t("view.preview"), id: "view_preview", shortcut: "Ctrl+3" },
         "sep",
-        { label: t("cmd.toggle_orientation"), id: "toggle_orientation" },
-        { label: t("cmd.toggle_outline"), id: "toggle_outline" },
-        { label: t("cmd.toggle_word_wrap"), id: "toggle_word_wrap" },
+        {
+          label: t("cmd.toggle_orientation"),
+          id: "toggle_orientation",
+          hint: t(`orientation.${settings.splitOrientation}`),
+        },
+        { label: t("cmd.toggle_outline"), id: "toggle_outline", checked: outlineVisible },
+        { label: t("cmd.toggle_word_wrap"), id: "toggle_word_wrap", checked: settings.wordWrap },
         "sep",
         { label: t("cmd.settings"), id: "settings" },
       ],
@@ -191,8 +199,17 @@
                 {/if}
               </div>
             {:else if item.id}
-              <button class="item" role="menuitem" onclick={() => choose(item.id)}>
+              <button
+                class="item"
+                role={item.checked === undefined ? "menuitem" : "menuitemcheckbox"}
+                aria-checked={item.checked === undefined ? undefined : item.checked}
+                onclick={() => choose(item.id)}
+              >
+                {#if item.checked !== undefined}
+                  <span class="check">{item.checked ? "✓" : ""}</span>
+                {/if}
                 <span class="label">{item.label}</span>
+                {#if item.hint}<span class="shortcut">{item.hint}</span>{/if}
                 {#if item.shortcut}<span class="shortcut">{item.shortcut}</span>{/if}
               </button>
             {/if}
@@ -257,6 +274,17 @@
   .item:hover {
     background: var(--accent);
     color: var(--accent-fg);
+  }
+  .check {
+    flex: 0 0 14px;
+    text-align: center;
+    color: var(--accent);
+  }
+  .item:hover .check {
+    color: var(--accent-fg);
+  }
+  .label {
+    flex: 1;
   }
   .shortcut {
     color: var(--fg-muted);

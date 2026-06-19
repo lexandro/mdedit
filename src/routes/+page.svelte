@@ -143,7 +143,7 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="app">
-  <MenuBar onCommand={handleMenu} />
+  <MenuBar onCommand={handleMenu} {outlineVisible} />
   <Toolbar onOpenSettings={() => (settingsOpen = true)} />
   <UpdateBanner />
   <TabBar />
