@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { headingClass, STYLE_CLASS, MARKER_NODES, markerHidden } from "./live-preview-core";
+import {
+  headingClass,
+  STYLE_CLASS,
+  MARKER_NODES,
+  markerHidden,
+  isFollowableUrl,
+} from "./live-preview-core";
 
 describe("headingClass", () => {
   it("maps levels to classes and clamps to 1–6", () => {
@@ -28,5 +34,15 @@ describe("markerHidden", () => {
     const active = new Set([3, 4]);
     expect(markerHidden(2, active)).toBe(true);
     expect(markerHidden(3, active)).toBe(false);
+  });
+});
+
+describe("isFollowableUrl", () => {
+  it("accepts http(s) and mailto, rejects others", () => {
+    expect(isFollowableUrl("https://example.com")).toBe(true);
+    expect(isFollowableUrl("  http://x ")).toBe(true);
+    expect(isFollowableUrl("mailto:a@b.com")).toBe(true);
+    expect(isFollowableUrl("./local.md")).toBe(false);
+    expect(isFollowableUrl("javascript:alert(1)")).toBe(false);
   });
 });

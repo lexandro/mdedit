@@ -22,3 +22,8 @@ export const MARKER_NODES = new Set(["HeaderMark", "EmphasisMark", "Strikethroug
 export function markerHidden(markerLine: number, activeLines: Set<number>): boolean {
   return !activeLines.has(markerLine);
 }
+
+/** Whether a link target is safe to open externally on Ctrl/Cmd-click. */
+export function isFollowableUrl(url: string): boolean {
+  return /^(https?:|mailto:)/i.test(url.trim());
+}

@@ -3,7 +3,9 @@
 // line(s) you're editing, where the raw Markdown is revealed so you can edit it.
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { headingClass, STYLE_CLASS, MARKER_NODES, markerHidden } from "./live-preview-core";
+import type { SyntaxNode } from "@lezer/common";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { headingClass, STYLE_CLASS, MARKER_NODES, markerHidden, isFollowableUrl } from "./live-preview-core";
 
 const HIDE = Decoration.replace({});
 
@@ -36,6 +38,17 @@ function buildDecorations(view: EditorView): DecorationSet {
         } else if (node.name.startsWith("ATXHeading")) {
           const level = Number(node.name.slice("ATXHeading".length)) || 1;
           decos.push({ from: node.from, to: node.to, deco: Decoration.mark({ class: headingClass(level) }) });
+        } else if (node.name === "Link") {
+          // Show only the link text, styled; hide the [](url) syntax off the active line.
+          decos.push({ from: node.from, to: node.to, deco: Decoration.mark({ class: "cm-lp-link" }) });
+          const line = doc.lineAt(node.from).number;
+          if (markerHidden(line, active)) {
+            for (let c = node.node.firstChild; c; c = c.nextSibling) {
+              if (c.name === "LinkMark" || c.name === "URL" || c.name === "LinkTitle") {
+                decos.push({ from: c.from, to: c.to, deco: HIDE });
+              }
+            }
+          }
         } else if (MARKER_NODES.has(node.name)) {
           const line = doc.lineAt(node.from).number;
           if (markerHidden(line, active)) {
@@ -56,19 +69,49 @@ function buildDecorations(view: EditorView): DecorationSet {
   );
 }
 
+/** Markdown link/image URL enclosing a document position, if any. */
+function linkUrlAt(view: EditorView, pos: number): string | null {
+  let node: SyntaxNode | null = syntaxTree(view.state).resolveInner(pos, 1);
+  for (; node; node = node.parent) {
+    if (node.name === "Link" || node.name === "Image") {
+      const url = node.getChild("URL");
+      return url ? view.state.sliceDoc(url.from, url.to) : null;
+    }
+  }
+  return null;
+}
+
+// Ctrl/Cmd-click a rendered link to open it (plain click just edits the source).
+const openLinkOnClick = EditorView.domEventHandlers({
+  mousedown(e, view) {
+    if (!(e.ctrlKey || e.metaKey)) return false;
+    const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+    if (pos == null) return false;
+    const url = linkUrlAt(view, pos);
+    if (url && isFollowableUrl(url)) {
+      openUrl(url).catch(() => {});
+      e.preventDefault();
+      return true;
+    }
+    return false;
+  },
+});
+
+const livePreviewPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+    constructor(view: EditorView) {
+      this.decorations = buildDecorations(view);
+    }
+    update(u: ViewUpdate) {
+      if (u.docChanged || u.viewportChanged || u.selectionSet) {
+        this.decorations = buildDecorations(u.view);
+      }
+    }
+  },
+  { decorations: (v) => v.decorations },
+);
+
 export function livePreview() {
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-      constructor(view: EditorView) {
-        this.decorations = buildDecorations(view);
-      }
-      update(u: ViewUpdate) {
-        if (u.docChanged || u.viewportChanged || u.selectionSet) {
-          this.decorations = buildDecorations(u.view);
-        }
-      }
-    },
-    { decorations: (v) => v.decorations },
-  );
+  return [livePreviewPlugin, openLinkOnClick];
 }
