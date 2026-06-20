@@ -67,6 +67,7 @@
         { label: t("cmd.goto_line"), id: "goto_line", shortcut: "Ctrl+G" },
         "sep",
         { label: t("cmd.insert_table"), id: "insert_table" },
+        { label: t("cmd.insert_toc"), id: "insert_toc" },
         { label: t("cmd.insert_emoji"), id: "insert_emoji" },
         { label: t("cmd.format_tables"), id: "format_tables" },
         { label: t("cmd.copy_html"), id: "copy_html" },

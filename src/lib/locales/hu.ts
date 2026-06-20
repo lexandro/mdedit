@@ -29,6 +29,7 @@ export const hu: Record<string, string> = {
   "cmd.select_all": "Összes kijelölése",
   "cmd.goto_line": "Ugrás sorra…",
   "cmd.insert_table": "Táblázat beszúrása",
+  "cmd.insert_toc": "Tartalomjegyzék beszúrása",
   "cmd.insert_emoji": "Emoji beszúrása…",
   "cmd.format_tables": "Táblázatok formázása",
   "cmd.copy_html": "Másolás HTML-ként",

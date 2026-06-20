@@ -19,7 +19,7 @@
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
-  import { editorCommands, formatCommands } from "$lib/editor-commands";
+  import { editorCommands, formatCommands, insertToc } from "$lib/editor-commands";
   import { exportHtml, exportPdf, copyAsHtml } from "$lib/export";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -76,6 +76,7 @@
     paste_as_markdown: () => void editorCommands.pasteAsMarkdown(),
     select_all: () => editorCommands.selectAll(),
     insert_table: () => formatCommands.table(),
+    insert_toc: () => insertToc(),
     format_tables: () => formatCommands.formatTables(),
     goto_line: () => (gotoOpen = true),
     insert_emoji: () => (emojiOpen = true),

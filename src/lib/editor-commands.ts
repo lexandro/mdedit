@@ -5,6 +5,7 @@ import { undo, redo, selectAll } from "@codemirror/commands";
 import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
 import { insertTable, formatTables } from "$lib/md-tables";
 import { htmlToMarkdown } from "$lib/html-to-md";
+import { parseHeadings, buildToc } from "$lib/md-headings";
 
 let activeView: EditorView | null = null;
 
@@ -85,6 +86,20 @@ export const editorCommands = {
 export function insertText(text: string) {
   if (!activeView) return;
   const { from, to } = activeView.state.selection.main;
+  activeView.dispatch({
+    changes: { from, to, insert: text },
+    selection: { anchor: from + text.length },
+  });
+  activeView.focus();
+}
+
+/** Insert a Markdown table of contents (links to the document's headings). */
+export function insertToc() {
+  if (!activeView) return;
+  const toc = buildToc(parseHeadings(activeView.state.doc.toString()));
+  if (!toc) return; // no headings
+  const { from, to } = activeView.state.selection.main;
+  const text = toc + "\n";
   activeView.dispatch({
     changes: { from, to, insert: text },
     selection: { anchor: from + text.length },
