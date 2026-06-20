@@ -15,6 +15,7 @@ import hljs from "highlight.js";
 import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
+import { splitFrontmatter } from "$lib/frontmatter";
 
 /** Rewrite a local <img> src to the Tauri asset protocol; pass URLs through. */
 export function resolveAssetSrc(src: string, baseDir: string | null): string {
@@ -105,7 +106,11 @@ DOMPurify.addHook("afterSanitizeAttributes", (node) => {
 
 export function renderMarkdown(source: string, basePath?: string | null): string {
   const baseDir = basePath ? dirname(basePath) : null;
-  const dirty = md.render(source, { baseDir });
+  const { frontmatter, body } = splitFrontmatter(source);
+  let dirty = md.render(body, { baseDir });
+  if (frontmatter !== null) {
+    dirty = `<pre class="frontmatter">${md.utils.escapeHtml(frontmatter)}</pre>\n${dirty}`;
+  }
   return DOMPurify.sanitize(dirty, {
     ADD_ATTR: ["target", "class", "type", "checked", "disabled"],
     ADD_TAGS: ["input", "eq", "eqn"], // KaTeX wrappers from markdown-it-texmath

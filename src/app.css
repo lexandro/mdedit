@@ -156,6 +156,17 @@ body {
 .markdown-body {
   font-size: 15px;
 }
+.markdown-body .frontmatter {
+  margin: 0 0 1rem;
+  padding: 8px 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
 .markdown-body h1,
 .markdown-body h2 {
   border-bottom: 1px solid var(--border);

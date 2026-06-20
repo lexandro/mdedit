@@ -14,3 +14,12 @@ describe("renderMarkdown — math", () => {
     expect(renderMarkdown("# Title")).toContain("<h1>");
   });
 });
+
+describe("renderMarkdown — frontmatter", () => {
+  it("renders leading frontmatter as a metadata block, body as Markdown", () => {
+    const html = renderMarkdown("---\ntitle: Hi\n---\n# Body\n");
+    expect(html).toContain('class="frontmatter"');
+    expect(html).toContain("title: Hi");
+    expect(html).toContain("<h1>Body</h1>");
+  });
+});
