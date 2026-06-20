@@ -6,26 +6,32 @@ import { toggleEmphasis, nextListPrefix } from "$lib/md-format-core";
 
 /** Wrap (or unwrap, if already wrapped) each selection with markers. Detects
  *  markers whether they're inside or just outside the selection, so the toolbar
- *  / Ctrl+B|I buttons truly toggle instead of stacking `**…**`. */
+ *  / Ctrl+B|I buttons truly toggle instead of stacking `**…**`. With no
+ *  selection, it operates on the whole word under the cursor. */
 export function wrapSelection(view: EditorView, before: string, after = before): boolean {
   const { state } = view;
   const tr = state.changeByRange((range) => {
-    const text = state.sliceDoc(range.from, range.to);
-    if (!text.length) {
-      return {
-        changes: { from: range.from, to: range.to, insert: before + after },
-        range: EditorSelection.cursor(range.from + before.length),
-      };
+    // No selection: target the word under the cursor (so "pr|oba" wraps "proba",
+    // and pressing again removes it) — falling back to the bare cursor otherwise.
+    let { from, to } = range;
+    if (from === to) {
+      const word = state.wordAt(from);
+      if (word) ({ from, to } = word);
     }
-    const ctxLeft = state.sliceDoc(Math.max(0, range.from - before.length - 1), range.from);
-    const ctxRight = state.sliceDoc(range.to, Math.min(state.doc.length, range.to + after.length + 1));
+    const text = state.sliceDoc(from, to);
+    const ctxLeft = state.sliceDoc(Math.max(0, from - before.length - 1), from);
+    const ctxRight = state.sliceDoc(to, Math.min(state.doc.length, to + after.length + 1));
     const edit = toggleEmphasis(text, ctxLeft, ctxRight, before, after);
-    const from = range.from + edit.fromDelta;
-    const to = range.to + edit.toDelta;
-    const selStart = from + edit.selStart;
+    const eFrom = from + edit.fromDelta;
+    const selStart = eFrom + edit.selStart;
+    // If we wrapped at a bare cursor (no word, empty text), keep a cursor between
+    // the new markers; otherwise select the affected word/selection.
+    const placeCursor = range.from === range.to && text.length === 0;
     return {
-      changes: { from, to, insert: edit.insert },
-      range: EditorSelection.range(selStart, selStart + edit.selLen),
+      changes: { from: eFrom, to: to + edit.toDelta, insert: edit.insert },
+      range: placeCursor
+        ? EditorSelection.cursor(selStart)
+        : EditorSelection.range(selStart, selStart + edit.selLen),
     };
   });
   view.dispatch(state.update(tr, { scrollIntoView: true, userEvent: "input" }));
