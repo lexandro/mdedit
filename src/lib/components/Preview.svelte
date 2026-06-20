@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import { renderMarkdown } from "$lib/markdown/renderer";
   import { renderMermaidSvg } from "$lib/markdown/mermaid";
   import { toggleTaskInSource } from "$lib/md-tasks";
@@ -69,16 +70,15 @@
     onScroll(cur);
   }
 
-  // (Re)render after the HTML is in the DOM and whenever the theme flips.
+  // Render Mermaid diagrams after each preview render and on theme change.
   $effect(() => {
-    const _ = html;
-    const theme = settings.resolvedTheme;
-    if (!container) return;
-    const nodes = container.querySelectorAll<HTMLElement>("pre.mermaid:not([data-rendered])");
-    if (nodes.length === 0) return; // skip mermaid entirely for docs without diagrams
-    void theme; // re-run when the theme flips
+    void html; // re-run when the rendered HTML changes…
+    void settings.resolvedTheme; // …and when the theme flips
     const run = async () => {
-      for (const node of Array.from(nodes)) {
+      await tick(); // wait for {@html html} to land in the DOM before querying
+      if (!container) return;
+      const nodes = container.querySelectorAll<HTMLElement>("pre.mermaid:not([data-rendered])");
+      for (const node of nodes) {
         const code = node.textContent ?? "";
         node.setAttribute("data-rendered", "1");
         try {
