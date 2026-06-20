@@ -6,7 +6,8 @@
   import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
   import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
   import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-  import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
+  import { syntaxHighlighting, defaultHighlightStyle, foldKeymap } from "@codemirror/language";
+  import { markdownFolding } from "$lib/editor/md-fold";
   import { oneDark } from "@codemirror/theme-one-dark";
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
@@ -128,6 +129,7 @@
         doc: tab.content,
         extensions: [
           lineNumbers(),
+          markdownFolding(),
           history(),
           highlightActiveLine(),
           highlightSelectionMatches(),
@@ -146,6 +148,7 @@
             ...defaultKeymap,
             ...historyKeymap,
             ...searchKeymap,
+            ...foldKeymap,
             indentWithTab,
           ]),
           EditorView.updateListener.of((u) => {

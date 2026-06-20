@@ -1,35 +1,9 @@
 <script lang="ts">
   import { goToLine } from "$lib/editor-commands";
+  import { parseHeadings } from "$lib/md-headings";
   import { t } from "$lib/i18n";
 
   let { content }: { content: string } = $props();
-
-  interface Heading {
-    level: number;
-    text: string;
-    line: number;
-  }
-
-  // Collect ATX headings, skipping fenced code blocks.
-  function parseHeadings(src: string): Heading[] {
-    const lines = src.split("\n");
-    const out: Heading[] = [];
-    let fence: string | null = null;
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const fenceMatch = line.match(/^\s*(```+|~~~+)/);
-      if (fenceMatch) {
-        const marker = fenceMatch[1][0];
-        if (fence === null) fence = marker;
-        else if (line.trim().startsWith(fence)) fence = null;
-        continue;
-      }
-      if (fence !== null) continue;
-      const m = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
-      if (m) out.push({ level: m[1].length, text: m[2].trim(), line: i + 1 });
-    }
-    return out;
-  }
 
   let headings = $derived(parseHeadings(content));
 </script>
