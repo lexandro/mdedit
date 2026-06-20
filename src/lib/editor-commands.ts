@@ -6,6 +6,7 @@ import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
 import { insertTable, formatTables } from "$lib/md-tables";
 import { htmlToMarkdown } from "$lib/html-to-md";
 import { parseHeadings, buildToc } from "$lib/md-headings";
+import { formatMarkdown } from "$lib/md-prettify";
 
 let activeView: EditorView | null = null;
 
@@ -89,6 +90,20 @@ export function insertText(text: string) {
   activeView.dispatch({
     changes: { from, to, insert: text },
     selection: { anchor: from + text.length },
+  });
+  activeView.focus();
+}
+
+/** Tidy the whole document (whitespace, blank lines, bullet markers). */
+export function formatDocument() {
+  if (!activeView) return;
+  const src = activeView.state.doc.toString();
+  const out = formatMarkdown(src);
+  if (out === src) return;
+  const anchor = Math.min(activeView.state.selection.main.anchor, out.length);
+  activeView.dispatch({
+    changes: { from: 0, to: activeView.state.doc.length, insert: out },
+    selection: { anchor },
   });
   activeView.focus();
 }

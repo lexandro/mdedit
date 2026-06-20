@@ -32,6 +32,7 @@ export const hu: Record<string, string> = {
   "cmd.insert_toc": "Tartalomjegyzék beszúrása",
   "cmd.insert_emoji": "Emoji beszúrása…",
   "cmd.format_tables": "Táblázatok formázása",
+  "cmd.format_document": "Dokumentum formázása",
   "cmd.copy_html": "Másolás HTML-ként",
   "cmd.toggle_orientation": "Megosztás irányának váltása",
   "cmd.toggle_outline": "Vázlat ki/be",

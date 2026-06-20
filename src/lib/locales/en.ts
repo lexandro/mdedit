@@ -33,6 +33,7 @@ export const en: Record<string, string> = {
   "cmd.insert_toc": "Insert Table of Contents",
   "cmd.insert_emoji": "Insert Emoji…",
   "cmd.format_tables": "Format Tables",
+  "cmd.format_document": "Format Document",
   "cmd.copy_html": "Copy as HTML",
   "cmd.toggle_orientation": "Toggle Split Orientation",
   "cmd.toggle_outline": "Toggle Outline",
