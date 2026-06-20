@@ -6,7 +6,7 @@ A fast, native Windows **Markdown editor** built with [Tauri 2](https://tauri.ap
 
 **Editing**
 
-- **Three view modes** — source, rendered preview, and split (switchable vertical / horizontal, with the current orientation shown in the View menu)
+- **Four view modes** — source, rendered preview, split, and a **Live (WYSIWYG)** mode (Ctrl+4) that styles Markdown inline — headings, bold/italic/code, links, images, tables, fenced code, Mermaid, KaTeX math and task checkboxes render in place, revealing raw Markdown only on the line you're editing
 - **Multi-tab** editing — drag to reorder, right-click for Close / Close Others / Close to the Right / Copy Path / Open Containing Folder, **Reopen Closed Tab**, and full **session restore** on restart
 - **CodeMirror 6** source editor — Markdown syntax highlighting, **auto-closing** brackets/quotes, smart list continuation, **Find & Replace** (Ctrl+F), word-wrap toggle, and font zoom (Ctrl + wheel or Ctrl +/−/0)
 - **Optional autosave** with a configurable delay (off by default)
@@ -32,7 +32,9 @@ A fast, native Windows **Markdown editor** built with [Tauri 2](https://tauri.ap
 - **Themes** (Dark / Light / System), interface zoom, and **localized UI** (English / Hungarian)
 - **Auto-updater**, error toasts, and a status bar with cursor position, word/character count and reading time
 
-> WYSIWYG inline editing (Typora-style) is planned for a later release. The current "rendered" mode is a live preview.
+> Live mode is a CodeMirror-based inline rendering (Obsidian "Live Preview"
+> style): the document stays plain Markdown under the hood, so saving, encoding
+> and sessions are unaffected, and you can switch back to Source/Split anytime.
 
 ## Screenshots
 

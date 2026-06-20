@@ -3,6 +3,22 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- **Live (WYSIWYG) mode** (Ctrl+4) — inline rendering in the editor: headings,
+  bold/italic/code/strikethrough, links (Ctrl-click to open), images, horizontal
+  rules, GFM tables, fenced code, Mermaid diagrams, KaTeX math, and clickable
+  task checkboxes all render in place, revealing raw Markdown on the active line.
+  The document stays plain Markdown, so saving/encoding/sessions are unchanged.
+- GFM parsing in the editor (tables, strikethrough, task lists).
+
+### Fixed
+
+- **Bold / italic / inline code now truly toggle off** instead of stacking more
+  `**…**` markers each time the button/shortcut is used.
+
 ## v0.7.0 — 2026-06-19
 
 ### Added

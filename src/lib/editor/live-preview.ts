@@ -126,6 +126,25 @@ class MermaidWidget extends WidgetType {
   }
 }
 
+class TaskWidget extends WidgetType {
+  constructor(readonly checked: boolean) {
+    super();
+  }
+  eq(o: TaskWidget) {
+    return o.checked === this.checked;
+  }
+  toDOM() {
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = this.checked;
+    input.className = "cm-lp-task";
+    return input;
+  }
+  ignoreEvent() {
+    return false; // let the click reach our mousedown handler
+  }
+}
+
 /** Resolve a Markdown image src to something the WebView can load. */
 function resolveSrc(url: string, baseDir: string | null): string {
   const abs = toAbsoluteImagePath(url, baseDir);
@@ -180,6 +199,16 @@ function buildDecorations(view: EditorView, basePath: string | null): Decoration
           decos.push({ from: node.from, to: node.to, deco: Decoration.mark({ class: headingClass(level) }) });
         } else if (node.name === "FencedCode" || node.name === "Table") {
           return false; // handled by the block-decoration field; don't style inside
+        } else if (node.name === "Task") {
+          const tm = node.node.getChild("TaskMarker");
+          if (tm && /x/i.test(doc.sliceString(tm.from, tm.to))) {
+            decos.push({ from: node.from, to: node.to, deco: Decoration.mark({ class: "cm-lp-task-done" }) });
+          }
+        } else if (node.name === "TaskMarker") {
+          if (markerHidden(line, active)) {
+            const checked = /x/i.test(doc.sliceString(node.from, node.to));
+            decos.push({ from: node.from, to: node.to, deco: Decoration.replace({ widget: new TaskWidget(checked) }) });
+          }
         } else if (node.name === "Image") {
           if (!markerHidden(line, active)) return;
           const img = parseImage(doc.sliceString(node.from, node.to));
@@ -272,6 +301,31 @@ const openLinkOnClick = EditorView.domEventHandlers({
   },
 });
 
+// Click a rendered task checkbox to toggle [ ] <-> [x] in the source.
+const toggleTaskOnClick = EditorView.domEventHandlers({
+  mousedown(e, view) {
+    const target = e.target as HTMLElement;
+    if (target.nodeName !== "INPUT" || !target.classList.contains("cm-lp-task")) return false;
+    const pos = view.posAtDOM(target);
+    let tm: SyntaxNode | null = null;
+    for (let n: SyntaxNode | null = syntaxTree(view.state).resolveInner(pos, 1); n; n = n.parent) {
+      if (n.name === "TaskMarker") {
+        tm = n;
+        break;
+      }
+      if (n.name === "Task") {
+        tm = n.getChild("TaskMarker");
+        break;
+      }
+    }
+    if (!tm) return false;
+    const next = /x/i.test(view.state.sliceDoc(tm.from, tm.to)) ? "[ ]" : "[x]";
+    view.dispatch({ changes: { from: tm.from, to: tm.to, insert: next } });
+    e.preventDefault();
+    return true;
+  },
+});
+
 // Block widgets (tables, fenced code, Mermaid) must come from a StateField — CM
 // forbids block decorations from view plugins. Scans the whole doc (blocks are
 // few) and reveals raw source when the cursor is inside a block.
@@ -349,5 +403,5 @@ export function livePreview(basePath: string | null = null) {
     },
     { decorations: (v) => v.decorations },
   );
-  return [plugin, blockField(basePath), openLinkOnClick];
+  return [plugin, blockField(basePath), openLinkOnClick, toggleTaskOnClick];
 }

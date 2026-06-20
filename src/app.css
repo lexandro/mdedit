@@ -55,6 +55,15 @@
   border-radius: 6px;
   overflow: auto;
 }
+.cm-lp-task {
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 0 0.35em 0 0;
+}
+.cm-lp-task-done {
+  color: var(--fg-muted);
+  text-decoration: line-through;
+}
 .cm-lp-h1,
 .cm-lp-h2,
 .cm-lp-h3,
