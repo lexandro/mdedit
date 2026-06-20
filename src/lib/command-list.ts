@@ -22,6 +22,7 @@ export const paletteCommands: PaletteCommand[] = [
   { id: "cut", key: "cmd.cut" },
   { id: "copy", key: "cmd.copy" },
   { id: "paste", key: "cmd.paste" },
+  { id: "paste_as_markdown", key: "cmd.paste_as_markdown" },
   { id: "select_all", key: "cmd.select_all" },
   { id: "goto_line", key: "cmd.goto_line" },
   { id: "insert_table", key: "cmd.insert_table" },

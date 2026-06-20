@@ -4,6 +4,7 @@ import { EditorView } from "@codemirror/view";
 import { undo, redo, selectAll } from "@codemirror/commands";
 import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
 import { insertTable, formatTables } from "$lib/md-tables";
+import { htmlToMarkdown } from "$lib/html-to-md";
 
 let activeView: EditorView | null = null;
 
@@ -54,6 +55,28 @@ export const editorCommands = {
       });
     } catch {
       document.execCommand("paste"); // fallback if clipboard read is blocked
+    }
+  },
+  /** Paste clipboard HTML converted to Markdown (falls back to plain text). */
+  async pasteAsMarkdown() {
+    if (!activeView) return;
+    activeView.focus();
+    try {
+      let html = "";
+      for (const item of await navigator.clipboard.read()) {
+        if (item.types.includes("text/html")) {
+          html = await (await item.getType("text/html")).text();
+          break;
+        }
+      }
+      const text = html ? htmlToMarkdown(html) : await navigator.clipboard.readText();
+      const { from, to } = activeView.state.selection.main;
+      activeView.dispatch({
+        changes: { from, to, insert: text },
+        selection: { anchor: from + text.length },
+      });
+    } catch {
+      document.execCommand("paste");
     }
   },
 };

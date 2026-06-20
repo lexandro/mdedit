@@ -26,6 +26,7 @@ export const en: Record<string, string> = {
   "cmd.cut": "Cut",
   "cmd.copy": "Copy",
   "cmd.paste": "Paste",
+  "cmd.paste_as_markdown": "Paste as Markdown",
   "cmd.select_all": "Select All",
   "cmd.goto_line": "Go to Line…",
   "cmd.insert_table": "Insert Table",

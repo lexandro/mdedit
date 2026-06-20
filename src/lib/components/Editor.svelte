@@ -249,6 +249,9 @@
     <button role="menuitem" onclick={() => runCtx(() => void editorCommands.paste())}
       >{t("cmd.paste")}</button
     >
+    <button role="menuitem" onclick={() => runCtx(() => void editorCommands.pasteAsMarkdown())}
+      >{t("cmd.paste_as_markdown")}</button
+    >
     <div class="ctx-sep" role="separator"></div>
     <button role="menuitem" onclick={() => runCtx(editorCommands.selectAll)}
       >{t("cmd.select_all")}</button

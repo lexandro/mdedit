@@ -61,6 +61,7 @@
         { label: t("cmd.cut"), id: "cut", shortcut: "Ctrl+X" },
         { label: t("cmd.copy"), id: "copy", shortcut: "Ctrl+C" },
         { label: t("cmd.paste"), id: "paste", shortcut: "Ctrl+V" },
+        { label: t("cmd.paste_as_markdown"), id: "paste_as_markdown", shortcut: "Ctrl+Shift+V" },
         "sep",
         { label: t("cmd.select_all"), id: "select_all", shortcut: "Ctrl+A" },
         { label: t("cmd.goto_line"), id: "goto_line", shortcut: "Ctrl+G" },

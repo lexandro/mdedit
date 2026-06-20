@@ -25,6 +25,7 @@ export const hu: Record<string, string> = {
   "cmd.cut": "Kivágás",
   "cmd.copy": "Másolás",
   "cmd.paste": "Beillesztés",
+  "cmd.paste_as_markdown": "Beillesztés Markdownként",
   "cmd.select_all": "Összes kijelölése",
   "cmd.goto_line": "Ugrás sorra…",
   "cmd.insert_table": "Táblázat beszúrása",

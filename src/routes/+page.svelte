@@ -73,6 +73,7 @@
     cut: () => editorCommands.cut(),
     copy: () => editorCommands.copy(),
     paste: () => void editorCommands.paste(),
+    paste_as_markdown: () => void editorCommands.pasteAsMarkdown(),
     select_all: () => editorCommands.selectAll(),
     insert_table: () => formatCommands.table(),
     format_tables: () => formatCommands.formatTables(),
@@ -123,6 +124,10 @@
       e.preventDefault();
       paletteOpen = true;
       return;
+    }
+    if (key === "v" && e.shiftKey) {
+      e.preventDefault();
+      return commands.paste_as_markdown();
     }
 
     let cmd: string | undefined;

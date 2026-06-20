@@ -39,6 +39,13 @@ declare module "markdown-it-emoji/lib/data/full.mjs" {
   const data: Record<string, string>;
   export default data;
 }
+declare module "turndown-plugin-gfm" {
+  import type TurndownService from "turndown";
+  export const gfm: TurndownService.Plugin;
+  export const tables: TurndownService.Plugin;
+  export const strikethrough: TurndownService.Plugin;
+  export const taskListItems: TurndownService.Plugin;
+}
 declare module "markdown-it-texmath" {
   import type { PluginWithOptions } from "markdown-it";
   interface TexmathOptions {
