@@ -17,7 +17,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
 
 /** Rewrite a local <img> src to the Tauri asset protocol; pass URLs through. */
-function resolveAssetSrc(src: string, baseDir: string | null): string {
+export function resolveAssetSrc(src: string, baseDir: string | null): string {
   const abs = toAbsoluteImagePath(src, baseDir);
   if (!abs) return src;
   try {

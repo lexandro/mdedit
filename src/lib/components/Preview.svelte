@@ -1,8 +1,8 @@
 <script lang="ts">
   import { renderMarkdown } from "$lib/markdown/renderer";
+  import { renderMermaidSvg } from "$lib/markdown/mermaid";
   import { toggleTaskInSource } from "$lib/md-tasks";
   import { settings } from "$lib/stores/settings.svelte";
-  import mermaid from "mermaid";
 
   let {
     source,
@@ -19,7 +19,6 @@
   } = $props();
 
   let container: HTMLDivElement;
-  let mermaidSeq = 0;
 
   // Re-render is debounced (configurable) so fast typing in big documents stays
   // smooth. The first render and delay <= 0 are immediate.
@@ -77,18 +76,13 @@
     if (!container) return;
     const nodes = container.querySelectorAll<HTMLElement>("pre.mermaid:not([data-rendered])");
     if (nodes.length === 0) return; // skip mermaid entirely for docs without diagrams
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: theme === "dark" ? "dark" : "default",
-      securityLevel: "strict",
-    });
+    void theme; // re-run when the theme flips
     const run = async () => {
       for (const node of Array.from(nodes)) {
         const code = node.textContent ?? "";
         node.setAttribute("data-rendered", "1");
         try {
-          const { svg } = await mermaid.render(`mmd-${mermaidSeq++}`, code);
-          node.innerHTML = svg;
+          node.innerHTML = await renderMermaidSvg(code);
           node.classList.add("mermaid-rendered");
         } catch (e) {
           node.textContent = `Mermaid error: ${(e as Error).message}`;

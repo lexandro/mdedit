@@ -14,12 +14,10 @@ import { StateField, type EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
 import type { SyntaxNode } from "@lezer/common";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import katex from "katex";
-import mermaid from "mermaid";
-import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
-import { renderMarkdown } from "$lib/markdown/renderer";
-import { settings } from "$lib/stores/settings.svelte";
+import { dirname } from "$lib/md-assets";
+import { renderMarkdown, resolveAssetSrc } from "$lib/markdown/renderer";
+import { renderMermaidSvg } from "$lib/markdown/mermaid";
 import {
   headingClass,
   STYLE_CLASS,
@@ -96,21 +94,6 @@ class HtmlWidget extends WidgetType {
   }
 }
 
-let mermaidSeq = 0;
-async function renderMermaidInto(host: HTMLElement, code: string) {
-  try {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: settings.resolvedTheme === "dark" ? "dark" : "default",
-      securityLevel: "strict",
-    });
-    const { svg } = await mermaid.render(`lp-mmd-${mermaidSeq++}`, code);
-    host.innerHTML = svg;
-  } catch (e) {
-    host.textContent = `Mermaid error: ${(e as Error).message}`;
-  }
-}
-
 class MermaidWidget extends WidgetType {
   constructor(readonly code: string) {
     super();
@@ -121,7 +104,9 @@ class MermaidWidget extends WidgetType {
   toDOM() {
     const el = document.createElement("div");
     el.className = "cm-lp-block cm-lp-mermaid";
-    void renderMermaidInto(el, this.code);
+    renderMermaidSvg(this.code)
+      .then((svg) => (el.innerHTML = svg))
+      .catch((e: unknown) => (el.textContent = `Mermaid error: ${(e as Error).message}`));
     return el;
   }
 }
@@ -145,17 +130,6 @@ class TaskWidget extends WidgetType {
   }
 }
 
-/** Resolve a Markdown image src to something the WebView can load. */
-function resolveSrc(url: string, baseDir: string | null): string {
-  const abs = toAbsoluteImagePath(url, baseDir);
-  if (!abs) return url; // remote/data URL — use as-is
-  try {
-    return convertFileSrc(abs);
-  } catch {
-    return url; // not under Tauri
-  }
-}
-
 /** Line numbers currently touched by any selection — there we reveal raw Markdown. */
 function activeLines(state: EditorState): Set<number> {
   const lines = new Set<number>();
@@ -168,12 +142,42 @@ function activeLines(state: EditorState): Set<number> {
   return lines;
 }
 
+/** Is any line in [firstLine, lastLine] being edited (and so revealed as raw)? */
+function anyLineActive(firstLine: number, lastLine: number, active: Set<number>): boolean {
+  for (let n = firstLine; n <= lastLine; n++) if (active.has(n)) return true;
+  return false;
+}
+
 /** True if a position sits inside a fenced/inline code or table node. */
 function inCodeOrTable(tree: ReturnType<typeof syntaxTree>, pos: number): boolean {
   for (let n: SyntaxNode | null = tree.resolveInner(pos, 1); n; n = n.parent) {
     if (/Code/i.test(n.name) || n.name === "Table") return true;
   }
   return false;
+}
+
+// Rendering a block / math span is expensive (markdown-it + DOMPurify, KaTeX),
+// and rebuilds fire on every cursor move; cache by source so unchanged content
+// is rendered once. Bounded to avoid unbounded growth while editing.
+function memoized(cache: Map<string, string>, key: string, compute: () => string): string {
+  let value = cache.get(key);
+  if (value === undefined) {
+    if (cache.size > 256) cache.clear();
+    value = compute();
+    cache.set(key, value);
+  }
+  return value;
+}
+const htmlCache = new Map<string, string>();
+const mathCache = new Map<string, string>();
+
+/** Build a sorted DecorationSet from collected (from, to, deco) entries. */
+function toDecorationSet(decos: { from: number; to: number; deco: Decoration }[]): DecorationSet {
+  decos.sort((a, b) => a.from - b.from || a.to - b.to);
+  return Decoration.set(
+    decos.map((d) => d.deco.range(d.from, d.to)),
+    true,
+  );
 }
 
 function buildDecorations(view: EditorView, basePath: string | null): DecorationSet {
@@ -213,7 +217,7 @@ function buildDecorations(view: EditorView, basePath: string | null): Decoration
           if (!markerHidden(line, active)) return;
           const img = parseImage(doc.sliceString(node.from, node.to));
           if (img) {
-            const widget = new ImageWidget(resolveSrc(img.url, baseDir), img.alt);
+            const widget = new ImageWidget(resolveAssetSrc(img.url, baseDir), img.alt);
             decos.push({ from: node.from, to: node.to, deco: Decoration.replace({ widget }) });
           }
         } else if (node.name === "HorizontalRule") {
@@ -248,13 +252,13 @@ function buildDecorations(view: EditorView, basePath: string | null): Decoration
       const sTo = from + span.to;
       const firstLine = doc.lineAt(sFrom).number;
       const lastLine = doc.lineAt(sTo).number;
-      let activeHere = false;
-      for (let n = firstLine; n <= lastLine && !activeHere; n++) activeHere = active.has(n);
-      if (activeHere) continue;
+      if (anyLineActive(firstLine, lastLine, active)) continue;
       if (inCodeOrTable(tree, sFrom)) continue; // skip code spans/blocks and tables
       let html: string;
       try {
-        html = katex.renderToString(span.tex, { displayMode: span.display, throwOnError: false });
+        html = memoized(mathCache, (span.display ? "D" : "I") + span.tex, () =>
+          katex.renderToString(span.tex, { displayMode: span.display, throwOnError: false }),
+        );
       } catch {
         continue;
       }
@@ -266,11 +270,7 @@ function buildDecorations(view: EditorView, basePath: string | null): Decoration
     }
   }
 
-  decos.sort((a, b) => a.from - b.from || a.to - b.to);
-  return Decoration.set(
-    decos.map((d) => d.deco.range(d.from, d.to)),
-    true,
-  );
+  return toDecorationSet(decos);
 }
 
 /** Markdown link/image URL enclosing a document position, if any. */
@@ -338,30 +338,25 @@ function buildBlockDecorations(state: EditorState, basePath: string | null): Dec
       if (node.name !== "FencedCode" && node.name !== "Table") return;
       const firstLine = doc.lineAt(node.from).number;
       const lastLine = doc.lineAt(node.to).number;
-      let act = false;
-      for (let n = firstLine; n <= lastLine && !act; n++) act = active.has(n);
-      if (!act) {
+      if (!anyLineActive(firstLine, lastLine, active)) {
         const bFrom = doc.line(firstLine).from;
         const bTo = doc.line(lastLine).to;
         const info = node.node.getChild("CodeInfo");
         const lang = info ? doc.sliceString(info.from, info.to).trim().toLowerCase() : "";
+        let widget: WidgetType;
         if (node.name === "FencedCode" && lang === "mermaid") {
           const code = node.node.getChild("CodeText");
-          const widget = new MermaidWidget(code ? doc.sliceString(code.from, code.to) : "");
-          decos.push({ from: bFrom, to: bTo, deco: Decoration.replace({ widget, block: true }) });
+          widget = new MermaidWidget(code ? doc.sliceString(code.from, code.to) : "");
         } else {
-          const widget = new HtmlWidget(renderMarkdown(doc.sliceString(bFrom, bTo), basePath));
-          decos.push({ from: bFrom, to: bTo, deco: Decoration.replace({ widget, block: true }) });
+          const src = doc.sliceString(bFrom, bTo);
+          widget = new HtmlWidget(memoized(htmlCache, (basePath ?? "") + "\0" + src, () => renderMarkdown(src, basePath)));
         }
+        decos.push({ from: bFrom, to: bTo, deco: Decoration.replace({ widget, block: true }) });
       }
       return false; // never descend into a block
     },
   });
-  decos.sort((a, b) => a.from - b.from || a.to - b.to);
-  return Decoration.set(
-    decos.map((d) => d.deco.range(d.from, d.to)),
-    true,
-  );
+  return toDecorationSet(decos);
 }
 
 function blockField(basePath: string | null) {
