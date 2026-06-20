@@ -3,6 +3,21 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- **Paste as Markdown** (Ctrl+Shift+V) — converts rich clipboard HTML to GFM.
+- **Section folding** — fold a heading down to the next same-or-higher heading.
+- **Insert Table of Contents** — a nested list of links to the document's headings.
+- **YAML frontmatter** renders as a styled metadata block in the preview.
+- **Format Document** — conservative whole-document Markdown tidy-up.
+
+### Fixed
+
+- **Mermaid diagrams** now render reliably in Preview/Split (the render ran
+  before the HTML hit the DOM and never retried).
+
 ## v0.8.1 — 2026-06-20
 
 ### Added
