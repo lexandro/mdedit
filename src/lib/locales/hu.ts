@@ -181,6 +181,17 @@ export const hu: Record<string, string> = {
   "toast.copyPathFail": "Az útvonal nem másolható",
   "toast.pasteImageFail": "A beillesztett kép nem menthető",
 
+  // File association (.md handler)
+  "assoc.prompt": "A mdedit nem az alapértelmezett Markdown-szerkesztőd.",
+  "assoc.set": "Beállítás alapértelmezettként",
+  "assoc.dismiss": "Most nem",
+  "assoc.done": "A mdedit mostantól a Markdown-szerkesztőd.",
+  "assoc.partial":
+    "A mdedit regisztrálva. Ha a .md fájlok mégis máshol nyílnak, válaszd a mdedit-et: jobb klikk → Társítás → Másik alkalmazás → Mindig.",
+  "assoc.failed": "A fájltársítás regisztrálása sikertelen",
+  "assoc.heading": "Markdown fájltársítás",
+  "assoc.isDefault": "A mdedit az alapértelmezett Markdown-szerkesztőd.",
+
   // Accessibility (screen-reader labels)
   "a11y.notifications": "Értesítések",
   "a11y.dismiss": "Bezárás",

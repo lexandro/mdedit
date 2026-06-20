@@ -18,6 +18,7 @@
     type Language,
   } from "$lib/stores/settings.svelte";
   import { t } from "$lib/i18n";
+  import { fileAssoc } from "$lib/stores/fileassoc.svelte";
 
   let { onClose }: { onClose: () => void } = $props();
 
@@ -91,6 +92,17 @@
             >
           </div>
         </section>
+
+        {#if fileAssoc.status === "registered" || fileAssoc.status === "unregistered"}
+          <section>
+            <h3>{t("assoc.heading")}</h3>
+            {#if fileAssoc.status === "registered"}
+              <p class="hint">{t("assoc.isDefault")}</p>
+            {:else}
+              <button class="assoc" onclick={() => fileAssoc.register()}>{t("assoc.set")}</button>
+            {/if}
+          </section>
+        {/if}
       {:else if tab === "appearance"}
         <section>
           <h3>{t("settings.theme")}</h3>
@@ -375,5 +387,17 @@
     font-size: 12px;
     color: var(--fg-muted);
     margin: 8px 0 0;
+  }
+  .assoc {
+    border: 1px solid var(--border);
+    background: var(--bg-alt);
+    color: var(--fg);
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .assoc:hover {
+    border-color: var(--accent);
   }
 </style>

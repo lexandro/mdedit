@@ -86,6 +86,22 @@ export async function revealInDir(path: string): Promise<void> {
   }
 }
 
+export type MdAssocStatus = "registered" | "unregistered" | "unsupported";
+
+/** Whether mdedit is the OS handler for `.md` ("unsupported" = not on Windows). */
+export async function mdAssociationStatus(): Promise<MdAssocStatus> {
+  try {
+    return (await invoke<string>("md_association_status")) as MdAssocStatus;
+  } catch {
+    return "unsupported"; // not under Tauri
+  }
+}
+
+/** Register mdedit as the `.md` handler (HKCU). Throws on failure. */
+export async function registerMdAssociation(): Promise<void> {
+  await invoke("register_md_association");
+}
+
 /** Files this instance was launched with (e.g. via "Open with"); consumed once. */
 export async function takeLaunchFiles(): Promise<string[]> {
   try {

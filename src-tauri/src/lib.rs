@@ -50,6 +50,108 @@ fn take_launch_files(state: tauri::State<LaunchFiles>) -> Vec<String> {
         .unwrap_or_default()
 }
 
+// --- Windows .md file association ----------------------------------------
+// Report whether mdedit is the effective handler for `.md`, and self-register
+// (HKCU, no admin). Windows won't let an app force the user's default app
+// (UserChoice is hash-protected), so registration sets the classic association
+// and adds us to "Open with"; a conflicting UserChoice still needs the user to
+// pick mdedit in Windows settings.
+#[cfg(windows)]
+const MD_EXTS: [&str; 5] = ["md", "markdown", "mdown", "mkd", "mdx"];
+#[cfg(windows)]
+const PROG_ID: &str = "mdedit.md";
+
+#[cfg(windows)]
+fn current_exe_string() -> Result<String, String> {
+    std::env::current_exe()
+        .map_err(|e| e.to_string())
+        .map(|p| p.to_string_lossy().to_string())
+}
+
+/// The open-command string Windows would use for `.md`, if any.
+#[cfg(windows)]
+fn md_open_command() -> Option<String> {
+    use winreg::enums::{HKEY_CLASSES_ROOT, HKEY_CURRENT_USER};
+    use winreg::RegKey;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    // UserChoice wins on modern Windows; otherwise the classic association.
+    let prog_id = hkcu
+        .open_subkey(r"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.md\UserChoice")
+        .and_then(|k| k.get_value::<String, _>("ProgId"))
+        .ok()
+        .or_else(|| {
+            hkcu.open_subkey(r"Software\Classes\.md")
+                .and_then(|k| k.get_value::<String, _>(""))
+                .ok()
+        })?;
+    let cmd_path = format!(r"{}\shell\open\command", prog_id);
+    hkcu.open_subkey(format!(r"Software\Classes\{}", cmd_path))
+        .and_then(|k| k.get_value::<String, _>(""))
+        .ok()
+        .or_else(|| {
+            RegKey::predef(HKEY_CLASSES_ROOT)
+                .open_subkey(&cmd_path)
+                .and_then(|k| k.get_value::<String, _>(""))
+                .ok()
+        })
+}
+
+/// "registered" if `.md` opens in this exe, "unregistered" otherwise,
+/// "unsupported" off Windows.
+#[tauri::command]
+fn md_association_status() -> String {
+    #[cfg(windows)]
+    {
+        let exe = match current_exe_string() {
+            Ok(e) => e.to_lowercase(),
+            Err(_) => return "unsupported".into(),
+        };
+        match md_open_command() {
+            Some(cmd) if cmd.to_lowercase().contains(&exe) => "registered".into(),
+            _ => "unregistered".into(),
+        }
+    }
+    #[cfg(not(windows))]
+    "unsupported".into()
+}
+
+#[tauri::command]
+fn register_md_association() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use winreg::enums::HKEY_CURRENT_USER;
+        use winreg::RegKey;
+        let exe = current_exe_string()?;
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+
+        let (prog, _) = hkcu
+            .create_subkey(format!(r"Software\Classes\{}", PROG_ID))
+            .map_err(|e| e.to_string())?;
+        prog.set_value("", &"Markdown Document")
+            .map_err(|e| e.to_string())?;
+        prog.create_subkey("DefaultIcon")
+            .and_then(|(k, _)| k.set_value("", &format!("\"{}\",0", exe)))
+            .map_err(|e| e.to_string())?;
+        prog.create_subkey(r"shell\open\command")
+            .and_then(|(k, _)| k.set_value("", &format!("\"{}\" \"%1\"", exe)))
+            .map_err(|e| e.to_string())?;
+
+        for ext in MD_EXTS {
+            let (ext_key, _) = hkcu
+                .create_subkey(format!(r"Software\Classes\.{}", ext))
+                .map_err(|e| e.to_string())?;
+            ext_key.set_value("", &PROG_ID).map_err(|e| e.to_string())?;
+            ext_key
+                .create_subkey("OpenWithProgIDs")
+                .and_then(|(k, _)| k.set_value(PROG_ID, &""))
+                .map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    Err("unsupported".into())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let initial_files = files_from_args(&std::env::args().skip(1).collect::<Vec<_>>());
@@ -88,7 +190,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             watch_file,
             unwatch_file,
-            take_launch_files
+            take_launch_files,
+            md_association_status,
+            register_md_association
         ])
         .setup(move |app| {
             app.manage(LaunchFiles(Mutex::new(initial_files)));

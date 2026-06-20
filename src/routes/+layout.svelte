@@ -5,6 +5,7 @@
   import { recent } from "$lib/stores/recent.svelte";
   import { session } from "$lib/stores/session.svelte";
   import { updater } from "$lib/stores/updater.svelte";
+  import { fileAssoc } from "$lib/stores/fileassoc.svelte";
   import { tabs } from "$lib/stores/tabs.svelte";
   import { takeLaunchFiles } from "$lib/ipc";
   import { listen } from "@tauri-apps/api/event";
@@ -35,6 +36,7 @@
     })();
 
     updater.startAutoCheck();
+    void fileAssoc.init(); // check .md association; offers to register if missing
 
     // A second instance ("Open with" on another file) forwards its files here.
     listen<string[]>("open-files", (e) => openPaths(e.payload))

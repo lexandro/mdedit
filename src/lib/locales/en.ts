@@ -180,6 +180,17 @@ export const en: Record<string, string> = {
   "toast.copyPathFail": "Couldn't copy path",
   "toast.pasteImageFail": "Couldn't save pasted image",
 
+  // File association (.md handler)
+  "assoc.prompt": "mdedit isn't your default Markdown editor.",
+  "assoc.set": "Set as default",
+  "assoc.dismiss": "Not now",
+  "assoc.done": "mdedit is now your Markdown editor.",
+  "assoc.partial":
+    "Registered mdedit. If .md files still open elsewhere, pick mdedit via right-click → Open with → Choose another app → Always.",
+  "assoc.failed": "Couldn't register the file association",
+  "assoc.heading": "Markdown file association",
+  "assoc.isDefault": "mdedit is your default Markdown editor.",
+
   // Accessibility (screen-reader labels)
   "a11y.notifications": "Notifications",
   "a11y.dismiss": "Dismiss",

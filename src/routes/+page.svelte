@@ -6,6 +6,7 @@
   import StatusBar from "$lib/components/StatusBar.svelte";
   import EmptyState from "$lib/components/EmptyState.svelte";
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
+  import AssocBanner from "$lib/components/AssocBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
   import SettingsDialog from "$lib/components/SettingsDialog.svelte";
   import AboutDialog from "$lib/components/AboutDialog.svelte";
@@ -157,6 +158,7 @@
   <MenuBar onCommand={handleMenu} {outlineVisible} />
   <Toolbar onOpenSettings={() => (settingsOpen = true)} />
   <UpdateBanner />
+  <AssocBanner />
   <TabBar />
 
   <main class="workspace">

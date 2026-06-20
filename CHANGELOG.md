@@ -3,6 +3,19 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- **Markdown file association** — on Windows, mdedit checks whether it's the
+  `.md` handler at startup and, if not, offers to register itself (HKCU, no
+  admin). Also available anytime in Settings → General.
+
+### Fixed
+
+- Bold/italic with no selection now wraps the **whole word under the cursor**
+  (and toggles off on a second press) instead of inserting bare `****`.
+
 ## v0.8.0 — 2026-06-20
 
 ### Added
