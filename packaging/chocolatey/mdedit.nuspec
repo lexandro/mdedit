@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>mdedit</id>
+    <version>__VERSION__</version>
+    <title>mdedit</title>
+    <authors>lexandro</authors>
+    <owners>lexandro</owners>
+    <summary>A fast, native Windows Markdown editor (Tauri 2 + Svelte).</summary>
+    <description>
+mdedit is a fast, native Windows Markdown editor built with Tauri 2 and Svelte 5.
+
+- Source / split / preview and a Live (WYSIWYG) editing mode
+- GitHub Flavored Markdown, footnotes, KaTeX math, Mermaid diagrams, code highlighting
+- Multi-tab editing with session restore, document outline, command palette
+- Encoding-aware I/O, paste images, export to HTML/PDF, English + Hungarian UI
+- Small binary, native WebView2 — no Electron.
+
+The package downloads the official signed MSI from the project's GitHub release.
+    </description>
+    <projectUrl>https://github.com/lexandro/mdedit</projectUrl>
+    <packageSourceUrl>https://github.com/lexandro/mdedit/tree/main/packaging/chocolatey</packageSourceUrl>
+    <projectSourceUrl>https://github.com/lexandro/mdedit</projectSourceUrl>
+    <docsUrl>https://github.com/lexandro/mdedit#readme</docsUrl>
+    <bugTrackerUrl>https://github.com/lexandro/mdedit/issues</bugTrackerUrl>
+    <licenseUrl>https://github.com/lexandro/mdedit/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <iconUrl>https://cdn.jsdelivr.net/gh/lexandro/mdedit@main/static/app-icon.png</iconUrl>
+    <releaseNotes>https://github.com/lexandro/mdedit/blob/main/CHANGELOG.md</releaseNotes>
+    <tags>markdown editor markdown-editor notes tauri wysiwyg foss</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

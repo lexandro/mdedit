@@ -141,6 +141,22 @@ upgrade detection). No code-signing certificate is required.
 **After that** every release auto-opens a winget update PR — no manual steps.
 Install with `winget install lexandro.mdedit`.
 
+## Publishing to Chocolatey
+
+The `chocolatey` job in `.github/workflows/release.yml` packs the
+`packaging/chocolatey/` package (downloading the `.msi` and embedding its SHA256)
+and `choco push`es it to the community repo on every release.
+
+**One-time setup:** create a [community.chocolatey.org](https://community.chocolatey.org)
+account, generate an **API Key** (account → API Keys), and add it to this repo as
+the **`CHOCO_API_KEY`** secret.
+
+Each pushed version goes through **Chocolatey moderation** (automated checks +
+review) before it's publicly visible — that part is on Chocolatey's side. The
+push itself is automatic; the current version publishes from the next release (or
+push once manually with `choco pack`/`choco push`). Install with
+`choco install mdedit`.
+
 > The in-app updater and winget are independent: a winget install that later
 > self-updates will drift from the winget-tracked version until the next winget
 > release. That's expected and harmless.

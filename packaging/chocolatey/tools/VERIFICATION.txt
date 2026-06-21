@@ -1,0 +1,20 @@
+VERIFICATION
+
+This package downloads the official mdedit installer published by the project
+maintainer on GitHub Releases:
+
+  https://github.com/lexandro/mdedit/releases
+
+For each version the package fetches:
+
+  https://github.com/lexandro/mdedit/releases/download/v<version>/mdedit_<version>_x64_en-US.msi
+
+and verifies it against the SHA256 checksum embedded in tools\chocolateyinstall.ps1.
+
+To verify independently, download the same MSI from the release above and compare
+its SHA256:
+
+  Get-FileHash .\mdedit_<version>_x64_en-US.msi -Algorithm SHA256
+
+The installer (and the project) are MIT-licensed; see LICENSE.txt and
+https://github.com/lexandro/mdedit/blob/main/LICENSE.

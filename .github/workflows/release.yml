@@ -60,3 +60,31 @@ jobs:
           installers-regex: '\.msi$'
           release-tag: ${{ github.ref_name }}
           token: ${{ secrets.WINGET_TOKEN }}
+
+  # Pack and push to the Chocolatey community repo. The .msi is downloaded from
+  # the published release, its SHA256 is injected into the package, then pushed.
+  # Each version goes through Chocolatey moderation before it appears publicly.
+  # Needs a CHOCO_API_KEY secret (chocolatey.org account → API Keys) — see README.
+  chocolatey:
+    needs: build
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack & push Chocolatey package
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $msi = "mdedit_${version}_x64_en-US.msi"
+          $url = "https://github.com/lexandro/mdedit/releases/download/v$version/$msi"
+          Invoke-WebRequest $url -OutFile $msi
+          $sha = (Get-FileHash $msi -Algorithm SHA256).Hash.ToLower()
+          $dir = "packaging/chocolatey"
+          (Get-Content "$dir/mdedit.nuspec") -replace '__VERSION__', $version |
+            Set-Content "$dir/mdedit.nuspec"
+          (Get-Content "$dir/tools/chocolateyinstall.ps1") -replace '__VERSION__', $version -replace '__CHECKSUM__', $sha |
+            Set-Content "$dir/tools/chocolateyinstall.ps1"
+          choco pack "$dir/mdedit.nuspec" --out $dir
+          choco push "$dir/mdedit.$version.nupkg" --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
