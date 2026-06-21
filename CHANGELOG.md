@@ -3,7 +3,7 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## v0.9.0 — 2026-06-21
 
 ### Added
 
@@ -12,6 +12,11 @@ All notable changes to mdedit are documented here. This project adheres to
 - **Insert Table of Contents** — a nested list of links to the document's headings.
 - **YAML frontmatter** renders as a styled metadata block in the preview.
 - **Format Document** — conservative whole-document Markdown tidy-up.
+
+### Changed
+
+- A new tab (Ctrl+N) or opened file now focuses the editor immediately, so you
+  can start typing without clicking the source pane first.
 
 ### Fixed
 
