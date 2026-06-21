@@ -167,6 +167,9 @@
     view.scrollDOM.addEventListener("contextmenu", handleContextMenu);
     const onFocusIn = () => view && setActiveEditor(view);
     view.contentDOM.addEventListener("focusin", onFocusIn);
+    // Focus a freshly-mounted editor when it's the active tab (e.g. a new tab via
+    // Ctrl+N) so the user can start typing immediately without clicking first.
+    if (tab.id === tabs.activeId) view.focus();
     return () => {
       view?.scrollDOM.removeEventListener("scroll", handleScroll);
       view?.scrollDOM.removeEventListener("wheel", handleWheel);
