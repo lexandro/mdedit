@@ -1,12 +1,12 @@
 name: Release
 
-# Build a Windows installer whenever a version tag is pushed (e.g. v0.1.0),
-# and attach the artifacts to a GitHub Release as a draft.
+# Push a version tag (e.g. v0.1.0) → build the signed Windows installers,
+# publish them as a GitHub Release (live, no draft), then auto-submit the new
+# version to winget. Fully hands-off; no manual publish step.
 on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -31,7 +31,7 @@ jobs:
       - name: Install frontend dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build app + create draft release
+      - name: Build app + publish release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,5 +42,21 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "mdedit ${{ github.ref_name }}"
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
+
+  # Submit the freshly-published version to winget (microsoft/winget-pkgs). Runs
+  # after the release is live so the .msi asset is publicly downloadable. Needs a
+  # WINGET_TOKEN secret (classic PAT, public_repo scope) — see README. The very
+  # first version must be submitted once manually; this keeps it updated after.
+  winget:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: lexandro.mdedit
+          installers-regex: '\.msi$'
+          release-tag: ${{ github.ref_name }}
+          token: ${{ secrets.WINGET_TOKEN }}

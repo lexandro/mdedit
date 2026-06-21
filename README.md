@@ -98,9 +98,11 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The workflow builds the installer, signs it, generates `latest.json`, and
-attaches everything to a **draft** GitHub Release — review and publish it. Once
-published, existing installs see it via Settings → **Check for updates**.
+The workflow builds the installers, signs them, generates `latest.json`,
+**publishes** the GitHub Release (no draft), and submits the new version to
+winget — all hands-off. Existing installs then see it via Settings →
+**Check for updates**. (Prefer a manual review gate? Set `releaseDraft: true`
+in `release.yml` and publish the draft yourself.)
 
 To regenerate the key from scratch (only if compromised/lost), repeat
 `bun tauri signer generate -w <path> --ci -f`, update the `pubkey` in
@@ -109,6 +111,39 @@ To regenerate the key from scratch (only if compromised/lost), repeat
 > **Code signing:** without an Authenticode certificate, Windows SmartScreen will
 > warn on first run. The Tauri updater signature above is separate from OS code
 > signing; add a code-signing certificate later for a warning-free install.
+
+## Publishing to winget
+
+The `winget` job in `.github/workflows/release.yml` submits a manifest PR to
+[microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) after every
+release (it uses the `.msi` asset, so winget gets a ProductCode for clean
+upgrade detection). No code-signing certificate is required.
+
+**One-time setup**
+
+1. Create a **classic** GitHub Personal Access Token with the `public_repo`
+   scope and add it to this repo as the **`WINGET_TOKEN`** secret
+   (Settings → Secrets and variables → Actions). The default `GITHUB_TOKEN`
+   can't fork winget-pkgs, so a PAT is required.
+2. Submit the **first** version once (the workflow only *updates* an existing
+   package). With [wingetcreate](https://github.com/microsoft/winget-create):
+
+   ```powershell
+   wingetcreate new `
+     https://github.com/lexandro/mdedit/releases/download/v0.9.0/mdedit_0.9.0_x64_en-US.msi `
+     --submit --token <your-PAT>
+   ```
+
+   Fill the prompted metadata (PackageIdentifier `lexandro.mdedit`, publisher
+   `lexandro`, MIT, homepage `https://github.com/lexandro/mdedit`). The first PR
+   goes through Microsoft's review; later releases are submitted automatically.
+
+**After that** every release auto-opens a winget update PR — no manual steps.
+Install with `winget install lexandro.mdedit`.
+
+> The in-app updater and winget are independent: a winget install that later
+> self-updates will drift from the winget-tracked version until the next winget
+> release. That's expected and harmless.
 
 ## Security
 
