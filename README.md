@@ -143,9 +143,10 @@ Install with `winget install lexandro.mdedit`.
 
 ## Publishing to Chocolatey
 
-The `chocolatey` job in `.github/workflows/release.yml` packs the
-`packaging/chocolatey/` package (downloading the `.msi` and embedding its SHA256)
-and `choco push`es it to the community repo on every release.
+`.github/workflows/choco.yml` packs the `packaging/chocolatey/` package
+(downloading the `.msi` and embedding its SHA256) and `choco push`es it to the
+community repo automatically after each Release — and can be run manually
+(Actions → Chocolatey → Run workflow) to (re)publish a specific version.
 
 **One-time setup:** create a [community.chocolatey.org](https://community.chocolatey.org)
 account, generate an **API Key** (account → API Keys), and add it to this repo as

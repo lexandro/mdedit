@@ -1,0 +1,42 @@
+name: Chocolatey
+
+# Pack and push the Chocolatey package to the community repo. Runs automatically
+# after a successful Release, and can be triggered manually to (re)publish a
+# specific already-released version (e.g. to backfill the current one).
+# Each version still goes through Chocolatey moderation. Needs CHOCO_API_KEY.
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, e.g. 0.9.0"
+        required: true
+
+jobs:
+  push:
+    runs-on: windows-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack & push Chocolatey package
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+          VERSION_INPUT: ${{ inputs.version }}
+          TAG_REF: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          $version = if ("$env:VERSION_INPUT") { "$env:VERSION_INPUT" } else { "$env:TAG_REF".TrimStart('v') }
+          if (-not $version) { throw "No version to publish" }
+          $msi = "mdedit_${version}_x64_en-US.msi"
+          $url = "https://github.com/lexandro/mdedit/releases/download/v$version/$msi"
+          Invoke-WebRequest $url -OutFile $msi
+          $sha = (Get-FileHash $msi -Algorithm SHA256).Hash.ToLower()
+          $dir = "packaging/chocolatey"
+          (Get-Content "$dir/mdedit.nuspec") -replace '__VERSION__', $version |
+            Set-Content "$dir/mdedit.nuspec"
+          (Get-Content "$dir/tools/chocolateyinstall.ps1") -replace '__VERSION__', $version -replace '__CHECKSUM__', $sha |
+            Set-Content "$dir/tools/chocolateyinstall.ps1"
+          choco pack "$dir/mdedit.nuspec" --out $dir
+          choco push "$dir/mdedit.$version.nupkg" --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
