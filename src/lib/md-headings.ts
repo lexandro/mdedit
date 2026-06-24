@@ -1,28 +1,27 @@
 // Pure ATX-heading parsing, shared by the outline, folding and TOC. Skips
 // fenced code blocks so `# ...` inside code isn't treated as a heading.
+import { scanLines } from "$lib/md-lines";
+
 export interface Heading {
   level: number;
   text: string;
   line: number; // 1-based
 }
 
+// One-entry memo: the fold service queries this repeatedly with the same doc.
+let memoSrc: string | null = null;
+let memoResult: Heading[] = [];
+
 export function parseHeadings(src: string): Heading[] {
-  const lines = src.split("\n");
+  if (src === memoSrc) return memoResult;
   const out: Heading[] = [];
-  let fence: string | null = null;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const fenceMatch = line.match(/^\s*(```+|~~~+)/);
-    if (fenceMatch) {
-      const marker = fenceMatch[1][0];
-      if (fence === null) fence = marker;
-      else if (line.trim().startsWith(fence)) fence = null;
-      continue;
-    }
-    if (fence !== null) continue;
-    const m = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
-    if (m) out.push({ level: m[1].length, text: m[2].trim(), line: i + 1 });
+  for (const { text, index, isFence, inFence } of scanLines(src)) {
+    if (isFence || inFence) continue;
+    const m = text.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (m) out.push({ level: m[1].length, text: m[2].trim(), line: index + 1 });
   }
+  memoSrc = src;
+  memoResult = out;
   return out;
 }
 

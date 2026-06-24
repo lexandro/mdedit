@@ -3,21 +3,19 @@
 // normalized to exactly two), accidental trailing whitespace is trimmed, runs of
 // blank lines collapse to one, list bullets normalize to "-", and the file ends
 // with exactly one newline.
+import { scanLines } from "$lib/md-lines";
+
 export function formatMarkdown(src: string): string {
   const out: string[] = [];
-  let fence: string | null = null;
   let blankRun = 0;
 
-  for (const raw of src.split("\n")) {
-    const fenceMatch = raw.match(/^\s*(```+|~~~+)/);
-    if (fenceMatch) {
-      if (fence === null) fence = fenceMatch[1][0];
-      else if (raw.trim().startsWith(fence)) fence = null;
-      out.push(raw.replace(/[ \t]+$/, ""));
+  for (const { text: raw, isFence, inFence } of scanLines(src)) {
+    if (isFence) {
+      out.push(raw.replace(/[ \t]+$/, "")); // trim the delimiter line
       blankRun = 0;
       continue;
     }
-    if (fence !== null) {
+    if (inFence) {
       out.push(raw); // inside code block — preserve verbatim
       continue;
     }

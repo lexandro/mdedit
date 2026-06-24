@@ -1,6 +1,7 @@
 // Edit-menu actions that operate on whichever CodeMirror editor is currently
 // active. Editor.svelte registers/clears the active view; the menu calls these.
 import { EditorView } from "@codemirror/view";
+import { type ChangeSpec } from "@codemirror/state";
 import { undo, redo, selectAll } from "@codemirror/commands";
 import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
 import { insertTable, formatTables } from "$lib/md-tables";
@@ -12,6 +13,13 @@ let activeView: EditorView | null = null;
 
 export function setActiveEditor(view: EditorView) {
   activeView = view;
+}
+
+/** Apply a change to the active editor, set the cursor and refocus. */
+function applyEdit(changes: ChangeSpec, anchor: number) {
+  if (!activeView) return;
+  activeView.dispatch({ changes, selection: { anchor } });
+  activeView.focus();
 }
 
 export function clearActiveEditor(view: EditorView) {
@@ -62,7 +70,6 @@ export const editorCommands = {
   /** Paste clipboard HTML converted to Markdown (falls back to plain text). */
   async pasteAsMarkdown() {
     if (!activeView) return;
-    activeView.focus();
     try {
       let html = "";
       for (const item of await navigator.clipboard.read()) {
@@ -71,12 +78,7 @@ export const editorCommands = {
           break;
         }
       }
-      const text = html ? htmlToMarkdown(html) : await navigator.clipboard.readText();
-      const { from, to } = activeView.state.selection.main;
-      activeView.dispatch({
-        changes: { from, to, insert: text },
-        selection: { anchor: from + text.length },
-      });
+      insertText(html ? htmlToMarkdown(html) : await navigator.clipboard.readText());
     } catch {
       document.execCommand("paste");
     }
@@ -87,11 +89,7 @@ export const editorCommands = {
 export function insertText(text: string) {
   if (!activeView) return;
   const { from, to } = activeView.state.selection.main;
-  activeView.dispatch({
-    changes: { from, to, insert: text },
-    selection: { anchor: from + text.length },
-  });
-  activeView.focus();
+  applyEdit({ from, to, insert: text }, from + text.length);
 }
 
 /** Tidy the whole document (whitespace, blank lines, bullet markers). */
@@ -101,11 +99,7 @@ export function formatDocument() {
   const out = formatMarkdown(src);
   if (out === src) return;
   const anchor = Math.min(activeView.state.selection.main.anchor, out.length);
-  activeView.dispatch({
-    changes: { from: 0, to: activeView.state.doc.length, insert: out },
-    selection: { anchor },
-  });
-  activeView.focus();
+  applyEdit({ from: 0, to: activeView.state.doc.length, insert: out }, anchor);
 }
 
 /** Insert a Markdown table of contents (links to the document's headings). */
@@ -115,11 +109,7 @@ export function insertToc() {
   if (!toc) return; // no headings
   const { from, to } = activeView.state.selection.main;
   const text = toc + "\n";
-  activeView.dispatch({
-    changes: { from, to, insert: text },
-    selection: { anchor: from + text.length },
-  });
-  activeView.focus();
+  applyEdit({ from, to, insert: text }, from + text.length);
 }
 
 /** Move the active editor's cursor to a 1-based line and scroll it into view. */
