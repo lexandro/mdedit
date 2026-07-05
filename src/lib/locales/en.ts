@@ -155,6 +155,21 @@ export const en: Record<string, string> = {
   "emoji.placeholder": "Search emoji (e.g. smile, heart)…",
   "emoji.empty": "No emoji found",
 
+  // Snippets
+  "snippet.placeholder": "Search snippets…",
+  "snippet.empty": "No matching snippet",
+  "snippet.date": "Date",
+  "snippet.time": "Time",
+  "snippet.datetime": "Date and time",
+  "snippet.frontmatter": "Frontmatter (title, date, tags)",
+  "snippet.code": "Code block",
+  "snippet.table": "Table",
+  "snippet.task": "Task list",
+  "snippet.linkref": "Link reference",
+  "snippet.footnote": "Footnote",
+  "snippet.callout": "Callout (note)",
+  "snippet.details": "Collapsible section",
+
   // Go to line
   "goto.title": "Go to line",
   "goto.placeholder": "Line number",

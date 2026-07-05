@@ -26,6 +26,10 @@ export function clearActiveEditor(view: EditorView) {
   if (activeView === view) activeView = null;
 }
 
+export function getActiveView(): EditorView | null {
+  return activeView;
+}
+
 export const editorCommands = {
   undo() {
     if (activeView) {

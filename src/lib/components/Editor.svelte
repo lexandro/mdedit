@@ -4,7 +4,12 @@
   import { EditorState, Compartment } from "@codemirror/state";
   import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
   import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
-  import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
+  import {
+    closeBrackets,
+    closeBracketsKeymap,
+    autocompletion,
+    acceptCompletion,
+  } from "@codemirror/autocomplete";
   import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
   import { syntaxHighlighting, defaultHighlightStyle, foldKeymap } from "@codemirror/language";
   import { markdownFolding } from "$lib/editor/md-fold";
@@ -21,6 +26,7 @@
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
   import { livePreview } from "$lib/editor/live-preview";
+  import { snippetSource } from "$lib/editor-snippets";
 
   let {
     tab,
@@ -142,6 +148,7 @@
           highlightActiveLine(),
           highlightSelectionMatches(),
           closeBrackets(),
+          autocompletion({ override: [snippetSource], icons: false }),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
           spellCompartment.of(spellExtension()),
           liveCompartment.of(live ? livePreview(tab.path) : []),
@@ -158,6 +165,8 @@
             ...historyKeymap,
             ...searchKeymap,
             ...foldKeymap,
+            // Tab: snippet-field nav (auto, Prec.highest) → accept completion → indent.
+            { key: "Tab", run: acceptCompletion },
             indentWithTab,
           ]),
           EditorView.updateListener.of((u) => {

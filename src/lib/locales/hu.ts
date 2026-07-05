@@ -156,6 +156,21 @@ export const hu: Record<string, string> = {
   "emoji.placeholder": "Emoji keresése (pl. smile, heart)…",
   "emoji.empty": "Nincs találat",
 
+  // Snippets
+  "snippet.placeholder": "Sablon keresése…",
+  "snippet.empty": "Nincs találat",
+  "snippet.date": "Dátum",
+  "snippet.time": "Idő",
+  "snippet.datetime": "Dátum és idő",
+  "snippet.frontmatter": "Frontmatter (cím, dátum, címkék)",
+  "snippet.code": "Kódblokk",
+  "snippet.table": "Táblázat",
+  "snippet.task": "Feladatlista",
+  "snippet.linkref": "Hivatkozás-referencia",
+  "snippet.footnote": "Lábjegyzet",
+  "snippet.callout": "Kiemelt megjegyzés",
+  "snippet.details": "Lenyitható szakasz",
+
   // Go to line
   "goto.title": "Ugrás sorra",
   "goto.placeholder": "Sorszám",
