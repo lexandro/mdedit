@@ -1,6 +1,26 @@
 # mdedit
 
+[![winget](https://img.shields.io/winget/v/lexandro.mdedit?label=winget&color=0078D4)](https://winstall.app/apps/lexandro.mdedit)
+[![GitHub release](https://img.shields.io/github/v/release/lexandro/mdedit)](https://github.com/lexandro/mdedit/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
 A fast, native Windows **Markdown editor** built with [Tauri 2](https://tauri.app) (Rust) and [Svelte 5](https://svelte.dev). Small binary, native WebView2, no Electron bloat.
+
+## Install
+
+The quickest way is **winget** (built into Windows 10/11):
+
+```powershell
+winget install lexandro.mdedit
+```
+
+Other options:
+
+- **Chocolatey**: `choco install mdedit` (pending first-time moderation)
+- **Installer**: grab the `.msi` or `.exe` from the [latest release](https://github.com/lexandro/mdedit/releases/latest)
+
+Updates arrive through the same channel you installed from — and the app also
+has a built-in updater (Settings → **Check for updates**).
 
 ## Features
 
