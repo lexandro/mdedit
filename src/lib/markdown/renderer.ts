@@ -14,11 +14,15 @@ import katex from "katex";
 import hljs from "highlight.js";
 import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { dirname, toAbsoluteImagePath } from "$lib/md-assets";
+import { dirname, toAbsoluteImagePath, isUncPath } from "$lib/md-assets";
 import { splitFrontmatter } from "$lib/frontmatter";
 
 /** Rewrite a local <img> src to the Tauri asset protocol; pass URLs through. */
 export function resolveAssetSrc(src: string, baseDir: string | null): string {
+  // Blank out UNC srcs so an untrusted document can't trigger an SMB/HTTP
+  // request to a remote host (a `\\host` src becomes protocol-relative `//host`
+  // in the webview). Both preview and live mode funnel through here.
+  if (isUncPath(src)) return "";
   const abs = toAbsoluteImagePath(src, baseDir);
   if (!abs) return src;
   try {

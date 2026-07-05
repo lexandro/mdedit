@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { dirname, joinPath, toAbsoluteImagePath, encodeMarkdownLinkPath } from "./md-assets";
+import { dirname, joinPath, toAbsoluteImagePath, encodeMarkdownLinkPath, isUncPath } from "./md-assets";
 
 describe("dirname", () => {
   it("returns the parent directory (normalizing separators)", () => {
@@ -40,6 +40,20 @@ describe("toAbsoluteImagePath", () => {
   it("returns null for relative paths without a base dir or root-relative paths", () => {
     expect(toAbsoluteImagePath("img/x.png", null)).toBeNull();
     expect(toAbsoluteImagePath("/abs/x.png", "C:/a")).toBeNull();
+  });
+});
+
+describe("isUncPath / UNC blocking", () => {
+  it("detects UNC paths, raw and percent-encoded", () => {
+    expect(isUncPath("\\\\host\\share\\x.png")).toBe(true);
+    expect(isUncPath("//host/share/x.png")).toBe(true);
+    expect(isUncPath("%5C%5Chost%5Cshare%5Cx.png")).toBe(true);
+    expect(isUncPath("C:/pics/x.png")).toBe(false);
+    expect(isUncPath("img/x.png")).toBe(false);
+  });
+  it("never resolves a UNC src to a filesystem path", () => {
+    expect(toAbsoluteImagePath("%5C%5Cattacker.com%5Cshare%5Cx.png", "C:/docs")).toBeNull();
+    expect(toAbsoluteImagePath("\\\\attacker.com\\share\\x.png", "C:/docs")).toBeNull();
   });
 });
 

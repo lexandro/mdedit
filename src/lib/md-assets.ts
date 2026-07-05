@@ -30,11 +30,27 @@ export function encodeMarkdownLinkPath(path: string): string {
   );
 }
 
+/** Whether a src resolves to a UNC path (`\\host\share` or `//host/share`).
+ *  A document is untrusted input, so a UNC image src must never reach the file
+ *  layer: on Windows, opening `\\host\share` triggers an SMB connection that
+ *  leaks NTLM credentials. Decode first, since markdown-it emits `%5C%5C`. */
+export function isUncPath(src: string): boolean {
+  let path = src;
+  try {
+    path = decodeURIComponent(src);
+  } catch {
+    /* malformed % sequence: test as-is */
+  }
+  return /^[\\/]{2}/.test(path);
+}
+
 /** The absolute filesystem path an image src maps to, or null to leave it as-is
- *  (remote/data URLs, root-relative paths, or relative paths with no base). */
+ *  (remote/data URLs, UNC paths, root-relative paths, or relative paths with no
+ *  base). */
 export function toAbsoluteImagePath(src: string, baseDir: string | null): string | null {
   if (!src) return null;
   if (/^(https?|data|blob|asset|mailto|tel):/i.test(src)) return null;
+  if (isUncPath(src)) return null; // never hand a UNC path to the file layer
   // markdown-it percent-encodes link destinations (\ -> %5C, space -> %20);
   // convertFileSrc expects a raw filesystem path, so decode first.
   let path = src;
@@ -43,7 +59,7 @@ export function toAbsoluteImagePath(src: string, baseDir: string | null): string
   } catch {
     /* malformed % sequence: use as-is */
   }
-  if (/^[a-zA-Z]:[\\/]/.test(path) || path.startsWith("\\\\")) return path.replace(/\\/g, "/");
+  if (/^[a-zA-Z]:[\\/]/.test(path)) return path.replace(/\\/g, "/");
   if (baseDir && !path.startsWith("/")) return joinPath(baseDir, path);
   return null;
 }
