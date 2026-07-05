@@ -29,7 +29,8 @@ has a built-in updater (Settings → **Check for updates**).
 - **Four view modes** — source, rendered preview, split, and a **Live (WYSIWYG)** mode (Ctrl+4) that styles Markdown inline — headings, bold/italic/code, links, images, tables, fenced code, Mermaid, KaTeX math and task checkboxes render in place, revealing raw Markdown only on the line you're editing
 - **Multi-tab** editing — drag to reorder, right-click for Close / Close Others / Close to the Right / Copy Path / Open Containing Folder, **Reopen Closed Tab**, and full **session restore** on restart
 - **CodeMirror 6** source editor — Markdown syntax highlighting, **auto-closing** brackets/quotes, smart list continuation, **Find & Replace** (Ctrl+F), word-wrap toggle, and font zoom (Ctrl + wheel or Ctrl +/−/0)
-- **Optional autosave** with a configurable delay (off by default)
+- **Snippets** — a fuzzy **Insert Snippet…** picker (Ctrl+J) or inline triggers (`/date`, `/code`, `/table`…); tab-stop fields and date/time variables with a configurable format
+- **Optional autosave** with a configurable delay, and optional **native spell check** (system / English / Magyar) — both off by default
 
 **Rendering**
 
@@ -136,7 +137,7 @@ src-tauri/           Rust backend (file I/O commands, window, menu, config)
 ## Roadmap
 
 Planned work and the reasoning behind it live in [ROADMAP.md](./ROADMAP.md) —
-next up: spell check, snippets & templates, and a visual table editor.
+next up: a visual table editor.
 
 ## License
 

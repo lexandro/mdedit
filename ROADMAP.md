@@ -22,31 +22,7 @@ feature puts its testable core in a pure module first (see `CLAUDE.md`).
 
 ## Next up (in order)
 
-### 1. Snippets & templates
-
-Insert common Markdown scaffolds and reusable text without typing them by hand.
-The exact built-in set still needs to be nailed down; the candidates below are
-recorded here so they don't get lost.
-
-- **Built-in snippets (candidate list):**
-  - Insert **date / time** (configurable format — ISO, locale-aware).
-  - **Frontmatter** scaffold (title / date / tags).
-  - Code block with a language, table skeleton (until the table editor lands),
-    task list, link reference, footnote, callout/admonition, `<details>` block.
-- **Document templates:** "new note", "meeting notes", "daily note" scaffolds,
-  chosen when creating a document from a template.
-- **User-defined snippets:** keyword → expansion, ideally with placeholders / tab
-  stops (a lightweight take on VS Code snippets). Stored as JSON in the store and
-  editable in Settings.
-- **Trigger UX:** a "Insert snippet…" command with a fuzzy picker (reuse
-  `fuzzy.ts` and the emoji-picker pattern), and optionally inline expansion (type
-  `/date` + Enter).
-- **Pure core:** expansion (placeholder substitution, date formatting) is pure
-  logic → pure module + tests; the picker UI stays thin.
-- **Open decisions:** built-in set vs. user-defined for v1; placeholder / tab-stop
-  syntax; inline trigger vs. picker-only to start.
-
-### 2. Visual table editor
+### 1. Visual table editor
 
 Editing Markdown tables by hand (aligning pipes) is the most painful part of
 authoring. Give tables a spreadsheet-like GUI.
@@ -74,6 +50,19 @@ authoring. Give tables a spreadsheet-like GUI.
 These stay within the "quickly work with my own files" spirit — they lean on
 *open tabs*, *recent files*, and the *current file's folder*, not a persistent
 indexed workspace (see Rejected).
+
+### User-defined snippets & document templates
+
+Built-in snippets shipped (fuzzy picker + inline `/trigger`, tab-stop fields,
+date/time variables). The deliberately deferred layers:
+
+- **User-defined snippets:** trigger → body, same `${field}` / `{date}` syntax
+  as the built-ins. Load a `Snippet[]` from its own store (`snippets.json` via
+  `tryLoadStore`) and concat with `BUILTIN_SNIPPETS`; managed in a dedicated
+  snippet-manager dialog (decided: not another Settings tab).
+- **Document templates:** "new note", "meeting notes", "daily note" — a
+  `tabs.newTab()` variant seeded with template content, possibly an optional
+  `at: "docStart"` placement on the snippet model.
 
 ### Quick Open
 

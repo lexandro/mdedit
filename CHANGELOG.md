@@ -7,9 +7,22 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Added
 
+- **Snippets** — insert common Markdown scaffolds via the fuzzy **Insert
+  Snippet…** picker (Ctrl+J) or by typing an inline trigger (`/date`, `/code`,
+  `/table`, `/frontmatter`, …). 11 built-ins with tab-stop fields
+  (Tab/Shift-Tab jumps between them) and `{date}`/`{time}`/`{datetime}`
+  variables; the date format (ISO / locale) is configurable in
+  Settings → General.
 - **Spell check** (Settings → Editor) — the WebView's native checker underlines
   misspelled words as you type, with a language selector (system default /
   English / Magyar). Off by default.
+
+### Changed
+
+- **Settings dialog** has a fixed size tuned for 1080p displays — it no longer
+  resizes when switching tabs.
+- **View-menu toggles** (split orientation, outline, word wrap) show their
+  current state as a right-aligned hint instead of a checkmark column.
 
 ### Fixed
 
