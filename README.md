@@ -213,6 +213,11 @@ src/                 SvelteKit frontend (UI, editor, preview, stores)
 src-tauri/           Rust backend (file I/O commands, window, menu, config)
 ```
 
+## Roadmap
+
+Planned work and the reasoning behind it live in [ROADMAP.md](./ROADMAP.md) —
+next up: spell check, snippets & templates, and a visual table editor.
+
 ## License
 
 [MIT](./LICENSE)
