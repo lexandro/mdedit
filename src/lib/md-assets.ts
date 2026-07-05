@@ -25,7 +25,15 @@ export function joinPath(baseDir: string, rel: string): string {
 export function toAbsoluteImagePath(src: string, baseDir: string | null): string | null {
   if (!src) return null;
   if (/^(https?|data|blob|asset|mailto|tel):/i.test(src)) return null;
-  if (/^[a-zA-Z]:[\\/]/.test(src) || src.startsWith("\\\\")) return src.replace(/\\/g, "/");
-  if (baseDir && !src.startsWith("/")) return joinPath(baseDir, src);
+  // markdown-it percent-encodes link destinations (\ -> %5C, space -> %20);
+  // convertFileSrc expects a raw filesystem path, so decode first.
+  let path = src;
+  try {
+    path = decodeURIComponent(src);
+  } catch {
+    /* malformed % sequence: use as-is */
+  }
+  if (/^[a-zA-Z]:[\\/]/.test(path) || path.startsWith("\\\\")) return path.replace(/\\/g, "/");
+  if (baseDir && !path.startsWith("/")) return joinPath(baseDir, path);
   return null;
 }

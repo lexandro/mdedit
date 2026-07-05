@@ -26,7 +26,9 @@ export async function savePastedImage(file: File, docPath: string | null): Promi
       await writeFile(`${dir}/${name}`, bytes);
       return `images/${name}`; // relative to the document
     }
-    const dir = `${await appDataDir()}/pasted-images`;
+    // appDataDir() uses backslashes on Windows; markdown-it would percent-encode
+    // them in the link, so insert a forward-slash path.
+    const dir = `${(await appDataDir()).replace(/\\/g, "/")}/pasted-images`;
     await mkdir(dir, { recursive: true });
     const abs = `${dir}/${name}`;
     await writeFile(abs, bytes);

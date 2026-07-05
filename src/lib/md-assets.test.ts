@@ -28,6 +28,15 @@ describe("toAbsoluteImagePath", () => {
   it("keeps an already-absolute Windows path (normalized)", () => {
     expect(toAbsoluteImagePath("D:\\pics\\x.png", null)).toBe("D:/pics/x.png");
   });
+  it("decodes percent-encoded srcs (markdown-it encodes \\ and spaces)", () => {
+    expect(
+      toAbsoluteImagePath("C:%5CUsers%5Cme%5CAppData%5CRoaming%5Capp/pasted-images/x.png", null),
+    ).toBe("C:/Users/me/AppData/Roaming/app/pasted-images/x.png");
+    expect(toAbsoluteImagePath("img/my%20pic.png", "C:/docs")).toBe("C:/docs/img/my pic.png");
+  });
+  it("tolerates a malformed % sequence", () => {
+    expect(toAbsoluteImagePath("img/100%.png", "C:/docs")).toBe("C:/docs/img/100%.png");
+  });
   it("returns null for relative paths without a base dir or root-relative paths", () => {
     expect(toAbsoluteImagePath("img/x.png", null)).toBeNull();
     expect(toAbsoluteImagePath("/abs/x.png", "C:/a")).toBeNull();
