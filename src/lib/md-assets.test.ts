@@ -52,6 +52,10 @@ describe("toAbsoluteImagePath", () => {
   it("tolerates a malformed % sequence", () => {
     expect(toAbsoluteImagePath("img/100%.png", "C:/docs")).toBe("C:/docs/img/100%.png");
   });
+  it("resolves a literal '%' in a filename when escaped as %25 (URL semantics)", () => {
+    // File literally named `a%20b.png` → must be written `a%2520b.png`.
+    expect(toAbsoluteImagePath("img/a%2520b.png", "C:/docs")).toBe("C:/docs/img/a%20b.png");
+  });
   it("returns null for relative paths without a base dir or root-relative paths", () => {
     expect(toAbsoluteImagePath("img/x.png", null)).toBeNull();
     expect(toAbsoluteImagePath("/abs/x.png", "C:/a")).toBeNull();

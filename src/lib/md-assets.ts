@@ -58,7 +58,9 @@ export function toAbsoluteImagePath(src: string, baseDir: string | null): string
   if (/^(https?|data|blob|asset|mailto|tel):/i.test(src)) return null;
   if (isUncPath(src)) return null; // never hand a UNC path to the file layer
   // markdown-it percent-encodes link destinations (\ -> %5C, space -> %20);
-  // convertFileSrc expects a raw filesystem path, so decode first.
+  // convertFileSrc expects a raw filesystem path, so decode first. Per URL
+  // semantics %20 means space, so a filename with a literal '%' must be written
+  // %25 in the document (e.g. `50%25.png` for a file named `50%.png`).
   let path = src;
   try {
     path = decodeURIComponent(src);
