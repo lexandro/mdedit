@@ -69,6 +69,7 @@
         { label: t("cmd.insert_table"), id: "insert_table" },
         { label: t("cmd.insert_toc"), id: "insert_toc" },
         { label: t("cmd.insert_emoji"), id: "insert_emoji" },
+        { label: t("cmd.insert_snippet"), id: "insert_snippet", shortcut: "Ctrl+J" },
         { label: t("cmd.format_tables"), id: "format_tables" },
         { label: t("cmd.format_document"), id: "format_document" },
         { label: t("cmd.copy_html"), id: "copy_html" },

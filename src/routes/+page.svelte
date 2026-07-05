@@ -14,6 +14,7 @@
   import GoToLineDialog from "$lib/components/GoToLineDialog.svelte";
   import CommandPalette from "$lib/components/CommandPalette.svelte";
   import EmojiPicker from "$lib/components/EmojiPicker.svelte";
+  import SnippetPicker from "$lib/components/SnippetPicker.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
@@ -29,6 +30,7 @@
   let gotoOpen = $state(false);
   let paletteOpen = $state(false);
   let emojiOpen = $state(false);
+  let snippetsOpen = $state(false);
   let outlineVisible = $state(false);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
@@ -81,6 +83,7 @@
     format_document: () => formatDocument(),
     goto_line: () => (gotoOpen = true),
     insert_emoji: () => (emojiOpen = true),
+    insert_snippet: () => (snippetsOpen = true),
     clear_recent: () => void recent.clearRecent(),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
@@ -138,6 +141,7 @@
     else if (key === "o") cmd = "open";
     else if (key === "w") cmd = "close_tab";
     else if (key === "g") cmd = "goto_line";
+    else if (key === "j") cmd = "insert_snippet";
     else if (key === "t" && e.shiftKey) cmd = "reopen_closed";
     else if (["1", "2", "3", "4"].includes(e.key))
       cmd = ["view_source", "view_split", "view_preview", "view_live"][Number(e.key) - 1];
@@ -202,6 +206,7 @@
   />
 {/if}
 {#if emojiOpen}<EmojiPicker onClose={() => (emojiOpen = false)} />{/if}
+{#if snippetsOpen}<SnippetPicker onClose={() => (snippetsOpen = false)} />{/if}
 <Toasts />
 
 <style>
