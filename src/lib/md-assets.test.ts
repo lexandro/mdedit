@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { dirname, joinPath, toAbsoluteImagePath } from "./md-assets";
+import { dirname, joinPath, toAbsoluteImagePath, encodeMarkdownLinkPath } from "./md-assets";
 
 describe("dirname", () => {
   it("returns the parent directory (normalizing separators)", () => {
@@ -40,5 +40,19 @@ describe("toAbsoluteImagePath", () => {
   it("returns null for relative paths without a base dir or root-relative paths", () => {
     expect(toAbsoluteImagePath("img/x.png", null)).toBeNull();
     expect(toAbsoluteImagePath("/abs/x.png", "C:/a")).toBeNull();
+  });
+});
+
+describe("encodeMarkdownLinkPath", () => {
+  it("percent-encodes chars that break a Markdown link destination", () => {
+    expect(encodeMarkdownLinkPath("C:/Users/John Doe/x.png")).toBe("C:/Users/John%20Doe/x.png");
+    expect(encodeMarkdownLinkPath("C:/a (1)/b#2/50%.png")).toBe("C:/a%20%281%29/b%232/50%25.png");
+  });
+  it("leaves separators and safe chars intact", () => {
+    expect(encodeMarkdownLinkPath("images/pasted-123.png")).toBe("images/pasted-123.png");
+  });
+  it("round-trips a spaced/parenthesized path back through toAbsoluteImagePath", () => {
+    const enc = encodeMarkdownLinkPath("C:/Users/John Doe/pics (raw)/x.png");
+    expect(toAbsoluteImagePath(enc, null)).toBe("C:/Users/John Doe/pics (raw)/x.png");
   });
 });

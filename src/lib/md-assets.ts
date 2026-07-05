@@ -20,6 +20,16 @@ export function joinPath(baseDir: string, rel: string): string {
   return out.join("/");
 }
 
+/** Percent-encode the characters that would break an unbracketed Markdown link
+ *  destination (a space truncates the src, parens delimit it). The result
+ *  round-trips back through `toAbsoluteImagePath`'s decode step on render. */
+export function encodeMarkdownLinkPath(path: string): string {
+  return path.replace(
+    /[ ()#?%]/g,
+    (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0"),
+  );
+}
+
 /** The absolute filesystem path an image src maps to, or null to leave it as-is
  *  (remote/data URLs, root-relative paths, or relative paths with no base). */
 export function toAbsoluteImagePath(src: string, baseDir: string | null): string | null {
