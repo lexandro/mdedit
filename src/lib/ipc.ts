@@ -12,6 +12,7 @@ import {
   type Encoding,
   type LineEnding,
 } from "$lib/encoding";
+import { toPosix } from "$lib/md-assets";
 
 export type { Encoding, LineEnding } from "$lib/encoding";
 
@@ -113,10 +114,6 @@ export async function takeLaunchFiles(): Promise<string[]> {
 
 /** Loose path comparison tolerant of separator and extended-length differences. */
 export function samePath(a: string, b: string): boolean {
-  const norm = (p: string) =>
-    p
-      .replace(/^\\\\\?\\/, "")
-      .replace(/\\/g, "/")
-      .toLowerCase();
+  const norm = (p: string) => toPosix(p).toLowerCase();
   return norm(a) === norm(b);
 }

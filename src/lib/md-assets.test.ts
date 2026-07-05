@@ -1,5 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { dirname, joinPath, toAbsoluteImagePath, encodeMarkdownLinkPath, isUncPath } from "./md-assets";
+import {
+  dirname,
+  joinPath,
+  toAbsoluteImagePath,
+  encodeMarkdownLinkPath,
+  isUncPath,
+  toPosix,
+} from "./md-assets";
+
+describe("toPosix", () => {
+  it("normalizes separators and strips the \\\\?\\ prefix", () => {
+    expect(toPosix("C:\\a\\b")).toBe("C:/a/b");
+    expect(toPosix("\\\\?\\C:\\a\\b")).toBe("C:/a/b");
+    expect(toPosix("already/posix")).toBe("already/posix");
+  });
+});
 
 describe("dirname", () => {
   it("returns the parent directory (normalizing separators)", () => {

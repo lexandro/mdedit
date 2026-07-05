@@ -3,13 +3,7 @@
 // relative path; for an untitled buffer it goes to the app data dir (absolute).
 import { writeFile, mkdir } from "@tauri-apps/plugin-fs";
 import { appDataDir } from "@tauri-apps/api/path";
-import { encodeMarkdownLinkPath } from "$lib/md-assets";
-
-function dirOf(path: string): string {
-  const norm = path.replace(/\\/g, "/");
-  const i = norm.lastIndexOf("/");
-  return i >= 0 ? norm.slice(0, i) : "";
-}
+import { dirname, toPosix, encodeMarkdownLinkPath } from "$lib/md-assets";
 
 function extFor(mime: string): string {
   const e = mime.split("/")[1]?.toLowerCase() ?? "png";
@@ -22,14 +16,14 @@ export async function savePastedImage(file: File, docPath: string | null): Promi
   const name = `pasted-${Date.now()}.${extFor(file.type)}`;
   try {
     if (docPath) {
-      const dir = `${dirOf(docPath)}/images`;
+      const dir = `${dirname(docPath)}/images`;
       await mkdir(dir, { recursive: true });
       await writeFile(`${dir}/${name}`, bytes);
       return `images/${name}`; // relative to the document
     }
     // appDataDir() uses backslashes on Windows; markdown-it would percent-encode
     // them in the link, so insert a forward-slash path.
-    const dir = `${(await appDataDir()).replace(/\\/g, "/")}/pasted-images`;
+    const dir = `${toPosix(await appDataDir())}/pasted-images`;
     await mkdir(dir, { recursive: true });
     const abs = `${dir}/${name}`;
     await writeFile(abs, bytes);

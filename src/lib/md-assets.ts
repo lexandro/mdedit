@@ -2,15 +2,21 @@
 // be rewritten to a local filesystem path (then served via Tauri's asset
 // protocol) or left untouched. Kept Tauri-free so it is unit-testable.
 
+/** Normalize a Windows path to forward slashes, dropping the `\\?\`
+ *  extended-length prefix. The one home for separator normalization. */
+export function toPosix(path: string): string {
+  return path.replace(/^\\\\\?\\/, "").replace(/\\/g, "/");
+}
+
 export function dirname(path: string): string {
-  const norm = path.replace(/\\/g, "/");
+  const norm = toPosix(path);
   const i = norm.lastIndexOf("/");
   return i >= 0 ? norm.slice(0, i) : "";
 }
 
 /** Join a relative path onto a base dir, collapsing "." and ".." segments. */
 export function joinPath(baseDir: string, rel: string): string {
-  const parts = `${baseDir}/${rel.replace(/\\/g, "/")}`.split("/");
+  const parts = `${baseDir}/${toPosix(rel)}`.split("/");
   const out: string[] = [];
   for (const p of parts) {
     if (p === "" || p === ".") continue;
@@ -59,7 +65,7 @@ export function toAbsoluteImagePath(src: string, baseDir: string | null): string
   } catch {
     /* malformed % sequence: use as-is */
   }
-  if (/^[a-zA-Z]:[\\/]/.test(path)) return path.replace(/\\/g, "/");
+  if (/^[a-zA-Z]:[\\/]/.test(path)) return toPosix(path);
   if (baseDir && !path.startsWith("/")) return joinPath(baseDir, path);
   return null;
 }
