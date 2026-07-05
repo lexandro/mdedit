@@ -39,6 +39,25 @@ This codebase is maintained by an AI, not a human team. Optimize for
   template + `<style>`; keep their `<script>` logic thin (push to `.ts`).
 - **Comments explain WHY, not what.** No dead code, no redundant comments.
 
+## Data boundaries (learned from the pasted-image bugs)
+
+- **Document content is untrusted input.** An opened `.md` can contain anything.
+  Anything derived from it that becomes a filesystem path, a network request, or
+  an asset URL (image `src`, link `href`) must pass an explicit allow/deny check
+  — e.g. `toAbsoluteImagePath`/`resolveAssetSrc` reject UNC (`\\host`) so a
+  preview can't trigger an SMB/NTLM leak. The asset-protocol scope is `**`, so
+  the JS resolver is the real gate.
+- **Round-trip anything written into the document.** When code emits text back
+  into the buffer (paste-image, drag-drop, TOC, links), the emitted form must
+  survive the parser/renderer it will be read by. Test the producer's output fed
+  through the consumer (`savePastedImage` → `toAbsoluteImagePath`); that catches
+  space/paren/percent breakage the producer alone can't show.
+- **Fix at the shared chokepoint, and list the consumers.** Image srcs funnel
+  through `resolveAssetSrc` (preview *and* live), so fix there once instead of
+  per-view. When you fix one consumer, name the others (export HTML, copy-as-
+  HTML, link hrefs) and confirm each — a fix that only repairs preview while
+  export stays broken is too shallow.
+
 ## Testing
 
 - Add a vitest test for any new pure logic (`*.test.ts` next to the module).
@@ -59,5 +78,6 @@ This codebase is maintained by an AI, not a human team. Optimize for
 ## Review checklist
 
 Reuse over reinvention · pure core extracted + tested · no silent failures ·
-file under ~150 lines · minimal permissions · no dead code/comments · `check`
-+ `test` green.
+file under ~150 lines · minimal permissions · no dead code/comments · untrusted
+document input gated (paths/URLs) · emitted text round-trips its consumer · fix
+at the shared chokepoint, all consumers checked · `check` + `test` green.
