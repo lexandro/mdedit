@@ -19,6 +19,9 @@
   } from "$lib/stores/settings.svelte";
   import { t } from "$lib/i18n";
   import { fileAssoc } from "$lib/stores/fileassoc.svelte";
+  import { formatDate, type DateFormat } from "$lib/date-format";
+
+  const dateFormats: DateFormat[] = ["iso", "locale"];
 
   let { onClose }: { onClose: () => void } = $props();
 
@@ -91,6 +94,20 @@
               onclick={() => settings.setStartupMaximized(false)}>{t("settings.normal")}</button
             >
           </div>
+        </section>
+
+        <section>
+          <h3>{t("settings.dateFormat")}</h3>
+          <div class="seg">
+            {#each dateFormats as f (f)}
+              <button
+                class:active={settings.dateFormat === f}
+                onclick={() => settings.setDateFormat(f)}
+                >{formatDate(new Date(), f, settings.language)}</button
+              >
+            {/each}
+          </div>
+          <p class="hint">{t("settings.dateFormatHint")}</p>
         </section>
 
         {#if fileAssoc.status === "registered" || fileAssoc.status === "unregistered"}

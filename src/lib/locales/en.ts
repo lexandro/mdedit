@@ -123,6 +123,8 @@ export const en: Record<string, string> = {
   "settings.incAutosave": "Increase autosave delay",
   "settings.on": "On",
   "settings.off": "Off",
+  "settings.dateFormat": "Date format",
+  "settings.dateFormatHint": "Used by snippets that insert the current date or time.",
   "theme.light": "Light",
   "theme.dark": "Dark",
   "theme.system": "System",

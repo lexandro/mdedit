@@ -124,6 +124,8 @@ export const hu: Record<string, string> = {
   "settings.incAutosave": "Mentési késleltetés növelése",
   "settings.on": "Be",
   "settings.off": "Ki",
+  "settings.dateFormat": "Dátumformátum",
+  "settings.dateFormatHint": "A dátumot vagy időt beszúró sablonok használják.",
   "theme.light": "Világos",
   "theme.dark": "Sötét",
   "theme.system": "Rendszer",

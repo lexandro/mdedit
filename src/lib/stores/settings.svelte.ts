@@ -4,6 +4,7 @@ import { type Store } from "@tauri-apps/plugin-store";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { tryLoadStore } from "$lib/stores/persist";
 import { clampZoom, clampFontSize, clampDebounce, clampAutosaveDelay } from "$lib/settings-util";
+import { type DateFormat } from "$lib/date-format";
 
 export {
   ZOOM_MIN,
@@ -40,6 +41,7 @@ interface PersistShape {
   autosaveDelayMs: number;
   spellcheck: boolean;
   spellcheckLang: string;
+  dateFormat: DateFormat;
 }
 
 const DEFAULTS: PersistShape = {
@@ -56,6 +58,7 @@ const DEFAULTS: PersistShape = {
   autosaveDelayMs: 2000,
   spellcheck: false, // opt-in: native spellcheck squiggles code/URLs too
   spellcheckLang: "", // empty = WebView system dictionary
+  dateFormat: "iso",
 };
 
 class SettingsStore {
@@ -72,6 +75,7 @@ class SettingsStore {
   autosaveDelayMs = $state<number>(DEFAULTS.autosaveDelayMs);
   spellcheck = $state<boolean>(DEFAULTS.spellcheck);
   spellcheckLang = $state<string>(DEFAULTS.spellcheckLang);
+  dateFormat = $state<DateFormat>(DEFAULTS.dateFormat);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -105,6 +109,7 @@ class SettingsStore {
       this.spellcheck = (await this.#store.get<boolean>("spellcheck")) ?? DEFAULTS.spellcheck;
       this.spellcheckLang =
         (await this.#store.get<string>("spellcheckLang")) ?? DEFAULTS.spellcheckLang;
+      this.dateFormat = (await this.#store.get<DateFormat>("dateFormat")) ?? DEFAULTS.dateFormat;
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -190,6 +195,11 @@ class SettingsStore {
   async setSpellcheckLang(lang: string) {
     this.spellcheckLang = lang;
     await this.#store?.set("spellcheckLang", lang);
+  }
+
+  async setDateFormat(f: DateFormat) {
+    this.dateFormat = f;
+    await this.#store?.set("dateFormat", f);
   }
 }
 
