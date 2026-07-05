@@ -7,6 +7,7 @@ export const hu: Record<string, string> = {
   "menu.help": "Súgó",
   "menu.openRecent": "Legutóbbiak",
   "menu.noRecent": "(nincs előzmény)",
+  "menu.wordWrap": "Sortörés",
 
   // Commands
   "cmd.new": "Új",

@@ -8,7 +8,7 @@
   import { t } from "$lib/i18n";
 
   type Item =
-    | { label: string; id?: string; shortcut?: string; children?: Item[]; checked?: boolean; hint?: string }
+    | { label: string; id?: string; shortcut?: string; children?: Item[]; hint?: string }
     | "sep";
   interface Menu {
     label: string;
@@ -84,12 +84,20 @@
         { label: t("view.live"), id: "view_live", shortcut: "Ctrl+4" },
         "sep",
         {
-          label: t("cmd.toggle_orientation"),
+          label: t("settings.splitOrientation"),
           id: "toggle_orientation",
           hint: t(`orientation.${settings.splitOrientation}`),
         },
-        { label: t("cmd.toggle_outline"), id: "toggle_outline", checked: outlineVisible },
-        { label: t("cmd.toggle_word_wrap"), id: "toggle_word_wrap", checked: settings.wordWrap },
+        {
+          label: t("outline.title"),
+          id: "toggle_outline",
+          hint: t(outlineVisible ? "settings.on" : "settings.off"),
+        },
+        {
+          label: t("menu.wordWrap"),
+          id: "toggle_word_wrap",
+          hint: t(settings.wordWrap ? "settings.on" : "settings.off"),
+        },
         "sep",
         { label: t("cmd.settings"), id: "settings" },
       ],
@@ -204,15 +212,7 @@
                 {/if}
               </div>
             {:else if item.id}
-              <button
-                class="item"
-                role={item.checked === undefined ? "menuitem" : "menuitemcheckbox"}
-                aria-checked={item.checked === undefined ? undefined : item.checked}
-                onclick={() => choose(item.id)}
-              >
-                {#if item.checked !== undefined}
-                  <span class="check">{item.checked ? "✓" : ""}</span>
-                {/if}
+              <button class="item" role="menuitem" onclick={() => choose(item.id)}>
                 <span class="label">{item.label}</span>
                 {#if item.hint}<span class="shortcut">{item.hint}</span>{/if}
                 {#if item.shortcut}<span class="shortcut">{item.shortcut}</span>{/if}
@@ -275,17 +275,10 @@
     cursor: pointer;
     font-size: 13px;
     text-align: left;
+    white-space: nowrap;
   }
   .item:hover {
     background: var(--accent);
-    color: var(--accent-fg);
-  }
-  .check {
-    flex: 0 0 14px;
-    text-align: center;
-    color: var(--accent);
-  }
-  .item:hover .check {
     color: var(--accent-fg);
   }
   .label {

@@ -8,6 +8,7 @@ export const en: Record<string, string> = {
   "menu.help": "Help",
   "menu.openRecent": "Open Recent",
   "menu.noRecent": "(no recent files)",
+  "menu.wordWrap": "Word Wrap",
 
   // Commands (menu items + command palette)
   "cmd.new": "New",
