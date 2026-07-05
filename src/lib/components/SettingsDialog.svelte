@@ -305,8 +305,10 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(560px, 92vw);
-    max-height: min(80vh, 560px);
+    /* Fixed size so switching tabs doesn't resize the dialog; sized for
+       1080p-and-up displays, vw/vh caps only guard smaller dev windows. */
+    width: min(820px, 92vw);
+    height: min(680px, 88vh);
     display: flex;
     flex-direction: column;
     background: var(--bg);
@@ -341,7 +343,7 @@
     min-height: 0; /* let the panel scroll instead of growing the dialog */
   }
   .tabs {
-    flex: 0 0 130px;
+    flex: 0 0 170px;
     display: flex;
     flex-direction: column;
     padding: 8px;
@@ -371,7 +373,7 @@
     flex: 1;
     min-width: 0;
     overflow-y: auto;
-    padding: 4px 20px 20px;
+    padding: 6px 26px 26px;
   }
   h3 {
     font-size: 13px;
