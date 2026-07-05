@@ -3,6 +3,7 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { renderMarkdown } from "$lib/markdown/renderer";
+import { isInlinableAssetUrl } from "$lib/export-util";
 import { toasts } from "$lib/stores/toasts.svelte";
 import { t } from "$lib/i18n";
 
@@ -38,6 +39,32 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
 }
 
+/** Replace app-only asset:// image srcs with self-contained base64 data URIs so
+ *  the exported/copied HTML renders outside the app. Runs in the webview, where
+ *  the asset URLs still resolve; a failed fetch leaves that src untouched. */
+async function inlineLocalImages(html: string): Promise<string> {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const imgs = [...doc.querySelectorAll("img")].filter((img) =>
+    isInlinableAssetUrl(img.getAttribute("src") ?? ""),
+  );
+  await Promise.all(
+    imgs.map(async (img) => {
+      try {
+        const blob = await (await fetch(img.src)).blob();
+        img.src = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        /* leave the original src; a broken local image beats a failed export */
+      }
+    }),
+  );
+  return doc.body.innerHTML;
+}
+
 function standaloneHtml(bodyHtml: string, title: string): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
@@ -46,10 +73,11 @@ function standaloneHtml(bodyHtml: string, title: string): string {
 <body><main class="markdown-body">${bodyHtml}</main></body></html>`;
 }
 
-/** Save the document as a standalone .html file (relative image paths kept). */
+/** Save the document as a standalone .html file (local images inlined as
+ *  base64; relative image paths kept). */
 export async function exportHtml(content: string, title: string): Promise<void> {
   try {
-    const html = standaloneHtml(renderMarkdown(content, null), title);
+    const html = standaloneHtml(await inlineLocalImages(renderMarkdown(content, null)), title);
     const path = await save({
       filters: [{ name: "HTML", extensions: ["html"] }],
       defaultPath: `${title}.html`,
@@ -64,7 +92,7 @@ export async function exportHtml(content: string, title: string): Promise<void> 
 
 /** Copy the rendered document to the clipboard as rich HTML (and plain text). */
 export async function copyAsHtml(content: string): Promise<void> {
-  const html = renderMarkdown(content, null);
+  const html = await inlineLocalImages(renderMarkdown(content, null));
   try {
     await navigator.clipboard.write([
       new ClipboardItem({
