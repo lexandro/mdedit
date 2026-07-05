@@ -17,6 +17,7 @@
   import { linkFromPaste } from "$lib/md-format-core";
   import { savePastedImage } from "$lib/paste-image";
   import { fontSizeForWheel } from "$lib/settings-util";
+  import { spellcheckAttrs } from "$lib/spell-util";
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
   import { livePreview } from "$lib/editor/live-preview";
@@ -38,6 +39,13 @@
   const themeCompartment = new Compartment();
   const wrapCompartment = new Compartment();
   const liveCompartment = new Compartment();
+  const spellCompartment = new Compartment();
+
+  function spellExtension() {
+    return EditorView.contentAttributes.of(
+      spellcheckAttrs(settings.spellcheck, settings.spellcheckLang),
+    );
+  }
 
   // Report the cursor position to the status bar (only for the active tab).
   function reportCursor(v: EditorView) {
@@ -135,6 +143,7 @@
           highlightSelectionMatches(),
           closeBrackets(),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
+          spellCompartment.of(spellExtension()),
           liveCompartment.of(live ? livePreview(tab.path) : []),
           markdown({ base: markdownLanguage }), // GFM: tables, strikethrough, task lists
           EditorView.domEventHandlers({ paste: handlePaste }),
@@ -195,6 +204,13 @@
     view?.dispatch({
       effects: wrapCompartment.reconfigure(wrap ? EditorView.lineWrapping : []),
     });
+  });
+
+  // Re-apply native spellcheck attributes when the setting or language changes.
+  $effect(() => {
+    const _on = settings.spellcheck;
+    const _lang = settings.spellcheckLang;
+    view?.dispatch({ effects: spellCompartment.reconfigure(spellExtension()) });
   });
 
   // Toggle live-preview (WYSIWYG) decorations when the tab enters/leaves Live mode

@@ -3,6 +3,24 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- **Spell check** (Settings → Editor) — the WebView's native checker underlines
+  misspelled words as you type, with a language selector (system default /
+  English / Magyar). Off by default.
+
+### Fixed
+
+- **Pasted images render reliably** — an untitled-buffer paste whose appdata path
+  contains a space, parenthesis, or backslash now shows in Preview and Live
+  (paths are encoded/decoded around markdown-it instead of breaking the link).
+- **Exported / copied HTML is self-contained** — local images are inlined as
+  base64, so they still show in an external browser or another app.
+- **UNC image sources are blocked** — a `\\host\share` image path in an untrusted
+  document can no longer trigger an outbound SMB/HTTP request from the preview.
+
 ## v0.9.0 — 2026-06-21
 
 ### Added

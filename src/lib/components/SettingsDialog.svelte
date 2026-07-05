@@ -155,6 +155,40 @@
         </section>
 
         <section>
+          <h3>{t("settings.spellcheck")}</h3>
+          <div class="seg">
+            <button class:active={settings.spellcheck} onclick={() => settings.setSpellcheck(true)}
+              >{t("settings.on")}</button
+            >
+            <button
+              class:active={!settings.spellcheck}
+              onclick={() => settings.setSpellcheck(false)}>{t("settings.off")}</button
+            >
+          </div>
+          <p class="hint">{t("settings.spellcheckHint")}</p>
+        </section>
+
+        {#if settings.spellcheck}
+          <section>
+            <h3>{t("settings.spellcheckLang")}</h3>
+            <div class="seg">
+              <button
+                class:active={settings.spellcheckLang === ""}
+                onclick={() => settings.setSpellcheckLang("")}>{t("settings.spellcheckSystem")}</button
+              >
+              <button
+                class:active={settings.spellcheckLang === "en"}
+                onclick={() => settings.setSpellcheckLang("en")}>English</button
+              >
+              <button
+                class:active={settings.spellcheckLang === "hu"}
+                onclick={() => settings.setSpellcheckLang("hu")}>Magyar</button
+              >
+            </div>
+          </section>
+        {/if}
+
+        <section>
           <h3>{t("settings.autosave")}</h3>
           <div class="seg">
             <button class:active={settings.autosave} onclick={() => settings.setAutosave(true)}

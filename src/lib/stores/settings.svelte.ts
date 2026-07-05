@@ -38,6 +38,8 @@ interface PersistShape {
   language: Language;
   autosave: boolean;
   autosaveDelayMs: number;
+  spellcheck: boolean;
+  spellcheckLang: string;
 }
 
 const DEFAULTS: PersistShape = {
@@ -52,6 +54,8 @@ const DEFAULTS: PersistShape = {
   language: "en",
   autosave: false,
   autosaveDelayMs: 2000,
+  spellcheck: false, // opt-in: native spellcheck squiggles code/URLs too
+  spellcheckLang: "", // empty = WebView system dictionary
 };
 
 class SettingsStore {
@@ -66,6 +70,8 @@ class SettingsStore {
   language = $state<Language>(DEFAULTS.language);
   autosave = $state<boolean>(DEFAULTS.autosave);
   autosaveDelayMs = $state<number>(DEFAULTS.autosaveDelayMs);
+  spellcheck = $state<boolean>(DEFAULTS.spellcheck);
+  spellcheckLang = $state<string>(DEFAULTS.spellcheckLang);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -96,6 +102,9 @@ class SettingsStore {
       this.autosave = (await this.#store.get<boolean>("autosave")) ?? DEFAULTS.autosave;
       this.autosaveDelayMs =
         (await this.#store.get<number>("autosaveDelayMs")) ?? DEFAULTS.autosaveDelayMs;
+      this.spellcheck = (await this.#store.get<boolean>("spellcheck")) ?? DEFAULTS.spellcheck;
+      this.spellcheckLang =
+        (await this.#store.get<string>("spellcheckLang")) ?? DEFAULTS.spellcheckLang;
     }
     this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
     this.#mql.addEventListener("change", () => this.applyTheme());
@@ -171,6 +180,16 @@ class SettingsStore {
   async setAutosaveDelayMs(ms: number) {
     this.autosaveDelayMs = clampAutosaveDelay(ms);
     await this.#store?.set("autosaveDelayMs", this.autosaveDelayMs);
+  }
+
+  async setSpellcheck(on: boolean) {
+    this.spellcheck = on;
+    await this.#store?.set("spellcheck", on);
+  }
+
+  async setSpellcheckLang(lang: string) {
+    this.spellcheckLang = lang;
+    await this.#store?.set("spellcheckLang", lang);
   }
 }
 

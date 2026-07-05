@@ -22,28 +22,7 @@ feature puts its testable core in a pure module first (see `CLAUDE.md`).
 
 ## Next up (in order)
 
-### 1. Spell check
-
-Bring spell checking to the editor — a natural fit for a writing tool, even if
-it was never a hard requirement.
-
-- **Approach:** enable the native WebView2 spell checker on the CodeMirror
-  content DOM (`spellcheck="true"` + a `lang` attribute). Verify during a dev
-  boot that CodeMirror 6's editing model plays well with native spellcheck under
-  WebView2 before committing; the fallback is a JS dictionary + a CodeMirror lint
-  source, which is heavier.
-- **Settings to implement alongside it** (this is part of the work, not an
-  afterthought):
-  - Toggle spell check on/off.
-  - **Language selection** so the user picks the language they write in
-    (English, Hungarian, and whatever dictionaries Windows/WebView2 exposes).
-  - Optional per-document language override via frontmatter (`lang:`).
-- **Skip regions:** don't flag code blocks, inline code, or math. The "which
-  ranges to skip" decision is pure logic → a pure module + tests; the wiring is
-  thin.
-- Persist settings through the existing settings store, like every other pref.
-
-### 2. Snippets & templates
+### 1. Snippets & templates
 
 Insert common Markdown scaffolds and reusable text without typing them by hand.
 The exact built-in set still needs to be nailed down; the candidates below are
@@ -67,7 +46,7 @@ recorded here so they don't get lost.
 - **Open decisions:** built-in set vs. user-defined for v1; placeholder / tab-stop
   syntax; inline trigger vs. picker-only to start.
 
-### 3. Visual table editor
+### 2. Visual table editor
 
 Editing Markdown tables by hand (aligning pipes) is the most painful part of
 authoring. Give tables a spreadsheet-like GUI.
