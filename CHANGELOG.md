@@ -3,6 +3,17 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- **User-defined snippets** (Edit → Manage Snippets…) — create your own
+  snippets with a name, an inline `/trigger` and a body using the same
+  `${field}` tab-stops and `{date}`/`{time}`/`{datetime}` variables as the
+  built-ins. They appear in the Ctrl+J picker and the inline `/` completion;
+  a user trigger that matches a built-in one replaces it. Stored in
+  `snippets.json` next to the other app settings.
+
 ## v0.10.0 — 2026-07-06
 
 ### Added

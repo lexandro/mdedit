@@ -30,15 +30,12 @@ These stay within the "quickly work with my own files" spirit — they lean on
 *open tabs*, *recent files*, and the *current file's folder*, not a persistent
 indexed workspace (see Rejected).
 
-### User-defined snippets & document templates
+### Document templates
 
-Built-in snippets shipped (fuzzy picker + inline `/trigger`, tab-stop fields,
-date/time variables). The deliberately deferred layers:
+Built-in and user-defined snippets shipped (fuzzy picker + inline `/trigger`,
+tab-stop fields, date/time variables; user snippets in `snippets.json`, managed
+via Edit → Manage Snippets…). The remaining deferred layer:
 
-- **User-defined snippets:** trigger → body, same `${field}` / `{date}` syntax
-  as the built-ins. Load a `Snippet[]` from its own store (`snippets.json` via
-  `tryLoadStore`) and concat with `BUILTIN_SNIPPETS`; managed in a dedicated
-  snippet-manager dialog (decided: not another Settings tab).
 - **Document templates:** "new note", "meeting notes", "daily note" — a
   `tabs.newTab()` variant seeded with template content, possibly an optional
   `at: "docStart"` placement on the snippet model.
