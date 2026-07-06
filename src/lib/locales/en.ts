@@ -176,6 +176,24 @@ export const en: Record<string, string> = {
   "goto.title": "Go to line",
   "goto.placeholder": "Line number",
 
+  // Table editor
+  "table.title": "Table editor",
+  "table.addRow": "Add row",
+  "table.addCol": "Add column",
+  "table.delRow": "Delete row",
+  "table.delCol": "Delete column",
+  "table.moveUp": "Move row up",
+  "table.moveDown": "Move row down",
+  "table.moveLeft": "Move column left",
+  "table.moveRight": "Move column right",
+  "table.align": "Alignment",
+  "table.alignNone": "Default",
+  "table.alignLeft": "Left",
+  "table.alignCenter": "Center",
+  "table.alignRight": "Right",
+  "table.save": "Save",
+  "table.cancel": "Cancel",
+
   // Tab context menu
   "tab.close": "Close",
   "tab.closeOthers": "Close Others",

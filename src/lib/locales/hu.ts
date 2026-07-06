@@ -177,6 +177,24 @@ export const hu: Record<string, string> = {
   "goto.title": "Ugrás sorra",
   "goto.placeholder": "Sorszám",
 
+  // Table editor
+  "table.title": "Táblázatszerkesztő",
+  "table.addRow": "Sor hozzáadása",
+  "table.addCol": "Oszlop hozzáadása",
+  "table.delRow": "Sor törlése",
+  "table.delCol": "Oszlop törlése",
+  "table.moveUp": "Sor mozgatása felfelé",
+  "table.moveDown": "Sor mozgatása lefelé",
+  "table.moveLeft": "Oszlop mozgatása balra",
+  "table.moveRight": "Oszlop mozgatása jobbra",
+  "table.align": "Igazítás",
+  "table.alignNone": "Alapértelmezett",
+  "table.alignLeft": "Balra",
+  "table.alignCenter": "Középre",
+  "table.alignRight": "Jobbra",
+  "table.save": "Mentés",
+  "table.cancel": "Mégse",
+
   // Tab context menu
   "tab.close": "Bezárás",
   "tab.closeOthers": "Többi bezárása",
