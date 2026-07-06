@@ -7,6 +7,12 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Added
 
+- **Visual table editor** (Ctrl+T, Edit menu, toolbar) — edit the Markdown
+  table at the cursor in a spreadsheet-like grid instead of aligning pipes by
+  hand: in-place cell editing with Tab/arrow navigation, add/remove/reorder
+  rows and columns (buttons or Alt+arrows), per-column alignment. With the
+  cursor outside a table it opens an empty 2×2 grid and inserts at the cursor;
+  saving is a single undo step. Replaces the raw **Insert Table** skeleton.
 - **Snippets** — insert common Markdown scaffolds via the fuzzy **Insert
   Snippet…** picker (Ctrl+J) or by typing an inline trigger (`/date`, `/code`,
   `/table`, `/frontmatter`, …). 11 built-ins with tab-stop fields
@@ -33,6 +39,8 @@ All notable changes to mdedit are documented here. This project adheres to
   base64, so they still show in an external browser or another app.
 - **UNC image sources are blocked** — a `\\host\share` image path in an untrusted
   document can no longer trigger an outbound SMB/HTTP request from the preview.
+- **Escaped pipes survive Format Tables** — a `\|` inside a table cell is no
+  longer split into an extra column when tables are reformatted.
 
 ## v0.9.0 — 2026-06-21
 

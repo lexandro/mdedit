@@ -20,32 +20,11 @@ feature puts its testable core in a pure module first (see `CLAUDE.md`).
 
 ---
 
-## Next up (in order)
+## Planned (in rough order)
 
-### 1. Visual table editor
-
-Editing Markdown tables by hand (aligning pipes) is the most painful part of
-authoring. Give tables a spreadsheet-like GUI.
-
-- **What it does:** edit table cells in a grid widget instead of raw `|` syntax.
-  - Add / remove / reorder rows and columns.
-  - Set per-column alignment (left / center / right).
-  - Edit cells in place with Tab / arrow-key navigation.
-  - **Two-way sync** with the source: opening the editor parses the table at the
-    cursor; edits serialize back into the Markdown.
-- **Invocation:** cursor inside a table → a "Edit table…" command / toolbar
-  button, or an affordance in live mode.
-- **Reuse:** `md-tables.ts` already parses / formats / normalizes tables (pure).
-  The editor is a Svelte component on top; any new parse/serialize logic (column
-  alignment, escaping `\|` inside cells) goes into that pure module with tests.
-- **Edge cases:** escaped pipes in cells, inline formatting inside cells, ragged
-  / misaligned source tables, very wide tables (horizontal scroll).
-- **Open decisions:** modal dialog vs. inline widget in live mode; behavior when
-  the selection isn't actually a table.
-
----
-
-## Planned (after the above)
+The visual table editor shipped (modal grid on `table-model.ts`, Ctrl+T — see
+CHANGELOG). A possible follow-up layer, an inline "Edit table" affordance on
+table blocks in live mode, is deliberately deferred.
 
 These stay within the "quickly work with my own files" spirit — they lean on
 *open tabs*, *recent files*, and the *current file's folder*, not a persistent
