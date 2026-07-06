@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { settings } from "$lib/stores/settings.svelte";
   import { recent } from "$lib/stores/recent.svelte";
+  import { snippets } from "$lib/stores/snippets.svelte";
   import { session } from "$lib/stores/session.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { fileAssoc } from "$lib/stores/fileassoc.svelte";
@@ -23,10 +24,10 @@
   onMount(() => {
     const unlisteners: Array<() => void> = [];
 
-    // settings + recent are independent (separate store files); load them
-    // concurrently, then restore the session, then open any launch files.
+    // settings + recent + snippets are independent (separate store files); load
+    // them concurrently, then restore the session, then open any launch files.
     void (async () => {
-      await Promise.all([settings.init(), recent.init()]);
+      await Promise.all([settings.init(), recent.init(), snippets.init()]);
       // Apply the startup window state (maximized by default; the OS window
       // already opens maximized, so this only matters when set to normal).
       const win = getCurrentWindow();
