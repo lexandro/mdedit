@@ -4,7 +4,7 @@ import { EditorView } from "@codemirror/view";
 import { type ChangeSpec } from "@codemirror/state";
 import { undo, redo, selectAll } from "@codemirror/commands";
 import { wrapSelection, insertLink, toggleLinePrefix } from "$lib/md-format";
-import { insertTable, formatTables } from "$lib/md-tables";
+import { formatTables } from "$lib/md-tables";
 import { htmlToMarkdown } from "$lib/html-to-md";
 import { parseHeadings, buildToc } from "$lib/md-headings";
 import { formatMarkdown } from "$lib/md-prettify";
@@ -138,6 +138,5 @@ export const formatCommands = {
   heading: () => activeView && toggleLinePrefix(activeView, "# "),
   bullet: () => activeView && toggleLinePrefix(activeView, "- "),
   quote: () => activeView && toggleLinePrefix(activeView, "> "),
-  table: () => activeView && insertTable(activeView),
   formatTables: () => activeView && formatTables(activeView),
 };

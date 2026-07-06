@@ -30,7 +30,7 @@ export const en: Record<string, string> = {
   "cmd.paste_as_markdown": "Paste as Markdown",
   "cmd.select_all": "Select All",
   "cmd.goto_line": "Go to Line…",
-  "cmd.insert_table": "Insert Table",
+  "cmd.edit_table": "Table Editor…",
   "cmd.insert_toc": "Insert Table of Contents",
   "cmd.insert_emoji": "Insert Emoji…",
   "cmd.insert_snippet": "Insert Snippet…",
@@ -63,7 +63,7 @@ export const en: Record<string, string> = {
   "tip.heading": "Heading",
   "tip.bullet": "Bulleted list",
   "tip.quote": "Quote",
-  "tip.table": "Insert table",
+  "tip.table": "Table editor (Ctrl+T)",
   "tip.toggle_orientation": "Toggle split orientation",
   "tip.settings": "Settings",
   "tip.formatting": "Formatting",
@@ -223,6 +223,7 @@ export const en: Record<string, string> = {
   "toast.pathCopied": "Path copied",
   "toast.copyPathFail": "Couldn't copy path",
   "toast.pasteImageFail": "Couldn't save pasted image",
+  "toast.tableFail": "Couldn't update table",
 
   // File association (.md handler)
   "assoc.prompt": "mdedit isn't your default Markdown editor.",

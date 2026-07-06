@@ -29,7 +29,7 @@ export const hu: Record<string, string> = {
   "cmd.paste_as_markdown": "Beillesztés Markdownként",
   "cmd.select_all": "Összes kijelölése",
   "cmd.goto_line": "Ugrás sorra…",
-  "cmd.insert_table": "Táblázat beszúrása",
+  "cmd.edit_table": "Táblázatszerkesztő…",
   "cmd.insert_toc": "Tartalomjegyzék beszúrása",
   "cmd.insert_emoji": "Emoji beszúrása…",
   "cmd.insert_snippet": "Sablon beszúrása…",
@@ -62,7 +62,7 @@ export const hu: Record<string, string> = {
   "tip.heading": "Címsor",
   "tip.bullet": "Felsorolás",
   "tip.quote": "Idézet",
-  "tip.table": "Táblázat beszúrása",
+  "tip.table": "Táblázatszerkesztő (Ctrl+T)",
   "tip.toggle_orientation": "Megosztás irányának váltása",
   "tip.settings": "Beállítások",
   "tip.formatting": "Formázás",
@@ -224,6 +224,7 @@ export const hu: Record<string, string> = {
   "toast.pathCopied": "Útvonal másolva",
   "toast.copyPathFail": "Az útvonal nem másolható",
   "toast.pasteImageFail": "A beillesztett kép nem menthető",
+  "toast.tableFail": "A táblázat frissítése nem sikerült",
 
   // File association (.md handler)
   "assoc.prompt": "A mdedit nem az alapértelmezett Markdown-szerkesztőd.",

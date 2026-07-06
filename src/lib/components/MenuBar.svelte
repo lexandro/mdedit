@@ -66,7 +66,7 @@
         { label: t("cmd.select_all"), id: "select_all", shortcut: "Ctrl+A" },
         { label: t("cmd.goto_line"), id: "goto_line", shortcut: "Ctrl+G" },
         "sep",
-        { label: t("cmd.insert_table"), id: "insert_table" },
+        { label: t("cmd.edit_table"), id: "edit_table", shortcut: "Ctrl+T" },
         { label: t("cmd.insert_toc"), id: "insert_toc" },
         { label: t("cmd.insert_emoji"), id: "insert_emoji" },
         { label: t("cmd.insert_snippet"), id: "insert_snippet", shortcut: "Ctrl+J" },

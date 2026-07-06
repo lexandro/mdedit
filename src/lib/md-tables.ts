@@ -1,22 +1,8 @@
-// GFM table helpers: insert a table skeleton, and reformat every table in the
-// document so its columns are padded and aligned (the painful manual part).
-// Parse/serialize live in table-model.ts (shared with the visual table editor).
+// GFM table formatting: reformat every table in the document so its columns
+// are padded and aligned (the painful manual part). Parse/serialize live in
+// table-model.ts (shared with the visual table editor).
 import type { EditorView } from "@codemirror/view";
 import { SEPARATOR, parseTableBlock, serializeTable } from "./table-model";
-
-/** Insert an empty 2x1 table at the cursor. */
-export function insertTable(view: EditorView): boolean {
-  const text = "\n| Column 1 | Column 2 |\n| --- | --- |\n|  |  |\n";
-  const { from, to } = view.state.selection.main;
-  view.dispatch({
-    changes: { from, to, insert: text },
-    selection: { anchor: from + text.length },
-    scrollIntoView: true,
-    userEvent: "input",
-  });
-  view.focus();
-  return true;
-}
 
 /** Reformat every GFM table in a Markdown string (pure; used by the editor and
  *  unit-tested directly). Non-table lines are passed through unchanged. */

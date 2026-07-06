@@ -15,12 +15,16 @@
   import CommandPalette from "$lib/components/CommandPalette.svelte";
   import EmojiPicker from "$lib/components/EmojiPicker.svelte";
   import SnippetPicker from "$lib/components/SnippetPicker.svelte";
+  import TableEditorDialog from "$lib/components/TableEditorDialog.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { editorCommands, formatCommands, insertToc, formatDocument } from "$lib/editor-commands";
+  import { getTableEditContext, applyTableEdit, type TableEditContext } from "$lib/table-edit";
+  import { toasts } from "$lib/stores/toasts.svelte";
+  import { t } from "$lib/i18n";
   import { exportHtml, exportPdf, copyAsHtml } from "$lib/export";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -32,6 +36,7 @@
   let emojiOpen = $state(false);
   let snippetsOpen = $state(false);
   let outlineVisible = $state(false);
+  let tableEdit = $state<TableEditContext | null>(null);
 
   // Keep the OS window title in sync with the active tab (name + dirty marker).
   $effect(() => {
@@ -77,7 +82,7 @@
     paste: () => void editorCommands.paste(),
     paste_as_markdown: () => void editorCommands.pasteAsMarkdown(),
     select_all: () => editorCommands.selectAll(),
-    insert_table: () => formatCommands.table(),
+    edit_table: () => (tableEdit = getTableEditContext()),
     insert_toc: () => insertToc(),
     format_tables: () => formatCommands.formatTables(),
     format_document: () => formatDocument(),
@@ -143,6 +148,7 @@
     else if (key === "g") cmd = "goto_line";
     else if (key === "j") cmd = "insert_snippet";
     else if (key === "t" && e.shiftKey) cmd = "reopen_closed";
+    else if (key === "t") cmd = "edit_table";
     else if (["1", "2", "3", "4"].includes(e.key))
       cmd = ["view_source", "view_split", "view_preview", "view_live"][Number(e.key) - 1];
     else if (e.key === "Tab") {
@@ -167,7 +173,7 @@
 
 <div class="app">
   <MenuBar onCommand={handleMenu} {outlineVisible} />
-  <Toolbar onOpenSettings={() => (settingsOpen = true)} />
+  <Toolbar onOpenSettings={() => (settingsOpen = true)} onEditTable={() => commands.edit_table()} />
   <UpdateBanner />
   <AssocBanner />
   <TabBar />
@@ -207,6 +213,21 @@
 {/if}
 {#if emojiOpen}<EmojiPicker onClose={() => (emojiOpen = false)} />{/if}
 {#if snippetsOpen}<SnippetPicker onClose={() => (snippetsOpen = false)} />{/if}
+{#if tableEdit}
+  <TableEditorDialog
+    model={tableEdit.model}
+    onSave={(m) => {
+      const ctx = tableEdit!;
+      tableEdit = null;
+      try {
+        applyTableEdit(ctx, m);
+      } catch (e) {
+        toasts.error(t("toast.tableFail"), e);
+      }
+    }}
+    onClose={() => (tableEdit = null)}
+  />
+{/if}
 <Toasts />
 
 <style>

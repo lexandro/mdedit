@@ -5,7 +5,8 @@
   import Icon, { type IconName } from "$lib/components/Icon.svelte";
   import { t } from "$lib/i18n";
 
-  let { onOpenSettings }: { onOpenSettings: () => void } = $props();
+  let { onOpenSettings, onEditTable }: { onOpenSettings: () => void; onEditTable: () => void } =
+    $props();
 
   const viewModes: { id: ViewMode; key: string; icon: IconName }[] = [
     { id: "source", key: "view.source", icon: "source" },
@@ -22,7 +23,7 @@
     { icon: "heading", tip: "tip.heading", run: formatCommands.heading },
     { icon: "list", tip: "tip.bullet", run: formatCommands.bullet },
     { icon: "quote", tip: "tip.quote", run: formatCommands.quote },
-    { icon: "table", tip: "tip.table", run: formatCommands.table },
+    { icon: "table", tip: "tip.table", run: () => onEditTable() },
   ];
 
   function setMode(mode: ViewMode) {
