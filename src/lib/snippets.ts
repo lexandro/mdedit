@@ -4,9 +4,10 @@
 import { formatDate, formatTime, formatDateTime, type DateFormat } from "$lib/date-format";
 
 export interface Snippet {
-  id: string; // stable id; i18n label key is `snippet.${id}`
+  id: string; // stable id; i18n label key is `snippet.${id}` when label is absent
   trigger: string; // inline trigger word, typed as /trigger
   body: string; // ${field} tab-stops + {date}/{time}/{datetime} variables
+  label?: string; // user-given display name (user snippets only; built-ins localize)
 }
 
 export interface SnippetEnv {
