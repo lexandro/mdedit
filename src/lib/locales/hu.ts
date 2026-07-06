@@ -33,6 +33,7 @@ export const hu: Record<string, string> = {
   "cmd.insert_toc": "Tartalomjegyzék beszúrása",
   "cmd.insert_emoji": "Emoji beszúrása…",
   "cmd.insert_snippet": "Sablon beszúrása…",
+  "cmd.manage_snippets": "Sablonok kezelése…",
   "cmd.format_tables": "Táblázatok formázása",
   "cmd.format_document": "Dokumentum formázása",
   "cmd.copy_html": "Másolás HTML-ként",
@@ -172,6 +173,25 @@ export const hu: Record<string, string> = {
   "snippet.footnote": "Lábjegyzet",
   "snippet.callout": "Kiemelt megjegyzés",
   "snippet.details": "Lenyitható szakasz",
+
+  // Snippet manager
+  "snippetmgr.title": "Sablonok",
+  "snippetmgr.new": "Új sablon",
+  "snippetmgr.empty": "Még nincs saját sablon.",
+  "snippetmgr.name": "Név",
+  "snippetmgr.trigger": "Hívószó",
+  "snippetmgr.body": "Tartalom",
+  "snippetmgr.triggerHint": "Beszúrás a szerkesztőben: /hívószó.",
+  "snippetmgr.shadows": "Felülírja a beépített /{trigger} sablont.",
+  "snippetmgr.bodyHint":
+    "${mező} tabulátor-mezőt szúr be; {date}, {time}, {datetime} az aktuális dátumot/időt.",
+  "snippetmgr.save": "Mentés",
+  "snippetmgr.delete": "Törlés",
+  "snippetmgr.err.label": "A név megadása kötelező.",
+  "snippetmgr.err.trigger": "A hívószó csak betűt, számot, - és _ jelet tartalmazhat.",
+  "snippetmgr.err.duplicate": "Ezt a hívószót már használja egy másik sablon.",
+  "snippetmgr.err.body": "A tartalom megadása kötelező.",
+  "toast.snippetSaveFail": "A sablonok mentése nem sikerült",
 
   // Go to line
   "goto.title": "Ugrás sorra",

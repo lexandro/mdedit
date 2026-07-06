@@ -29,6 +29,7 @@ export const paletteCommands: PaletteCommand[] = [
   { id: "insert_toc", key: "cmd.insert_toc" },
   { id: "insert_emoji", key: "cmd.insert_emoji" },
   { id: "insert_snippet", key: "cmd.insert_snippet" },
+  { id: "manage_snippets", key: "cmd.manage_snippets" },
   { id: "format_tables", key: "cmd.format_tables" },
   { id: "format_document", key: "cmd.format_document" },
   { id: "view_source", key: "view.source" },

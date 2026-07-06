@@ -15,6 +15,7 @@
   import CommandPalette from "$lib/components/CommandPalette.svelte";
   import EmojiPicker from "$lib/components/EmojiPicker.svelte";
   import SnippetPicker from "$lib/components/SnippetPicker.svelte";
+  import SnippetManagerDialog from "$lib/components/SnippetManagerDialog.svelte";
   import TableEditorDialog from "$lib/components/TableEditorDialog.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
@@ -35,6 +36,7 @@
   let paletteOpen = $state(false);
   let emojiOpen = $state(false);
   let snippetsOpen = $state(false);
+  let snippetMgrOpen = $state(false);
   let outlineVisible = $state(false);
   let tableEdit = $state<TableEditContext | null>(null);
 
@@ -89,6 +91,7 @@
     goto_line: () => (gotoOpen = true),
     insert_emoji: () => (emojiOpen = true),
     insert_snippet: () => (snippetsOpen = true),
+    manage_snippets: () => (snippetMgrOpen = true),
     clear_recent: () => void recent.clearRecent(),
     view_source: () => setViewMode("source"),
     view_split: () => setViewMode("split"),
@@ -213,6 +216,7 @@
 {/if}
 {#if emojiOpen}<EmojiPicker onClose={() => (emojiOpen = false)} />{/if}
 {#if snippetsOpen}<SnippetPicker onClose={() => (snippetsOpen = false)} />{/if}
+{#if snippetMgrOpen}<SnippetManagerDialog onClose={() => (snippetMgrOpen = false)} />{/if}
 {#if tableEdit}
   <TableEditorDialog
     model={tableEdit.model}

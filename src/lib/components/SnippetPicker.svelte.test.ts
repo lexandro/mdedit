@@ -2,8 +2,12 @@ import { render, screen, fireEvent } from "@testing-library/svelte";
 import { describe, it, expect, vi } from "vitest";
 import SnippetPicker from "./SnippetPicker.svelte";
 import { insertSnippet } from "$lib/editor-snippets";
+import type { Snippet } from "$lib/snippets";
 
-vi.mock("$lib/editor-snippets", () => ({ insertSnippet: vi.fn() }));
+vi.mock("$lib/editor-snippets", () => ({
+  insertSnippet: vi.fn(),
+  snippetLabel: (s: Snippet) => s.label ?? s.id,
+}));
 
 describe("SnippetPicker", () => {
   it("filters by name and inserts the clicked snippet", async () => {

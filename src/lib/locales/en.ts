@@ -34,6 +34,7 @@ export const en: Record<string, string> = {
   "cmd.insert_toc": "Insert Table of Contents",
   "cmd.insert_emoji": "Insert Emoji…",
   "cmd.insert_snippet": "Insert Snippet…",
+  "cmd.manage_snippets": "Manage Snippets…",
   "cmd.format_tables": "Format Tables",
   "cmd.format_document": "Format Document",
   "cmd.copy_html": "Copy as HTML",
@@ -171,6 +172,25 @@ export const en: Record<string, string> = {
   "snippet.footnote": "Footnote",
   "snippet.callout": "Callout (note)",
   "snippet.details": "Collapsible section",
+
+  // Snippet manager
+  "snippetmgr.title": "Snippets",
+  "snippetmgr.new": "New snippet",
+  "snippetmgr.empty": "No user snippets yet.",
+  "snippetmgr.name": "Name",
+  "snippetmgr.trigger": "Trigger",
+  "snippetmgr.body": "Content",
+  "snippetmgr.triggerHint": "Insert in the editor by typing /trigger.",
+  "snippetmgr.shadows": "Replaces the built-in /{trigger} snippet.",
+  "snippetmgr.bodyHint":
+    "${field} inserts a tab-stop field; {date}, {time}, {datetime} insert the current date/time.",
+  "snippetmgr.save": "Save",
+  "snippetmgr.delete": "Delete",
+  "snippetmgr.err.label": "Name is required.",
+  "snippetmgr.err.trigger": "Trigger may only contain letters, digits, - and _.",
+  "snippetmgr.err.duplicate": "Another snippet already uses this trigger.",
+  "snippetmgr.err.body": "Content is required.",
+  "toast.snippetSaveFail": "Couldn't save snippets",
 
   // Go to line
   "goto.title": "Go to line",
