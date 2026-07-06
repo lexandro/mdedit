@@ -4,10 +4,16 @@
 // inserted date/time is always fresh.
 import { snippet, type CompletionContext, type CompletionResult } from "@codemirror/autocomplete";
 import type { EditorView } from "@codemirror/view";
-import { BUILTIN_SNIPPETS, expandVariables, matchTrigger, type Snippet } from "$lib/snippets";
+import { expandVariables, matchTrigger, type Snippet } from "$lib/snippets";
+import { snippets } from "$lib/stores/snippets.svelte";
 import { getActiveView } from "$lib/editor-commands";
 import { settings } from "$lib/stores/settings.svelte";
 import { t } from "$lib/i18n";
+
+/** User snippets carry their own label; built-ins localize via `snippet.${id}`. */
+export function snippetLabel(s: Snippet): string {
+  return s.label ?? t(`snippet.${s.id}`);
+}
 
 function expand(s: Snippet): string {
   return expandVariables(s.body, {
@@ -45,9 +51,9 @@ export function snippetSource(ctx: CompletionContext): CompletionResult | null {
   if (start == null && !ctx.explicit) return null;
   return {
     from: start == null ? ctx.pos : line.from + start,
-    options: BUILTIN_SNIPPETS.map((s) => ({
+    options: snippets.all.map((s) => ({
       label: "/" + s.trigger,
-      detail: t(`snippet.${s.id}`),
+      detail: snippetLabel(s),
       apply: (view, _completion, from, to) => applyBody(view, expand(s), from, to),
     })),
     validFor: /^\/[\w-]*$/,

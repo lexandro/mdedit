@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fuzzyFilter } from "$lib/fuzzy";
-  import { BUILTIN_SNIPPETS } from "$lib/snippets";
-  import { insertSnippet } from "$lib/editor-snippets";
+  import { snippets } from "$lib/stores/snippets.svelte";
+  import { insertSnippet, snippetLabel } from "$lib/editor-snippets";
   import { t } from "$lib/i18n";
 
   let { onClose }: { onClose: () => void } = $props();
@@ -13,7 +13,7 @@
   $effect(() => input?.focus());
 
   const items = $derived(
-    BUILTIN_SNIPPETS.map((s) => ({ s, label: t(`snippet.${s.id}`), trigger: "/" + s.trigger })),
+    snippets.all.map((s) => ({ s, label: snippetLabel(s), trigger: "/" + s.trigger })),
   );
   const filtered = $derived(fuzzyFilter(query, items, (i) => i.label + " " + i.trigger));
   // Keep the selection within bounds as the list shrinks/grows.
