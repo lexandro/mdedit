@@ -23,4 +23,14 @@ describe("formatTablesText", () => {
       "intro\n\n| x   | y   |\n| --- | --- |\n| 1   | 2   |\n\noutro",
     );
   });
+
+  it("preserves escaped pipes inside cells", () => {
+    const input = "| a \\| b | c |\n| --- | --- |\n| 1 | 2 |";
+    expect(formatTablesText(input)).toBe("| a \\| b | c   |\n| ------ | --- |\n| 1      | 2   |");
+  });
+
+  it("is idempotent on escaped-pipe tables", () => {
+    const once = formatTablesText("|x\\|y|z|\n|-|-|\n|1|2|");
+    expect(formatTablesText(once)).toBe(once);
+  });
 });
