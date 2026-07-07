@@ -1,10 +1,11 @@
 // Pure core for user-defined snippets: validating the untrusted contents of
 // snippets.json, merging with the built-ins (a user trigger shadows the
 // built-in one), and field validation for the manager dialog.
-import type { Snippet } from "$lib/snippets";
+import { BUILTIN_TEMPLATES, type Snippet, type Template } from "$lib/snippets";
 
 export interface UserSnippet extends Snippet {
   label: string;
+  template?: boolean; // also offered as a document template (File > New from Template)
 }
 
 export const TRIGGER_RE = /^[\w-]+$/;
@@ -28,11 +29,16 @@ export function parseUserSnippets(raw: unknown): UserSnippet[] {
   const out: UserSnippet[] = [];
   for (const r of raw) {
     if (typeof r !== "object" || r === null) continue;
-    const { id, trigger, body, label } = r as UserSnippet;
-    const s = { id, trigger, body, label };
+    const { id, trigger, body, label, template } = r as UserSnippet;
+    const s: UserSnippet = { id, trigger, body, label, ...(template === true && { template }) };
     if (isValid(s) && !out.some((o) => o.id === s.id || o.trigger === s.trigger)) out.push(s);
   }
   return out;
+}
+
+/** Built-in templates plus user snippets flagged as document templates. */
+export function allTemplates(user: UserSnippet[]): Template[] {
+  return [...BUILTIN_TEMPLATES, ...user.filter((s) => s.template)];
 }
 
 /** Built-ins plus user snippets; a user trigger replaces the built-in one. */

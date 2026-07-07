@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { BUILTIN_SNIPPETS, expandVariables, matchTrigger } from "./snippets";
+import {
+  BUILTIN_SNIPPETS,
+  BUILTIN_TEMPLATES,
+  expandVariables,
+  matchTrigger,
+  templateContent,
+} from "./snippets";
 import { splitFrontmatter } from "./frontmatter";
 
 const env = { now: new Date(2026, 6, 5, 9, 7), format: "iso" as const };
@@ -61,6 +67,26 @@ describe("BUILTIN_SNIPPETS invariants", () => {
   it("code snippet has a closing fence", () => {
     const code = BUILTIN_SNIPPETS.find((s) => s.id === "code")!;
     expect(code.body.match(/```/g)).toHaveLength(2);
+  });
+});
+
+describe("templateContent", () => {
+  it("expands variables and flattens ${field} markers to their text", () => {
+    expect(templateContent("# ${Title} — {date}\n${}", env)).toBe("# Title — 2026-07-05\n");
+  });
+});
+
+describe("BUILTIN_TEMPLATES invariants", () => {
+  it("has unique ids", () => {
+    const ids = BUILTIN_TEMPLATES.map((t) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+  it("bodies render to clean content (no leftover variables or fields)", () => {
+    for (const tpl of BUILTIN_TEMPLATES) {
+      const out = templateContent(tpl.body, env);
+      expect(out).not.toMatch(/\$\{|\{(date|time|datetime)\}/);
+      expect(out.startsWith("#")).toBe(true); // every template opens with a heading
+    }
   });
 });
 

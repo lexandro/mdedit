@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { parseUserSnippets, mergeSnippets, validateUserSnippet } from "./user-snippets";
-import { BUILTIN_SNIPPETS } from "./snippets";
+import { parseUserSnippets, mergeSnippets, validateUserSnippet, allTemplates } from "./user-snippets";
+import { BUILTIN_SNIPPETS, BUILTIN_TEMPLATES } from "./snippets";
 
 const valid = { id: "u1", trigger: "sig", body: "-- ${name}", label: "Signature" };
 
@@ -34,6 +34,21 @@ describe("parseUserSnippets", () => {
     const dupId = { ...valid, trigger: "other" };
     const dupTrigger = { ...valid, id: "u2" };
     expect(parseUserSnippets([valid, dupId, dupTrigger])).toEqual([valid]);
+  });
+  it("keeps template: true and drops non-boolean values", () => {
+    expect(parseUserSnippets([{ ...valid, template: true }])).toEqual([
+      { ...valid, template: true },
+    ]);
+    expect(parseUserSnippets([{ ...valid, template: "yes" }])).toEqual([valid]);
+    expect(parseUserSnippets([{ ...valid, template: false }])).toEqual([valid]);
+  });
+});
+
+describe("allTemplates", () => {
+  it("lists built-ins plus template-flagged user snippets only", () => {
+    const tpl = { ...valid, id: "u2", trigger: "tpl", template: true };
+    const all = allTemplates([valid, tpl]);
+    expect(all).toEqual([...BUILTIN_TEMPLATES, tpl]);
   });
 });
 

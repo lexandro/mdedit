@@ -24,6 +24,13 @@ export function expandVariables(body: string, env: SnippetEnv): string {
   });
 }
 
+/** Document-template body -> new-tab content: variables expanded, `${field}`
+ *  tab-stop markers flattened to their placeholder text (templates seed a fresh
+ *  buffer, so there is no editor to host live tab-stops yet). */
+export function templateContent(body: string, env: SnippetEnv): string {
+  return expandVariables(body, env).replace(/\$\{([^}]*)\}/g, "$1");
+}
+
 /** Offset of a trailing /word in the text before the cursor, or null. Only at
  *  line start or after whitespace, so https:// and mid-word slashes don't open
  *  the completion tooltip. */
@@ -31,6 +38,26 @@ export function matchTrigger(before: string): number | null {
   const m = /(?:^|\s)(\/[\w-]*)$/.exec(before);
   return m ? m.index + m[0].length - m[1].length : null;
 }
+
+export interface Template {
+  id: string; // i18n label key is `template.${id}` when label is absent
+  body: string;
+  label?: string;
+}
+
+export const BUILTIN_TEMPLATES: Template[] = [
+  { id: "note", body: "# Note — {date}\n\n" },
+  {
+    id: "meeting",
+    body:
+      "# Meeting notes — {date}\n\n**Attendees:** \n\n## Agenda\n\n- \n\n" +
+      "## Notes\n\n- \n\n## Action items\n\n- [ ] \n",
+  },
+  {
+    id: "daily",
+    body: "# {date}\n\n## Tasks\n\n- [ ] \n\n## Notes\n\n- \n",
+  },
+];
 
 export const BUILTIN_SNIPPETS: Snippet[] = [
   { id: "date", trigger: "date", body: "{date}" },
