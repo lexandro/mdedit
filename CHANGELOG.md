@@ -7,6 +7,10 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Added
 
+- **Document templates** (File → New from Template…, Ctrl+Shift+N) — start a
+  new tab pre-filled from a template: built-in *Note*, *Meeting notes* and
+  *Daily note* (with the current date filled in), plus any of your own snippets
+  marked "Offer as document template" in the snippet manager.
 - **User-defined snippets** (Edit → Manage Snippets…) — create your own
   snippets with a name, an inline `/trigger` and a body using the same
   `${field}` tab-stops and `{date}`/`{time}`/`{datetime}` variables as the

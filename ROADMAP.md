@@ -24,21 +24,14 @@ feature puts its testable core in a pure module first (see `CLAUDE.md`).
 
 The visual table editor shipped (modal grid on `table-model.ts`, Ctrl+T — see
 CHANGELOG). A possible follow-up layer, an inline "Edit table" affordance on
-table blocks in live mode, is deliberately deferred.
+table blocks in live mode, is deliberately deferred. The snippets & templates
+cluster also shipped in full: built-in + user-defined snippets (manager dialog,
+`snippets.json`) and document templates (File → New from Template, built-ins +
+template-flagged user snippets).
 
 These stay within the "quickly work with my own files" spirit — they lean on
 *open tabs*, *recent files*, and the *current file's folder*, not a persistent
 indexed workspace (see Rejected).
-
-### Document templates
-
-Built-in and user-defined snippets shipped (fuzzy picker + inline `/trigger`,
-tab-stop fields, date/time variables; user snippets in `snippets.json`, managed
-via Edit → Manage Snippets…). The remaining deferred layer:
-
-- **Document templates:** "new note", "meeting notes", "daily note" — a
-  `tabs.newTab()` variant seeded with template content, possibly an optional
-  `at: "docStart"` placement on the snippet model.
 
 ### Quick Open
 
