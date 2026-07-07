@@ -34,6 +34,7 @@ export const hu: Record<string, string> = {
   "cmd.insert_emoji": "Emoji beszúrása…",
   "cmd.insert_snippet": "Sablon beszúrása…",
   "cmd.manage_snippets": "Sablonok kezelése…",
+  "cmd.new_from_template": "Új dokumentum sablonból…",
   "cmd.format_tables": "Táblázatok formázása",
   "cmd.format_document": "Dokumentum formázása",
   "cmd.copy_html": "Másolás HTML-ként",
@@ -191,7 +192,16 @@ export const hu: Record<string, string> = {
   "snippetmgr.err.trigger": "A hívószó csak betűt, számot, - és _ jelet tartalmazhat.",
   "snippetmgr.err.duplicate": "Ezt a hívószót már használja egy másik sablon.",
   "snippetmgr.err.body": "A tartalom megadása kötelező.",
+  "snippetmgr.template": "Dokumentumsablonként is elérhető (Fájl → Új dokumentum sablonból)",
   "toast.snippetSaveFail": "A sablonok mentése nem sikerült",
+
+  // Document templates
+  "template.title": "Új dokumentum sablonból",
+  "template.placeholder": "Dokumentumsablon keresése…",
+  "template.empty": "Nincs találat",
+  "template.note": "Jegyzet",
+  "template.meeting": "Megbeszélés-jegyzet",
+  "template.daily": "Napi jegyzet",
 
   // Go to line
   "goto.title": "Ugrás sorra",

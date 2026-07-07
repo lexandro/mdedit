@@ -11,6 +11,7 @@
   let label = $state("");
   let trigger = $state("");
   let body = $state("");
+  let template = $state(false);
   let error = $state<SnippetFieldError | null>(null);
 
   const shadows = $derived(BUILTIN_SNIPPETS.some((b) => b.trigger === trigger));
@@ -21,6 +22,7 @@
     label = s?.label ?? "";
     trigger = s?.trigger ?? "";
     body = s?.body ?? "";
+    template = s?.template ?? false;
     error = null;
   }
 
@@ -33,7 +35,7 @@
     if (error) return;
     const id = selectedId ?? crypto.randomUUID();
     snippets
-      .upsert({ id, ...draft })
+      .upsert({ id, ...draft, ...(template && { template }) })
       .then(() => select(id))
       .catch((e) => toasts.error(t("toast.snippetSaveFail"), e));
   }
@@ -99,6 +101,10 @@
         <textarea bind:value={body} spellcheck="false"></textarea>
       </label>
       <p class="hint">{t("snippetmgr.bodyHint")}</p>
+      <label class="check">
+        <input type="checkbox" bind:checked={template} />
+        {t("snippetmgr.template")}
+      </label>
 
       <footer>
         {#if error}<span class="error">{t(`snippetmgr.err.${error}`)}</span>{/if}
@@ -231,6 +237,14 @@
     gap: 4px;
     font-size: 13px;
     color: var(--fg-muted);
+  }
+  label.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  label.check input {
+    width: auto;
   }
   label.grow {
     flex: 1;

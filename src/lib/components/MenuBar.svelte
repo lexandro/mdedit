@@ -36,6 +36,7 @@
       label: t("menu.file"),
       items: [
         { label: t("cmd.new"), id: "new", shortcut: "Ctrl+N" },
+        { label: t("cmd.new_from_template"), id: "new_from_template", shortcut: "Ctrl+Shift+N" },
         { label: t("cmd.open"), id: "open", shortcut: "Ctrl+O" },
         { label: t("menu.openRecent"), children: recentItems },
         "sep",

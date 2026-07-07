@@ -4,7 +4,13 @@
 // inserted date/time is always fresh.
 import { snippet, type CompletionContext, type CompletionResult } from "@codemirror/autocomplete";
 import type { EditorView } from "@codemirror/view";
-import { expandVariables, matchTrigger, type Snippet } from "$lib/snippets";
+import {
+  expandVariables,
+  matchTrigger,
+  templateContent,
+  type Snippet,
+  type Template,
+} from "$lib/snippets";
 import { snippets } from "$lib/stores/snippets.svelte";
 import { getActiveView } from "$lib/editor-commands";
 import { settings } from "$lib/stores/settings.svelte";
@@ -15,12 +21,22 @@ export function snippetLabel(s: Snippet): string {
   return s.label ?? t(`snippet.${s.id}`);
 }
 
+/** User templates carry their own label; built-ins localize via `template.${id}`. */
+export function templateLabel(tpl: Template): string {
+  return tpl.label ?? t(`template.${tpl.id}`);
+}
+
+function env() {
+  return { now: new Date(), format: settings.dateFormat, locale: settings.language };
+}
+
+/** Template picker path: expanded body used to seed a new tab. */
+export function templateText(tpl: Template): string {
+  return templateContent(tpl.body, env());
+}
+
 function expand(s: Snippet): string {
-  return expandVariables(s.body, {
-    now: new Date(),
-    format: settings.dateFormat,
-    locale: settings.language,
-  });
+  return expandVariables(s.body, env());
 }
 
 // Field-less bodies bypass snippet(): it would leave the cursor before the

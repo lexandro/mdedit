@@ -78,8 +78,10 @@ class TabsStore {
     };
   }
 
-  newTab() {
-    const tab = this.#makeTab({});
+  /** New untitled tab, optionally seeded (document template). Seeded content is
+   *  unsaved on purpose: savedContent stays "" so the tab starts dirty. */
+  newTab(content = "") {
+    const tab = this.#makeTab({ content });
     this.tabs.push(tab);
     this.activeId = tab.id;
   }

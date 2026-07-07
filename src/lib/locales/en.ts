@@ -35,6 +35,7 @@ export const en: Record<string, string> = {
   "cmd.insert_emoji": "Insert Emoji…",
   "cmd.insert_snippet": "Insert Snippet…",
   "cmd.manage_snippets": "Manage Snippets…",
+  "cmd.new_from_template": "New from Template…",
   "cmd.format_tables": "Format Tables",
   "cmd.format_document": "Format Document",
   "cmd.copy_html": "Copy as HTML",
@@ -190,7 +191,16 @@ export const en: Record<string, string> = {
   "snippetmgr.err.trigger": "Trigger may only contain letters, digits, - and _.",
   "snippetmgr.err.duplicate": "Another snippet already uses this trigger.",
   "snippetmgr.err.body": "Content is required.",
+  "snippetmgr.template": "Offer as document template (File → New from Template)",
   "toast.snippetSaveFail": "Couldn't save snippets",
+
+  // Document templates
+  "template.title": "New from template",
+  "template.placeholder": "Search templates…",
+  "template.empty": "No matching template",
+  "template.note": "Note",
+  "template.meeting": "Meeting notes",
+  "template.daily": "Daily note",
 
   // Go to line
   "goto.title": "Go to line",

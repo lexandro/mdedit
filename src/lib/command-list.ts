@@ -7,6 +7,7 @@ export interface PaletteCommand {
 
 export const paletteCommands: PaletteCommand[] = [
   { id: "new", key: "cmd.new" },
+  { id: "new_from_template", key: "cmd.new_from_template" },
   { id: "open", key: "cmd.open" },
   { id: "save", key: "cmd.save" },
   { id: "save_as", key: "cmd.save_as" },

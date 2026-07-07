@@ -16,6 +16,7 @@
   import EmojiPicker from "$lib/components/EmojiPicker.svelte";
   import SnippetPicker from "$lib/components/SnippetPicker.svelte";
   import SnippetManagerDialog from "$lib/components/SnippetManagerDialog.svelte";
+  import TemplatePicker from "$lib/components/TemplatePicker.svelte";
   import TableEditorDialog from "$lib/components/TableEditorDialog.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
@@ -37,6 +38,7 @@
   let emojiOpen = $state(false);
   let snippetsOpen = $state(false);
   let snippetMgrOpen = $state(false);
+  let templatesOpen = $state(false);
   let outlineVisible = $state(false);
   let tableEdit = $state<TableEditContext | null>(null);
 
@@ -67,6 +69,7 @@
   // Single source of truth for actions dispatchable from the menu and keyboard.
   const commands: Record<string, () => void> = {
     new: () => tabs.newTab(),
+    new_from_template: () => (templatesOpen = true),
     open: () => void tabs.open(),
     save: () => void tabs.save(),
     save_as: () => void tabs.saveAs(),
@@ -145,7 +148,7 @@
 
     let cmd: string | undefined;
     if (key === "s") cmd = e.altKey ? "save_all" : e.shiftKey ? "save_as" : "save";
-    else if (key === "n") cmd = "new";
+    else if (key === "n") cmd = e.shiftKey ? "new_from_template" : "new";
     else if (key === "o") cmd = "open";
     else if (key === "w") cmd = "close_tab";
     else if (key === "g") cmd = "goto_line";
@@ -217,6 +220,7 @@
 {#if emojiOpen}<EmojiPicker onClose={() => (emojiOpen = false)} />{/if}
 {#if snippetsOpen}<SnippetPicker onClose={() => (snippetsOpen = false)} />{/if}
 {#if snippetMgrOpen}<SnippetManagerDialog onClose={() => (snippetMgrOpen = false)} />{/if}
+{#if templatesOpen}<TemplatePicker onClose={() => (templatesOpen = false)} />{/if}
 {#if tableEdit}
   <TableEditorDialog
     model={tableEdit.model}
