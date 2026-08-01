@@ -53,6 +53,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:
@@ -60,6 +63,19 @@ jobs:
           installers-regex: '\.msi$'
           release-tag: ${{ github.ref_name }}
           token: ${{ secrets.WINGET_TOKEN }}
+
+      # A failed publish is otherwise only visible on the Actions tab, so a
+      # version can silently go missing from a package manager (that's how the
+      # Chocolatey 0.10.0 push stayed broken for a month). File an issue.
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "winget publish failed for ${{ github.ref_name }}" \
+            --body "The winget job failed, so ${{ github.ref_name }} was **not** submitted to microsoft/winget-pkgs. Logs: $run_url"
 
   # Chocolatey is published by .github/workflows/choco.yml, which runs
   # automatically after this Release completes (and can be triggered manually).

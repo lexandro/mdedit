@@ -18,6 +18,9 @@ jobs:
   push:
     runs-on: windows-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@v4
       - name: Pack & push Chocolatey package
@@ -40,3 +43,18 @@ jobs:
             Set-Content "$dir/tools/chocolateyinstall.ps1"
           choco pack "$dir/mdedit.nuspec" --out $dir
           choco push "$dir/mdedit.$version.nupkg" --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
+
+      # A failed push is otherwise only visible on the Actions tab — that's how
+      # 0.10.0 stayed unpublished for a month while winget was already ahead.
+      - name: Report failure
+        if: failure()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_INPUT: ${{ inputs.version }}
+          TAG_REF: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          $version = if ("$env:VERSION_INPUT") { "$env:VERSION_INPUT" } else { "$env:TAG_REF".TrimStart('v') }
+          $run = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          $body = "The Chocolatey push failed, so $version is **not** on community.chocolatey.org. Logs: $run`n`nRe-run via Actions -> Chocolatey -> Run workflow. A 403 means the package has a version in moderation and no approved one yet - wait for the approval, then re-run."
+          gh issue create --repo "$env:GITHUB_REPOSITORY" --title "Chocolatey publish failed for $version" --body $body

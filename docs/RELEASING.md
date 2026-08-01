@@ -93,6 +93,11 @@ push once manually with `choco pack`/`choco push`). Install with
 > Chocolatey stayed a version behind winget). Once one version is approved, run
 > Actions → **Chocolatey** → Run workflow with the missed version to catch up.
 
+Both publish jobs (winget and Chocolatey) **open a GitHub issue if they fail**,
+so a missed version reaches your inbox instead of sitting unnoticed on the
+Actions tab. The issue names the version and links the run; fix the cause and
+re-run the workflow manually with that version.
+
 The package is **download-only** (it fetches the signed MSI from the GitHub
 release), so `tools/` must **not** contain `LICENSE.txt` / `VERIFICATION.txt` —
 those are for packages that embed the payload, and a moderator asks for their
