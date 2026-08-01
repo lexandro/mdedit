@@ -87,6 +87,17 @@ push itself is automatic; the current version publishes from the next release (o
 push once manually with `choco pack`/`choco push`). Install with
 `choco install mdedit`.
 
+> **`choco push` → 403 Forbidden** while the package has a version *in
+> moderation and no approved version yet* — that's the community repo's rule,
+> not a bad API key. It bit v0.10.0 (pushed while v0.9.0 was still pending, so
+> Chocolatey stayed a version behind winget). Once one version is approved, run
+> Actions → **Chocolatey** → Run workflow with the missed version to catch up.
+
+The package is **download-only** (it fetches the signed MSI from the GitHub
+release), so `tools/` must **not** contain `LICENSE.txt` / `VERIFICATION.txt` —
+those are for packages that embed the payload, and a moderator asks for their
+removal otherwise.
+
 > The in-app updater and winget are independent: a winget install that later
 > self-updates will drift from the winget-tracked version until the next winget
 > release. That's expected and harmless.
