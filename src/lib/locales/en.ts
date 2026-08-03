@@ -250,6 +250,7 @@ export const en: Record<string, string> = {
   "toast.openFail": "Couldn't open file",
   "toast.openFailName": "Couldn't open {name}",
   "toast.saveFailName": "Couldn't save {name}",
+  "toast.createFailName": "Couldn't create {name}",
   "toast.pathCopied": "Path copied",
   "toast.copyPathFail": "Couldn't copy path",
   "toast.pasteImageFail": "Couldn't save pasted image",
@@ -277,4 +278,6 @@ export const en: Record<string, string> = {
     '"{name}" was modified by another program.\nReload and discard your unsaved changes?',
   "confirm.reload": '"{name}" was modified by another program.\nReload it?',
   "confirm.discard": 'Discard unsaved changes to "{name}"?',
+  "confirm.createFileTitle": "File not found",
+  "confirm.createFile": '"{name}" doesn\'t exist yet.\nCreate it as a new empty file?\n\n{path}',
 };

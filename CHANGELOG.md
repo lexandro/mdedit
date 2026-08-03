@@ -7,6 +7,11 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Added
 
+- **Open a file that doesn't exist yet** — typing a new name in the Open dialog
+  (or launching mdedit with a missing path) no longer just fails: mdedit asks
+  whether to create it, so a typo can be corrected and a genuinely new document
+  starts right where you wanted it. Files that exist but can't be read still
+  report the original error.
 - **Document templates** (File → New from Template…, Ctrl+Shift+N) — start a
   new tab pre-filled from a template: built-in *Note*, *Meeting notes* and
   *Daily note* (with the current date filled in), plus any of your own snippets

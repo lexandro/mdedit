@@ -251,6 +251,7 @@ export const hu: Record<string, string> = {
   "toast.openFail": "A fájl nem nyitható meg",
   "toast.openFailName": "A(z) {name} nem nyitható meg",
   "toast.saveFailName": "A(z) {name} nem menthető",
+  "toast.createFailName": "A(z) {name} nem hozható létre",
   "toast.pathCopied": "Útvonal másolva",
   "toast.copyPathFail": "Az útvonal nem másolható",
   "toast.pasteImageFail": "A beillesztett kép nem menthető",
@@ -278,4 +279,6 @@ export const hu: Record<string, string> = {
     "A(z) „{name}” fájlt egy másik program módosította.\nÚjratöltöd, eldobva a nem mentett változtatásokat?",
   "confirm.reload": "A(z) „{name}” fájlt egy másik program módosította.\nÚjratöltöd?",
   "confirm.discard": "Eldobod a(z) „{name}” nem mentett változtatásait?",
+  "confirm.createFileTitle": "A fájl nem található",
+  "confirm.createFile": "A(z) „{name}” még nem létezik.\nLétrehozod új, üres fájlként?\n\n{path}",
 };

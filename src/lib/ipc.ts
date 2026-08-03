@@ -3,7 +3,11 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { readFile as fsReadFile, writeFile as fsWriteFile } from "@tauri-apps/plugin-fs";
+import {
+  exists as fsExists,
+  readFile as fsReadFile,
+  writeFile as fsWriteFile,
+} from "@tauri-apps/plugin-fs";
 import {
   decodeBytes,
   encodeText,
@@ -29,11 +33,17 @@ const MD_FILTERS = [
   { name: "All Files", extensions: ["*"] },
 ];
 
-/** Show an open dialog and read the chosen file. Returns null if cancelled. */
-export async function pickAndReadFile(): Promise<LoadedFile | null> {
+/** Show an open dialog, returning the chosen path (or null if cancelled). The
+ *  dialog lets a typed-in name through even if it doesn't exist yet. */
+export async function pickOpenPath(): Promise<string | null> {
   const selected = await openDialog({ multiple: false, filters: MD_FILTERS });
-  if (typeof selected !== "string") return null;
-  return readFile(selected);
+  return typeof selected === "string" ? selected : null;
+}
+
+/** Whether a path is present on disk. Throws if it can't be determined (the
+ *  caller decides what an unknown means — see tabs#offerCreate). */
+export async function pathExists(path: string): Promise<boolean> {
+  return fsExists(path);
 }
 
 export async function readFile(path: string): Promise<LoadedFile> {

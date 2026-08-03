@@ -2,7 +2,8 @@
 // line-ending metadata. Dirty state is derived: content !== savedContent.
 import { confirm } from "@tauri-apps/plugin-dialog";
 import {
-  pickAndReadFile,
+  pathExists,
+  pickOpenPath,
   pickSavePath,
   readFile,
   samePath,
@@ -108,8 +109,8 @@ class TabsStore {
   /** Open via dialog. If the file is already open, just focus its tab. */
   async open() {
     try {
-      const loaded = await pickAndReadFile();
-      if (loaded) this.#openLoaded(loaded);
+      const path = await pickOpenPath();
+      if (path) await this.openPath(path); // openPath reports its own failures
     } catch (e) {
       toasts.error(t("toast.openFail"), e);
     }
@@ -120,8 +121,28 @@ class TabsStore {
     try {
       this.#openLoaded(await readFile(path));
     } catch (e) {
+      if (await this.#offerCreate(path)) return;
       toasts.error(t("toast.openFailName", { name: basename(path) }), e);
     }
+  }
+
+  /** A name that isn't on disk is either a typo or the start of a new document,
+   *  so offer to create it instead of only failing. Returns true when handled
+   *  (created, or declined on purpose — the prompt already said what's wrong). */
+  async #offerCreate(path: string): Promise<boolean> {
+    // Unknown (e.g. permission denied) counts as existing: don't offer to
+    // create over a file we can't even inspect — report the open error instead.
+    if (await pathExists(path).catch(() => true)) return false;
+    const name = basename(path);
+    const msg = t("confirm.createFile", { name, path });
+    if (!(await this.#confirm(msg, t("confirm.createFileTitle")))) return true;
+    try {
+      await writeFile(path, "", { lineEnding: "lf", encoding: "utf-8" });
+      this.#openLoaded({ path, content: "", lineEnding: "lf", encoding: "utf-8" });
+    } catch (e) {
+      toasts.error(t("toast.createFailName", { name }), e);
+    }
+    return true;
   }
 
   #openLoaded(loaded: { path: string; content: string; lineEnding: LineEnding; encoding: Encoding }) {
