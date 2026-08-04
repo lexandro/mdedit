@@ -212,6 +212,18 @@ pub fn run() {
             })?;
             app.manage(WatcherState(Mutex::new(watcher)));
 
+            // The window is created hidden (tauri.conf.json) so the first frame
+            // the user sees is themed content, not the WebView's white default.
+            // The frontend shows it once the theme is applied; if it never gets
+            // there, reveal it anyway — a slow start beats no window at all.
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(3));
+                if let Some(w) = handle.get_webview_window("main") {
+                    let _ = w.show();
+                }
+            });
+
             // No native menu: the app renders its own in-app menu bar (see
             // MenuBar.svelte) so it scales with the UI zoom and matches the theme.
             Ok(())

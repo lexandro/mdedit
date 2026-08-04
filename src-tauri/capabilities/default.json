@@ -10,6 +10,7 @@
     "core:window:allow-set-focus",
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
+    "core:window:allow-show",
     "core:webview:allow-set-webview-zoom",
     "opener:default",
     "opener:allow-open-url",

@@ -31,7 +31,12 @@
       // Apply the startup window state (maximized by default; the OS window
       // already opens maximized, so this only matters when set to normal).
       const win = getCurrentWindow();
-      (settings.startupMaximized ? win.maximize() : win.unmaximize()).catch(() => {});
+      await (settings.startupMaximized ? win.maximize() : win.unmaximize()).catch(() => {});
+      // The window starts hidden (tauri.conf.json) to avoid a white flash;
+      // reveal it only after the theme is painted. Rust shows it regardless
+      // after 3s, so a failure here can't leave the app windowless.
+      await new Promise(requestAnimationFrame);
+      win.show().catch(() => {});
       await session.restore();
       openPaths(await takeLaunchFiles());
     })();

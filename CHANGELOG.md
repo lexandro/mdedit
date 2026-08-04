@@ -3,6 +3,15 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- **No white flash on startup** — the window stayed invisible until the WebView
+  had painted, so launching mdedit no longer shows a white rectangle for a
+  fraction of a second. The theme is also resolved before the settings file is
+  read, so a dark system theme is dark from the very first frame.
+
 ## v0.11.0 — 2026-08-04
 
 ### Added

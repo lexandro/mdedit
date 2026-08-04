@@ -84,6 +84,13 @@ class SettingsStore {
   #mql: MediaQueryList | null = null;
 
   async init() {
+    // Resolve the theme from the OS *before* the (slow) store read, so the very
+    // first paint is already dark on a dark system instead of flashing white.
+    // The stored choice is applied a second time below, once it is known.
+    this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
+    this.#mql.addEventListener("change", () => this.applyTheme());
+    this.applyTheme();
+
     this.#store = await tryLoadStore(STORE_FILE, { autoSave: true, defaults: {} });
     if (this.#store) {
       this.theme = (await this.#store.get<ThemeChoice>("theme")) ?? DEFAULTS.theme;
@@ -111,8 +118,6 @@ class SettingsStore {
         (await this.#store.get<string>("spellcheckLang")) ?? DEFAULTS.spellcheckLang;
       this.dateFormat = (await this.#store.get<DateFormat>("dateFormat")) ?? DEFAULTS.dateFormat;
     }
-    this.#mql = window.matchMedia("(prefers-color-scheme: dark)");
-    this.#mql.addEventListener("change", () => this.applyTheme());
     this.applyTheme();
     this.applyZoom();
   }
