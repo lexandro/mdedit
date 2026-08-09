@@ -107,9 +107,11 @@ push once manually with `choco pack`/`choco push`). Install with
 > Actions → **Chocolatey** → Run workflow with the missed version to catch up.
 
 Both publish workflows (winget and Chocolatey) run *after* Release completes and
-**open a GitHub issue if they fail**, so a missed version reaches your inbox
-instead of sitting unnoticed on the Actions tab. The issue names the version and
-links the run; fix the cause and re-run that workflow manually with the version.
+**open a GitHub issue if the automatic run fails**, so a missed version reaches
+your inbox instead of sitting unnoticed on the Actions tab. The issue names the
+version and links the run; fix the cause and re-run that workflow manually with
+the version. Manual re-runs deliberately do *not* file issues — you are watching
+that run anyway.
 They are separate workflows on purpose: while winget was a job inside `release.yml`
 its failure marked the whole Release run failed, which skipped Chocolatey too.
 

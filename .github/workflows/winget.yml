@@ -35,6 +35,32 @@ jobs:
           if [ -z "$version" ]; then echo "No version to publish" >&2; exit 1; fi
           echo "tag=v${version#v}" >> "$GITHUB_OUTPUT"
 
+      # Say what is actually wrong with the PAT. Every token problem — expired,
+      # revoked, fine-grained, missing scope — surfaces from the action below as
+      # "does not have the correct permissions to execute `CreateRef`", which
+      # reads like a repo problem and has now cost two releases to re-diagnose.
+      - name: Check WINGET_TOKEN
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if [ -z "$WINGET_TOKEN" ]; then
+            echo "::error::WINGET_TOKEN secret is not set."; exit 1
+          fi
+          code=$(curl -sS -D headers.txt -o user.json -w '%{http_code}' \
+            -H "Authorization: Bearer $WINGET_TOKEN" https://api.github.com/user)
+          if [ "$code" != "200" ]; then
+            echo "::error::GitHub rejected WINGET_TOKEN (HTTP $code) — the PAT is expired, revoked or malformed."; exit 1
+          fi
+          scopes=$(tr -d '\r' < headers.txt | sed -n 's/^[Xx]-[Oo][Aa]uth-[Ss]copes: *//p')
+          if [ -z "$scopes" ]; then
+            echo "::error::WINGET_TOKEN carries no OAuth scopes, so it is a fine-grained PAT. winget-releaser only supports a classic PAT with public_repo."; exit 1
+          fi
+          case ",$(echo "$scopes" | tr -d ' ')," in
+            *,repo,*|*,public_repo,*) ;;
+            *) echo "::error::WINGET_TOKEN scopes are '$scopes' — winget-releaser needs the public_repo scope."; exit 1 ;;
+          esac
+          echo "Token belongs to $(jq -r .login user.json); scopes: $scopes"
+
       # Third-party action that receives WINGET_TOKEN — pinned to a commit so a
       # retagged v2 can't silently change what runs with that PAT.
       - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
@@ -46,9 +72,11 @@ jobs:
 
       # A failed publish is otherwise only visible on the Actions tab, so a
       # version can silently go missing from a package manager (that's how the
-      # Chocolatey 0.10.0 push stayed broken for a month). File an issue.
+      # Chocolatey 0.10.0 push stayed broken for a month). File an issue — but
+      # only for the automatic run: a manual backfill is watched live, and
+      # filing one issue per retry is how the 0.0.0-notify-test issue happened.
       - name: Report failure
-        if: failure()
+        if: ${{ failure() && github.event_name == 'workflow_run' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.tag.outputs.tag }}

@@ -46,8 +46,10 @@ jobs:
 
       # A failed push is otherwise only visible on the Actions tab — that's how
       # 0.10.0 stayed unpublished for a month while winget was already ahead.
+      # Only for the automatic run: a manual retry is watched live, and filing
+      # an issue per retry is how the 0.0.0-notify-test issue happened.
       - name: Report failure
-        if: failure()
+        if: ${{ failure() && github.event_name == 'workflow_run' }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
