@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tabs, basename } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
+  import { displayDir } from "$lib/path-display";
   import { t } from "$lib/i18n";
 </script>
 
@@ -29,7 +30,8 @@
               onclick={() => (pinned ? recent.unpin(path) : recent.pin(path))}>📌</button
             >
             <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
-              {basename(path)}<span class="path">{path}</span>
+              <span class="name">{basename(path)}</span>
+              <span class="path">{displayDir(path)}</span>
             </button>
           </li>
         {/each}
@@ -79,7 +81,9 @@
   }
   .recent {
     margin-top: 18px;
-    width: min(460px, 80vw);
+    /* Wide enough that a file name and its folder share one line: at 460px the
+       name wrapped mid-word and the folder overflowed the list. */
+    width: min(780px, 88vw);
   }
   .recent-head {
     display: flex;
@@ -130,13 +134,14 @@
   .recent-item {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 16px;
     width: 100%;
+    min-width: 0;
     text-align: left;
     border: none;
     background: transparent;
     color: var(--fg);
-    padding: 5px 8px;
+    padding: 6px 8px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
@@ -144,11 +149,24 @@
   .recent-item:hover {
     background: var(--bg-alt);
   }
-  .recent-item .path {
-    color: var(--fg-muted);
-    font-size: 11px;
+  /* Both columns must be allowed to shrink (min-width: 0) or the nowrap folder
+     pushes the row wider than the list instead of ellipsising. */
+  .recent-item .name {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  /* Left-aligned right after the name, so a row reads as one phrase; the muted
+     colour alone carries the hierarchy, no need to shrink it too. */
+  .recent-item .path {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--fg-muted);
+    font-size: 13px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>
