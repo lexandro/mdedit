@@ -17,7 +17,7 @@ winget install lexandro.mdedit
 Other options:
 
 - **Chocolatey**: `choco install mdedit` (pending first-time moderation)
-- **Installer**: grab the `.msi` or `.exe` from the [latest release](https://github.com/lexandro/mdedit/releases/latest)
+- **Installer**: grab the `.msi` from the [latest release](https://github.com/lexandro/mdedit/releases/latest)
 
 Updates arrive through the same channel you installed from — and the app also
 has a built-in updater (Settings → **Check for updates**).

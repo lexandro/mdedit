@@ -5,6 +5,23 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ## Unreleased
 
+### Changed
+
+- **Faster startup, much smaller binary** — the launch bundle used to carry
+  Mermaid, all ~190 highlight.js grammars and every dialog whether you opened
+  one or not, in a single 2.9 MB chunk. Those now load when they are first
+  needed, and a background queue warms them up once the window is already on
+  screen, so startup never waits on them and the first diagram or HTML paste
+  still isn't the slow one. Cold start dropped from ~790 ms to ~665 ms and the
+  installed binary from 17.3 MB to 7.4 MB. Memory use is essentially unchanged
+  — it is dominated by the WebView2 runtime and the open document, not by the
+  bundle.
+- **Code highlighting covers 26 common languages** instead of all ~190. A fence
+  in a language outside that set renders as plain code, exactly as an
+  unrecognised language always did.
+- **Only the `.msi` installer is built.** The NSIS `.exe` was produced on every
+  release and never published; winget and Chocolatey both install the `.msi`.
+
 ### Fixed
 
 - **No white flash on startup** — the window stayed invisible until the WebView

@@ -12,7 +12,9 @@ edition = "2021"
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "mdedit_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Desktop-only: main.rs links the rlib. staticlib/cdylib were mobile leftovers
+# from the Tauri template and only cost link time.
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -34,4 +36,13 @@ tauri-plugin-single-instance = "2"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"
+
+# The Rust side is ~240 lines of OS plumbing, never a CPU bottleneck, so trade
+# codegen speed for a smaller binary: the default profile shipped 17.3 MB.
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
 

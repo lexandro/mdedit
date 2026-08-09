@@ -44,14 +44,17 @@
       win.show().catch(() => {});
       await session.restore();
       openPaths(await takeLaunchFiles());
-      // Only now that the app is on screen and usable: pull the on-demand
-      // chunks in during idle time so their first real use isn't the slow one.
+    })().finally(() => {
+      // Only once the app is on screen and usable: pull the on-demand chunks in
+      // during idle time so their first real use isn't the slow one. In
+      // `finally` because a failure anywhere above must not leave the app
+      // permanently un-warmed.
       cancelPrewarm = prewarm([
         ...dialogPreloads.map((d) => () => d.preload()),
         preloadHtmlToMarkdown,
         preloadMermaid, // heaviest eval, so it lands last
       ]);
-    })();
+    });
 
     updater.startAutoCheck();
     void fileAssoc.init(); // check .md association; offers to register if missing
