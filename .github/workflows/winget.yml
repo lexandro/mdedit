@@ -35,10 +35,11 @@ jobs:
           if [ -z "$version" ]; then echo "No version to publish" >&2; exit 1; fi
           echo "tag=v${version#v}" >> "$GITHUB_OUTPUT"
 
-      # Say what is actually wrong with the PAT. Every token problem — expired,
-      # revoked, fine-grained, missing scope — surfaces from the action below as
-      # "does not have the correct permissions to execute `CreateRef`", which
-      # reads like a repo problem and has now cost two releases to re-diagnose.
+      # `CreateRef` failures below are ambiguous: an expired, revoked,
+      # fine-grained or wrong-scope PAT all produce the same message a stale
+      # fork does. Rule the token out here so the next debug session starts
+      # from the fork instead of burning a PAT rotation on it (that is exactly
+      # what v0.11.0 and v0.11.1 cost).
       - name: Check WINGET_TOKEN
         env:
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
@@ -60,6 +61,23 @@ jobs:
             *) echo "::error::WINGET_TOKEN scopes are '$scopes' — winget-releaser needs the public_repo scope."; exit 1 ;;
           esac
           echo "Token belongs to $(jq -r .login user.json); scopes: $scopes"
+
+      # THE fix for the `CreateRef` failure: komac branches off our winget-pkgs
+      # fork, and its own sync-fork is unreliable (Komac #1142, #1726), so a
+      # fork left behind upstream fails branch creation with a message that
+      # blames permissions. Ours went stale the moment releases paused, which
+      # is what actually ate v0.11.0 and v0.11.1 — a fresh PAT did not help,
+      # syncing did. Best-effort: GitHub refuses the sync when upstream touched
+      # its workflow files unless the PAT also has the `workflow` scope, and
+      # komac may still get through on its own (see doccmd#1020).
+      - name: Sync winget-pkgs fork
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          fork="${{ github.repository_owner }}/winget-pkgs"
+          if ! gh repo sync "$fork" --source microsoft/winget-pkgs; then
+            echo "::warning::Could not sync $fork. If the next step fails with CreateRef, sync it by hand — or add the workflow scope to WINGET_TOKEN."
+          fi
 
       # Third-party action that receives WINGET_TOKEN — pinned to a commit so a
       # retagged v2 can't silently change what runs with that PAT.
@@ -85,11 +103,12 @@ jobs:
           cat > body.md <<EOF
           $TAG was **not** submitted to microsoft/winget-pkgs. Logs: $run_url
 
-          A "does not have the correct permissions to execute CreateRef" error means the
-          **WINGET_TOKEN PAT expired** — it is not a scope problem. Issue a new classic
-          PAT with the public_repo scope and *no expiration*, store it with
-          "gh secret set WINGET_TOKEN --repo $GITHUB_REPOSITORY", then re-run via
-          Actions -> winget -> Run workflow with this version.
+          A "does not have the correct permissions to execute CreateRef" error is almost
+          always the **stale winget-pkgs fork**, not the PAT — the Check WINGET_TOKEN step
+          above already rules the token out. Run
+          "gh repo sync $GITHUB_REPOSITORY_OWNER/winget-pkgs --source microsoft/winget-pkgs",
+          then re-run via Actions -> winget -> Run workflow with this version. If the sync
+          itself is refused, WINGET_TOKEN needs the workflow scope as well.
           EOF
           gh issue create --repo "$GITHUB_REPOSITORY" \
             --title "winget publish failed for $TAG" --body-file body.md

@@ -73,11 +73,18 @@ required.
 **After that** every release auto-opens a winget update PR — no manual steps.
 Install with `winget install lexandro.mdedit`.
 
-> **`lexandro does not have the correct permissions to execute CreateRef`** means
-> the **`WINGET_TOKEN` PAT expired** — it is *not* a missing scope, despite the
-> wording. It silently ate v0.11.0 and v0.11.1 (submitted late, by hand). Issue a
-> replacement classic PAT with `public_repo` and **no expiration**, `gh secret set
-> WINGET_TOKEN`, then Actions → **winget** → Run workflow for each missed version.
+> **`lexandro does not have the correct permissions to execute CreateRef`** is a
+> **stale `lexandro/winget-pkgs` fork**, despite naming permissions. komac
+> branches off that fork and its own `sync-fork` is unreliable
+> ([Komac #1142](https://github.com/russellbanks/Komac/issues/1142), #1726). It
+> ate v0.11.0 and v0.11.1: the fork had not moved since the previous release, and
+> a freshly issued PAT changed nothing — `gh repo sync lexandro/winget-pkgs
+> --source microsoft/winget-pkgs` fixed it on the first try. The workflow now
+> syncs before publishing, and its **Check WINGET_TOKEN** step rules the token out
+> first (expired, revoked, fine-grained or wrong scope each get their own message),
+> so nobody re-diagnoses this as a PAT problem again. If the *sync* is refused,
+> the PAT needs the `workflow` scope too — upstream contains workflow files
+> ([doccmd#1020](https://github.com/adamtheturtle/doccmd/issues/1020)).
 
 The action that opens the PR (`vedantmgoyal9/winget-releaser`) is third-party
 code that receives this PAT, so it is pinned to a commit SHA rather than the
