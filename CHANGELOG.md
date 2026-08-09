@@ -3,7 +3,7 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
-## Unreleased
+## v0.11.1 — 2026-08-09
 
 ### Changed
 
@@ -20,7 +20,6 @@ All notable changes to mdedit are documented here. This project adheres to
   the reopen-closed history kept up to 25 whole documents alive, and Live mode's
   render caches were capped by entry count rather than size and outlived the
   documents they were built for. All four are fixed.
-
 - **Faster startup, much smaller binary** — the launch bundle used to carry
   Mermaid, all ~190 highlight.js grammars and every dialog whether you opened
   one or not, in a single 2.9 MB chunk. Those now load when they are first
@@ -38,6 +37,10 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Fixed
 
+- **The recent-files list on the start screen is readable.** File names broke
+  mid-word and the path was cut off at the end — the part that tells you which
+  file it is. Each entry is now one line: the full path with its middle elided,
+  ending in the file name in bold, so you can see both the drive and the folder.
 - **No white flash on startup** — the window stayed invisible until the WebView
   had painted, so launching mdedit no longer shows a white rectangle for a
   fraction of a second. The theme is also resolved before the settings file is
