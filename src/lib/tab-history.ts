@@ -1,8 +1,8 @@
 // "Reopen closed tab" history. Bounded by characters as well as entries: 25
 // closed large documents would otherwise stay in memory indefinitely.
 
-export const CLOSED_MAX_ENTRIES = 25;
-export const CLOSED_MAX_CHARS = 5_000_000; // ~10 MB of UTF-16 across the stack
+const CLOSED_MAX_ENTRIES = 25;
+const CLOSED_MAX_CHARS = 5_000_000; // ~10 MB of UTF-16 across the stack
 
 interface Buffers {
   content: string;
@@ -11,7 +11,7 @@ interface Buffers {
 
 /** Characters a closed tab retains. A clean tab shares one string between the
  *  two fields, so it is only counted once. */
-export function closedTabChars(t: Buffers): number {
+function closedTabChars(t: Buffers): number {
   return t.content.length + (t.savedContent === t.content ? 0 : t.savedContent.length);
 }
 
