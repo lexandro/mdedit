@@ -42,6 +42,9 @@
 
   let host: HTMLDivElement;
   let view: EditorView | undefined;
+  // The last text this editor pushed into the store, so the sync-back effect can
+  // recognise its own echo without flattening the document to compare.
+  let lastPushed: string | null = null;
   const themeCompartment = new Compartment();
   const wrapCompartment = new Compartment();
   const liveCompartment = new Compartment();
@@ -171,7 +174,8 @@
           ]),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) {
-              tabs.setContent(tab.id, u.state.doc.toString());
+              lastPushed = u.state.doc.toString();
+              tabs.setContent(tab.id, lastPushed);
             }
             if (u.docChanged || u.selectionSet) {
               reportCursor(u.view);
@@ -250,6 +254,9 @@
   // clobbering the user's cursor during normal typing.
   $effect(() => {
     const incoming = tab.content;
+    // This effect re-runs on our own keystrokes too; skipping the echo avoids a
+    // full-document toString (and string compare) per keypress.
+    if (incoming === lastPushed) return;
     if (view && incoming !== view.state.doc.toString()) {
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: incoming },

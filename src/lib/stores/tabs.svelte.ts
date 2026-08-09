@@ -15,6 +15,7 @@ import {
   type Encoding,
 } from "$lib/ipc";
 import { moveItem } from "$lib/array-util";
+import { trimClosedStack } from "$lib/tab-history";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
 import { recent } from "$lib/stores/recent.svelte";
 import { toasts } from "$lib/stores/toasts.svelte";
@@ -318,7 +319,7 @@ class TabsStore {
     if (closing.path || closing.content !== "") {
       const { id: _id, ...rest } = closing;
       this.#closed.push({ ...rest });
-      if (this.#closed.length > 25) this.#closed.shift();
+      trimClosedStack(this.#closed);
     }
     // Stop watching unless another tab still has the same file open.
     if (

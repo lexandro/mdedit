@@ -18,6 +18,7 @@ import katex from "katex";
 import { dirname } from "$lib/md-assets";
 import { renderMarkdown, resolveAssetSrc } from "$lib/markdown/renderer";
 import { renderMermaidSvg } from "$lib/markdown/mermaid";
+import { RenderCache } from "$lib/render-cache";
 import {
   headingClass,
   STYLE_CLASS,
@@ -158,18 +159,12 @@ function inCodeOrTable(tree: ReturnType<typeof syntaxTree>, pos: number): boolea
 
 // Rendering a block / math span is expensive (markdown-it + DOMPurify, KaTeX),
 // and rebuilds fire on every cursor move; cache by source so unchanged content
-// is rendered once. Bounded to avoid unbounded growth while editing.
-function memoized(cache: Map<string, string>, key: string, compute: () => string): string {
-  let value = cache.get(key);
-  if (value === undefined) {
-    if (cache.size > 256) cache.clear();
-    value = compute();
-    cache.set(key, value);
-  }
-  return value;
+// is rendered once. The caches belong to one `livePreview()` instance rather
+// than the module, so leaving Live mode (or closing the tab) frees them.
+interface Caches {
+  html: RenderCache;
+  math: RenderCache;
 }
-const htmlCache = new Map<string, string>();
-const mathCache = new Map<string, string>();
 
 /** Build a sorted DecorationSet from collected (from, to, deco) entries. */
 function toDecorationSet(decos: { from: number; to: number; deco: Decoration }[]): DecorationSet {
@@ -180,7 +175,11 @@ function toDecorationSet(decos: { from: number; to: number; deco: Decoration }[]
   );
 }
 
-function buildDecorations(view: EditorView, basePath: string | null): DecorationSet {
+function buildDecorations(
+  view: EditorView,
+  basePath: string | null,
+  caches: Caches,
+): DecorationSet {
   const decos: { from: number; to: number; deco: Decoration }[] = [];
   const active = activeLines(view.state);
   const doc = view.state.doc;
@@ -256,7 +255,7 @@ function buildDecorations(view: EditorView, basePath: string | null): Decoration
       if (inCodeOrTable(tree, sFrom)) continue; // skip code spans/blocks and tables
       let html: string;
       try {
-        html = memoized(mathCache, (span.display ? "D" : "I") + span.tex, () =>
+        html = caches.math.get((span.display ? "D" : "I") + span.tex, () =>
           katex.renderToString(span.tex, { displayMode: span.display, throwOnError: false }),
         );
       } catch {
@@ -329,7 +328,11 @@ const toggleTaskOnClick = EditorView.domEventHandlers({
 // Block widgets (tables, fenced code, Mermaid) must come from a StateField — CM
 // forbids block decorations from view plugins. Scans the whole doc (blocks are
 // few) and reveals raw source when the cursor is inside a block.
-function buildBlockDecorations(state: EditorState, basePath: string | null): DecorationSet {
+function buildBlockDecorations(
+  state: EditorState,
+  basePath: string | null,
+  caches: Caches,
+): DecorationSet {
   const decos: { from: number; to: number; deco: Decoration }[] = [];
   const doc = state.doc;
   const active = activeLines(state);
@@ -349,7 +352,9 @@ function buildBlockDecorations(state: EditorState, basePath: string | null): Dec
           widget = new MermaidWidget(code ? doc.sliceString(code.from, code.to) : "");
         } else {
           const src = doc.sliceString(bFrom, bTo);
-          widget = new HtmlWidget(memoized(htmlCache, (basePath ?? "") + "\0" + src, () => renderMarkdown(src, basePath)));
+          widget = new HtmlWidget(
+            caches.html.get((basePath ?? "") + "\0" + src, () => renderMarkdown(src, basePath)),
+          );
         }
         decos.push({ from: bFrom, to: bTo, deco: Decoration.replace({ widget, block: true }) });
       }
@@ -359,16 +364,16 @@ function buildBlockDecorations(state: EditorState, basePath: string | null): Dec
   return toDecorationSet(decos);
 }
 
-function blockField(basePath: string | null) {
+function blockField(basePath: string | null, caches: Caches) {
   return StateField.define<DecorationSet>({
-    create: (state) => buildBlockDecorations(state, basePath),
+    create: (state) => buildBlockDecorations(state, basePath, caches),
     update(value, tr) {
       if (
         tr.docChanged ||
         tr.selection ||
         syntaxTree(tr.state) !== syntaxTree(tr.startState)
       ) {
-        return buildBlockDecorations(tr.state, basePath);
+        return buildBlockDecorations(tr.state, basePath, caches);
       }
       return value.map(tr.changes);
     },
@@ -377,11 +382,15 @@ function blockField(basePath: string | null) {
 }
 
 export function livePreview(basePath: string | null = null) {
+  // Scoped to this extension instance: Editor.svelte reconfigures the Live
+  // compartment when the mode or path changes, so leaving Live mode drops them.
+  const caches: Caches = { html: new RenderCache(), math: new RenderCache() };
+
   const plugin = ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
       constructor(view: EditorView) {
-        this.decorations = buildDecorations(view, basePath);
+        this.decorations = buildDecorations(view, basePath, caches);
       }
       update(u: ViewUpdate) {
         // Also rebuild when the background parser advances (tree identity changes),
@@ -392,11 +401,15 @@ export function livePreview(basePath: string | null = null) {
           u.selectionSet ||
           syntaxTree(u.state) !== syntaxTree(u.startState)
         ) {
-          this.decorations = buildDecorations(u.view, basePath);
+          this.decorations = buildDecorations(u.view, basePath, caches);
         }
+      }
+      destroy() {
+        caches.html.clear();
+        caches.math.clear();
       }
     },
     { decorations: (v) => v.decorations },
   );
-  return [plugin, blockField(basePath), openLinkOnClick, toggleTaskOnClick];
+  return [plugin, blockField(basePath, caches), openLinkOnClick, toggleTaskOnClick];
 }
