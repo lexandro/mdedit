@@ -156,6 +156,15 @@ body {
 .markdown-body {
   font-size: 15px;
 }
+/* A 1 MB document renders to ~490k DOM nodes and ~164k layout objects, and the
+   preview keeps all of them laid out at once. Letting the engine skip layout and
+   paint for offscreen blocks costs one rule; `auto` in contain-intrinsic-size
+   makes it remember each block's real height after it has been rendered once, so
+   scrollHeight (which drives the split-view scroll sync) stops drifting. */
+.preview.markdown-body > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3rem;
+}
 .markdown-body .frontmatter {
   margin: 0 0 1rem;
   padding: 8px 12px;

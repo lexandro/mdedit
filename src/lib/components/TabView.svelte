@@ -6,8 +6,10 @@
 
   let { tab }: { tab: Tab } = $props();
 
-  // Editor + Preview stay mounted across view-mode changes (CSS toggles them),
-  // so switching source <-> split <-> preview never loses cursor/undo history.
+  // The Editor stays mounted across view-mode changes (CSS toggles it), so
+  // switching source <-> split <-> preview never loses cursor/undo history. The
+  // Preview is mounted only when it is actually on screen — a background tab's
+  // rendered preview costs ~290 MB for a 1 MB document and nobody can see it.
   let percent = $state(50);
   let dragging = $state(false);
   let root: HTMLDivElement;
@@ -23,6 +25,9 @@
   }
   function onPreviewScroll(f: number) {
     if (tab.viewMode === "split") editorFraction = f;
+    // Remembered here rather than in Preview, which unmounts with the tab;
+    // re-applying the position it already holds is a no-op.
+    previewFraction = f;
   }
 
   function onPointerDown(e: PointerEvent) {
@@ -68,7 +73,7 @@
     onpointerup={onPointerUp}
   ></div>
   <div class="pane preview-pane">
-    {#if tab.viewMode === "split" || tab.viewMode === "preview"}
+    {#if (tab.viewMode === "split" || tab.viewMode === "preview") && tab.id === tabs.activeId}
       <Preview
         source={tab.content}
         basePath={tab.path}
