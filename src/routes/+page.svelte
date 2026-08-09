@@ -8,17 +8,20 @@
   import UpdateBanner from "$lib/components/UpdateBanner.svelte";
   import AssocBanner from "$lib/components/AssocBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
-  import SettingsDialog from "$lib/components/SettingsDialog.svelte";
-  import AboutDialog from "$lib/components/AboutDialog.svelte";
-  import ChangelogDialog from "$lib/components/ChangelogDialog.svelte";
-  import GoToLineDialog from "$lib/components/GoToLineDialog.svelte";
-  import CommandPalette from "$lib/components/CommandPalette.svelte";
-  import EmojiPicker from "$lib/components/EmojiPicker.svelte";
-  import SnippetPicker from "$lib/components/SnippetPicker.svelte";
-  import SnippetManagerDialog from "$lib/components/SnippetManagerDialog.svelte";
-  import TemplatePicker from "$lib/components/TemplatePicker.svelte";
-  import TableEditorDialog from "$lib/components/TableEditorDialog.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
+  // Dialogs are code-split; each `.current` is null until its chunk arrives.
+  import {
+    SettingsDialog,
+    AboutDialog,
+    ChangelogDialog,
+    GoToLineDialog,
+    CommandPalette,
+    EmojiPicker,
+    SnippetPicker,
+    SnippetManagerDialog,
+    TemplatePicker,
+    TableEditorDialog,
+  } from "$lib/components/dialogs.svelte";
   import { tabs, isDirty, tabTitle } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
@@ -204,12 +207,20 @@
   <StatusBar />
 </div>
 
-{#if settingsOpen}<SettingsDialog onClose={() => (settingsOpen = false)} />{/if}
-{#if aboutOpen}<AboutDialog onClose={() => (aboutOpen = false)} />{/if}
-{#if changelogOpen}<ChangelogDialog onClose={() => (changelogOpen = false)} />{/if}
-{#if gotoOpen}<GoToLineDialog onClose={() => (gotoOpen = false)} />{/if}
-{#if paletteOpen}
-  <CommandPalette
+{#if settingsOpen && SettingsDialog.current}
+  <SettingsDialog.current onClose={() => (settingsOpen = false)} />
+{/if}
+{#if aboutOpen && AboutDialog.current}
+  <AboutDialog.current onClose={() => (aboutOpen = false)} />
+{/if}
+{#if changelogOpen && ChangelogDialog.current}
+  <ChangelogDialog.current onClose={() => (changelogOpen = false)} />
+{/if}
+{#if gotoOpen && GoToLineDialog.current}
+  <GoToLineDialog.current onClose={() => (gotoOpen = false)} />
+{/if}
+{#if paletteOpen && CommandPalette.current}
+  <CommandPalette.current
     onRun={(id) => {
       paletteOpen = false;
       handleMenu(id);
@@ -217,12 +228,20 @@
     onClose={() => (paletteOpen = false)}
   />
 {/if}
-{#if emojiOpen}<EmojiPicker onClose={() => (emojiOpen = false)} />{/if}
-{#if snippetsOpen}<SnippetPicker onClose={() => (snippetsOpen = false)} />{/if}
-{#if snippetMgrOpen}<SnippetManagerDialog onClose={() => (snippetMgrOpen = false)} />{/if}
-{#if templatesOpen}<TemplatePicker onClose={() => (templatesOpen = false)} />{/if}
-{#if tableEdit}
-  <TableEditorDialog
+{#if emojiOpen && EmojiPicker.current}
+  <EmojiPicker.current onClose={() => (emojiOpen = false)} />
+{/if}
+{#if snippetsOpen && SnippetPicker.current}
+  <SnippetPicker.current onClose={() => (snippetsOpen = false)} />
+{/if}
+{#if snippetMgrOpen && SnippetManagerDialog.current}
+  <SnippetManagerDialog.current onClose={() => (snippetMgrOpen = false)} />
+{/if}
+{#if templatesOpen && TemplatePicker.current}
+  <TemplatePicker.current onClose={() => (templatesOpen = false)} />
+{/if}
+{#if tableEdit && TableEditorDialog.current}
+  <TableEditorDialog.current
     model={tableEdit.model}
     onSave={(m) => {
       const ctx = tableEdit!;

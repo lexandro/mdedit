@@ -11,7 +11,7 @@ import sup from "markdown-it-sup";
 import { full as emoji } from "markdown-it-emoji";
 import texmath from "markdown-it-texmath";
 import katex from "katex";
-import hljs from "highlight.js";
+import hljs from "$lib/markdown/hljs";
 import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { dirname, toAbsoluteImagePath, isUncPath } from "$lib/md-assets";

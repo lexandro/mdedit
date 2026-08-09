@@ -82,7 +82,7 @@ export const editorCommands = {
           break;
         }
       }
-      insertText(html ? htmlToMarkdown(html) : await navigator.clipboard.readText());
+      insertText(html ? await htmlToMarkdown(html) : await navigator.clipboard.readText());
     } catch {
       document.execCommand("paste");
     }
