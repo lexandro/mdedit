@@ -7,6 +7,20 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Changed
 
+- **Large documents use far less memory.** A 1 MB file used to cost about
+  500 MB, almost all of it the preview: it built the whole document's DOM at
+  once and kept every block laid out, even the parts scrolled out of view, and
+  every background tab kept its own copy. Offscreen blocks are no longer laid
+  out, and only the visible tab's preview is built. Measured on a 1 MB
+  document: 888 MB → 691 MB with one tab open, 1498 MB → 918 MB with three.
+  Source and Live mode were never affected — they don't build that DOM.
+- **Typing in large files no longer re-copies the whole document.** The fold
+  gutter re-parsed the entire file for every visible heading, the editor
+  flattened the document on every keystroke just to compare it against itself,
+  the reopen-closed history kept up to 25 whole documents alive, and Live mode's
+  render caches were capped by entry count rather than size and outlived the
+  documents they were built for. All four are fixed.
+
 - **Faster startup, much smaller binary** — the launch bundle used to carry
   Mermaid, all ~190 highlight.js grammars and every dialog whether you opened
   one or not, in a single 2.9 MB chunk. Those now load when they are first
