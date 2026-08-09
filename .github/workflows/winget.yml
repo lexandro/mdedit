@@ -1,0 +1,67 @@
+name: winget
+
+# Submit a released version to microsoft/winget-pkgs. Runs automatically after a
+# successful Release, and can be triggered manually to (re)publish a specific
+# already-released version (e.g. to backfill one an expired WINGET_TOKEN ate).
+# Deliberately NOT a job inside release.yml: a winget outage there failed the
+# whole Release run, which in turn skipped the Chocolatey workflow_run job.
+# Needs a WINGET_TOKEN secret (classic PAT, public_repo scope) — see
+# docs/RELEASING.md. The very first version must be submitted once manually.
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, e.g. 0.11.1"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Resolve release tag
+        id: tag
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+          TAG_REF: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          version="${VERSION_INPUT:-$TAG_REF}"
+          if [ -z "$version" ]; then echo "No version to publish" >&2; exit 1; fi
+          echo "tag=v${version#v}" >> "$GITHUB_OUTPUT"
+
+      # Third-party action that receives WINGET_TOKEN — pinned to a commit so a
+      # retagged v2 can't silently change what runs with that PAT.
+      - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+        with:
+          identifier: lexandro.mdedit
+          installers-regex: '\.msi$'
+          release-tag: ${{ steps.tag.outputs.tag }}
+          token: ${{ secrets.WINGET_TOKEN }}
+
+      # A failed publish is otherwise only visible on the Actions tab, so a
+      # version can silently go missing from a package manager (that's how the
+      # Chocolatey 0.10.0 push stayed broken for a month). File an issue.
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          cat > body.md <<EOF
+          $TAG was **not** submitted to microsoft/winget-pkgs. Logs: $run_url
+
+          A "does not have the correct permissions to execute CreateRef" error means the
+          **WINGET_TOKEN PAT expired** — it is not a scope problem. Issue a new classic
+          PAT with the public_repo scope and *no expiration*, store it with
+          "gh secret set WINGET_TOKEN --repo $GITHUB_REPOSITORY", then re-run via
+          Actions -> winget -> Run workflow with this version.
+          EOF
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "winget publish failed for $TAG" --body-file body.md

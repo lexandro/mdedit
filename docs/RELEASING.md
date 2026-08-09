@@ -43,17 +43,20 @@ To regenerate the key from scratch (only if compromised/lost), repeat
 
 ## Publishing to winget
 
-The `winget` job in `.github/workflows/release.yml` submits a manifest PR to
+`.github/workflows/winget.yml` submits a manifest PR to
 [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) after every
 release (it uses the `.msi` asset, so winget gets a ProductCode for clean
-upgrade detection). No code-signing certificate is required.
+upgrade detection), and can be run manually (Actions → **winget** → Run
+workflow) to (re)publish a specific version. No code-signing certificate is
+required.
 
 **One-time setup**
 
 1. Create a **classic** GitHub Personal Access Token with the `public_repo`
-   scope and add it to this repo as the **`WINGET_TOKEN`** secret
-   (Settings → Secrets and variables → Actions). The default `GITHUB_TOKEN`
-   can't fork winget-pkgs, so a PAT is required.
+   scope and **no expiration**, then add it to this repo as the
+   **`WINGET_TOKEN`** secret (`gh secret set WINGET_TOKEN`, or Settings →
+   Secrets and variables → Actions). The default `GITHUB_TOKEN` can't fork
+   winget-pkgs, so a PAT is required.
 2. Submit the **first** version once (the workflow only *updates* an existing
    package). With [wingetcreate](https://github.com/microsoft/winget-create):
 
@@ -69,6 +72,16 @@ upgrade detection). No code-signing certificate is required.
 
 **After that** every release auto-opens a winget update PR — no manual steps.
 Install with `winget install lexandro.mdedit`.
+
+> **`lexandro does not have the correct permissions to execute CreateRef`** means
+> the **`WINGET_TOKEN` PAT expired** — it is *not* a missing scope, despite the
+> wording. It silently ate v0.11.0 and v0.11.1 (submitted late, by hand). Issue a
+> replacement classic PAT with `public_repo` and **no expiration**, `gh secret set
+> WINGET_TOKEN`, then Actions → **winget** → Run workflow for each missed version.
+
+The action that opens the PR (`vedantmgoyal9/winget-releaser`) is third-party
+code that receives this PAT, so it is pinned to a commit SHA rather than the
+mutable `v2` tag. Bump the pin deliberately, not automatically.
 
 ## Publishing to Chocolatey
 
@@ -93,10 +106,12 @@ push once manually with `choco pack`/`choco push`). Install with
 > Chocolatey stayed a version behind winget). Once one version is approved, run
 > Actions → **Chocolatey** → Run workflow with the missed version to catch up.
 
-Both publish jobs (winget and Chocolatey) **open a GitHub issue if they fail**,
-so a missed version reaches your inbox instead of sitting unnoticed on the
-Actions tab. The issue names the version and links the run; fix the cause and
-re-run the workflow manually with that version.
+Both publish workflows (winget and Chocolatey) run *after* Release completes and
+**open a GitHub issue if they fail**, so a missed version reaches your inbox
+instead of sitting unnoticed on the Actions tab. The issue names the version and
+links the run; fix the cause and re-run that workflow manually with the version.
+They are separate workflows on purpose: while winget was a job inside `release.yml`
+its failure marked the whole Release run failed, which skipped Chocolatey too.
 
 The package is **download-only** (it fetches the signed MSI from the GitHub
 release), so `tools/` must **not** contain `LICENSE.txt` / `VERIFICATION.txt` —
