@@ -9,6 +9,10 @@
   import { fileAssoc } from "$lib/stores/fileassoc.svelte";
   import { tabs } from "$lib/stores/tabs.svelte";
   import { takeLaunchFiles } from "$lib/ipc";
+  import { prewarm } from "$lib/prewarm";
+  import { dialogPreloads } from "$lib/components/dialogs.svelte";
+  import { preloadHtmlToMarkdown } from "$lib/html-to-md";
+  import { preloadMermaid } from "$lib/markdown/mermaid";
   import { listen } from "@tauri-apps/api/event";
   import { getCurrentWebview } from "@tauri-apps/api/webview";
   import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -23,6 +27,7 @@
 
   onMount(() => {
     const unlisteners: Array<() => void> = [];
+    let cancelPrewarm = () => {};
 
     // settings + recent + snippets are independent (separate store files); load
     // them concurrently, then restore the session, then open any launch files.
@@ -39,6 +44,13 @@
       win.show().catch(() => {});
       await session.restore();
       openPaths(await takeLaunchFiles());
+      // Only now that the app is on screen and usable: pull the on-demand
+      // chunks in during idle time so their first real use isn't the slow one.
+      cancelPrewarm = prewarm([
+        ...dialogPreloads.map((d) => () => d.preload()),
+        preloadHtmlToMarkdown,
+        preloadMermaid, // heaviest eval, so it lands last
+      ]);
     })();
 
     updater.startAutoCheck();
@@ -65,6 +77,7 @@
     window.addEventListener("beforeunload", flush);
 
     return () => {
+      cancelPrewarm();
       unlisteners.forEach((fn) => fn());
       window.removeEventListener("beforeunload", flush);
     };
