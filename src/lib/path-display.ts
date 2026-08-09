@@ -1,24 +1,39 @@
-// Recent-file rows show *where* a file lives. The interesting part of
-// "C:\Users\me\AppData\Local\Temp\claude\<guid>\scratchpad\big.md" is the tail,
-// so trimming from the right — which is what text-overflow does — hides exactly
-// the part worth reading. Trim whole segments off the front instead.
+// Recent-file rows show the whole path on one line, with the file name in bold
+// at the end. When it doesn't fit, the MIDDLE is dropped rather than either end:
+// the head says which drive, the tail says which folder and which file — and
+// those are the two parts worth reading. Whole segments are removed so the
+// result still looks like a path.
 
-/** The folder containing `path`, keeping as many trailing segments as fit in
- *  `maxChars`. Shorter folders are returned whole; longer ones get a leading
- *  ellipsis. Always keeps at least the immediate parent. */
-export function displayDir(path: string, maxChars = 46): string {
+export interface ElidedPath {
+  /** Directory portion, middle-elided, ending in a separator. */
+  prefix: string;
+  /** File name, always shown in full. */
+  name: string;
+}
+
+export function elidePath(path: string, maxChars = 90): ElidedPath {
   const sep = path.includes("\\") ? "\\" : "/";
   const parts = path.split(/[\\/]/);
-  parts.pop(); // drop the file name — it is shown separately
-  if (parts.length === 0) return "";
+  const name = parts.pop() ?? "";
+  if (parts.length === 0) return { prefix: "", name };
 
-  const kept: string[] = [];
-  let len = 0;
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const cost = parts[i].length + (kept.length > 0 ? 1 : 0); // +1 for the separator
-    if (kept.length > 0 && len + cost > maxChars) break;
-    kept.unshift(parts[i]);
-    len += cost;
+  const full = parts.join(sep) + sep;
+  if (full.length + name.length <= maxChars) return { prefix: full, name };
+
+  const root = parts[0]; // "C:" on Windows, "" for a posix absolute path
+  const rest = parts.slice(1);
+  const head = root + sep + "…" + sep;
+  let budget = maxChars - name.length - head.length;
+
+  const tail: string[] = [];
+  for (let i = rest.length - 1; i >= 0; i--) {
+    const cost = rest[i].length + 1; // segment plus its separator
+    if (tail.length > 0 && cost > budget) break; // always keep the parent folder
+    tail.unshift(rest[i]);
+    budget -= cost;
   }
-  return (kept.length < parts.length ? "…" + sep : "") + kept.join(sep);
+
+  // Everything survived after all (only possible for odd inputs) — no ellipsis.
+  if (tail.length === rest.length) return { prefix: full, name };
+  return { prefix: head + (tail.length > 0 ? tail.join(sep) + sep : ""), name };
 }

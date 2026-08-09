@@ -1,30 +1,43 @@
 import { describe, it, expect } from "vitest";
-import { displayDir } from "./path-display";
+import { elidePath } from "./path-display";
 
-describe("displayDir", () => {
-  it("returns a short folder whole, drive included", () => {
-    expect(displayDir("C:\\projects\\apps\\mdedit\\README.md")).toBe("C:\\projects\\apps\\mdedit");
+const joined = (p: { prefix: string; name: string }) => p.prefix + p.name;
+
+describe("elidePath", () => {
+  it("leaves a path that fits untouched", () => {
+    const p = elidePath("C:\\projects\\apps\\mdedit\\README.md");
+    expect(p.prefix).toBe("C:\\projects\\apps\\mdedit\\");
+    expect(p.name).toBe("README.md");
+    expect(joined(p)).not.toContain("…");
   });
 
-  it("keeps the tail of a long folder and marks the trim", () => {
-    const out = displayDir(
+  it("drops the middle, keeping the drive, the last folders and the file", () => {
+    const p = elidePath(
       "C:\\Users\\lexandro\\AppData\\Local\\Temp\\claude\\C--projects-apps-mdedit\\f81540c3-f184-4622-9edc-c8098b281f38\\scratchpad\\big.md",
     );
-    expect(out.startsWith("…\\")).toBe(true);
-    expect(out.endsWith("scratchpad")).toBe(true);
-    expect(out.length).toBeLessThanOrEqual(48);
+    expect(p.prefix.startsWith("C:\\…\\")).toBe(true);
+    expect(p.prefix.endsWith("scratchpad\\")).toBe(true);
+    expect(p.name).toBe("big.md");
+    expect(joined(p).length).toBeLessThanOrEqual(90);
   });
 
-  it("always keeps the immediate parent, however long", () => {
-    const long = "x".repeat(200);
-    expect(displayDir(`C:\\a\\${long}\\file.md`)).toBe(`…\\${long}`);
+  it("never truncates the file name, however long the path", () => {
+    const p = elidePath(`C:\\a\\${"x".repeat(200)}\\a-very-long-file-name.md`, 40);
+    expect(p.name).toBe("a-very-long-file-name.md");
+  });
+
+  it("always keeps the immediate parent folder", () => {
+    const p = elidePath("C:\\one\\two\\three\\four\\five\\six\\file.md", 20);
+    expect(p.prefix.endsWith("six\\")).toBe(true);
+    expect(p.prefix.startsWith("C:\\…\\")).toBe(true);
   });
 
   it("handles posix separators", () => {
-    expect(displayDir("/home/me/notes/todo.md")).toBe("/home/me/notes");
+    const p = elidePath("/home/me/notes/todo.md");
+    expect(joined(p)).toBe("/home/me/notes/todo.md");
   });
 
-  it("returns empty for a bare file name", () => {
-    expect(displayDir("todo.md")).toBe("");
+  it("returns a bare file name with no prefix", () => {
+    expect(elidePath("todo.md")).toEqual({ prefix: "", name: "todo.md" });
   });
 });

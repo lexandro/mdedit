@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { tabs, basename } from "$lib/stores/tabs.svelte";
+  import { tabs } from "$lib/stores/tabs.svelte";
   import { recent } from "$lib/stores/recent.svelte";
-  import { displayDir } from "$lib/path-display";
+  import { elidePath } from "$lib/path-display";
   import { t } from "$lib/i18n";
 </script>
 
@@ -21,6 +21,7 @@
       </div>
       <ul>
         {#each recent.entries as { path, pinned } (path)}
+          {@const shown = elidePath(path)}
           <li>
             <button
               class="pin"
@@ -29,10 +30,10 @@
               aria-label={pinned ? t("empty.unpin") : t("empty.pin")}
               onclick={() => (pinned ? recent.unpin(path) : recent.pin(path))}>📌</button
             >
-            <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}>
-              <span class="name">{basename(path)}</span>
-              <span class="path">{displayDir(path)}</span>
-            </button>
+            <button class="recent-item" title={path} onclick={() => tabs.openPath(path)}
+              ><span class="dir">{shown.prefix}</span><span class="name">{shown.name}</span
+              ></button
+            >
           </li>
         {/each}
       </ul>
@@ -131,42 +132,32 @@
     opacity: 1;
     filter: none;
   }
+  /* One line, one string: the path reads left to right and ends in the file
+     name. elidePath() has already trimmed the middle to fit, so the CSS
+     ellipsis here is only a backstop for very narrow windows. */
   .recent-item {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
+    display: block;
     width: 100%;
     min-width: 0;
     text-align: left;
     border: none;
     background: transparent;
-    color: var(--fg);
     padding: 6px 8px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .recent-item:hover {
     background: var(--bg-alt);
   }
-  /* Both columns must be allowed to shrink (min-width: 0) or the nowrap folder
-     pushes the row wider than the list instead of ellipsising. */
-  .recent-item .name {
-    flex: 0 1 auto;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  /* Left-aligned right after the name, so a row reads as one phrase; the muted
-     colour alone carries the hierarchy, no need to shrink it too. */
-  .recent-item .path {
-    flex: 1 1 auto;
-    min-width: 0;
+  .recent-item .dir {
     color: var(--fg-muted);
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+  .recent-item .name {
+    color: var(--fg);
+    font-weight: 600;
   }
 </style>
