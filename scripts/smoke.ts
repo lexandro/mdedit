@@ -34,6 +34,12 @@ const stopServer = () => server.stop(true);
 const tmp = `${process.env.TEMP ?? "/tmp"}/mdedit-smoke-${process.pid}`;
 const page = await Page.launch(`http://127.0.0.1:${PORT}/`, CDP_PORT, tmp);
 await page.send("Runtime.enable");
+// Smooth scrolling is animated, and headless Chrome does not always run the
+// animation to completion (CI stalls it a few pixels in). Reduced motion makes
+// every scroll land instantly, so a measurement means the same thing everywhere.
+await page.send("Emulation.setEmulatedMedia", {
+  features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+});
 // Without Tauri there is no restored session, so the app shows its empty state.
 await until("the empty state", () => page.eval("!!document.querySelector('.empty-actions button')"));
 await page.click(".empty-actions button"); // "New file"
