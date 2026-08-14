@@ -3,6 +3,13 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Anchor jumps in the preview are instant for anyone whose system asks for
+  reduced motion, instead of always animating.
+
 ## v0.12.0 — 2026-08-14
 
 ### Fixed

@@ -71,8 +71,13 @@
     // Scanning beats a selector: ids come from document text, so escaping them
     // into a selector is a bug waiting to happen (and CSS.escape isn't universal).
     const target = [...container.querySelectorAll("[id]")].find((el) => el.id === id);
-    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-    else toasts.show(t("toast.anchorMissing", { id }), "info");
+    if (!target) {
+      toasts.show(t("toast.anchorMissing", { id }), "info");
+      return;
+    }
+    // Animate the jump only when the user hasn't asked for less motion.
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
   }
 
   // Last fraction we programmatically applied, to suppress the echo scroll event.
