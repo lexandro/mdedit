@@ -16,6 +16,7 @@ import type { SyntaxNode } from "@lezer/common";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import katex from "katex";
 import { dirname } from "$lib/md-assets";
+import { anchorId, anchorLine } from "$lib/md-headings";
 import { renderMarkdown, resolveAssetSrc } from "$lib/markdown/renderer";
 import { renderMermaidSvg } from "$lib/markdown/mermaid";
 import { RenderCache } from "$lib/render-cache";
@@ -284,6 +285,18 @@ function linkUrlAt(view: EditorView, pos: number): string | null {
   return null;
 }
 
+/** Jump to the heading a `#…` link targets. Same slugs as the preview's ids. */
+function jumpToAnchor(view: EditorView, url: string): boolean {
+  const line = anchorLine(view.state.doc.toString(), url);
+  if (line === null) return false;
+  const pos = view.state.doc.line(line).from;
+  view.dispatch({
+    selection: { anchor: pos },
+    effects: EditorView.scrollIntoView(pos, { y: "start", yMargin: 40 }),
+  });
+  return true;
+}
+
 // Ctrl/Cmd-click a rendered link to open it (plain click just edits the source).
 const openLinkOnClick = EditorView.domEventHandlers({
   mousedown(e, view) {
@@ -291,7 +304,13 @@ const openLinkOnClick = EditorView.domEventHandlers({
     const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
     if (pos == null) return false;
     const url = linkUrlAt(view, pos);
-    if (url && isFollowableUrl(url)) {
+    if (!url) return false;
+    if (anchorId(url) !== null) {
+      const jumped = jumpToAnchor(view, url);
+      if (jumped) e.preventDefault();
+      return jumped;
+    }
+    if (isFollowableUrl(url)) {
       openUrl(url).catch(() => {});
       e.preventDefault();
       return true;

@@ -260,6 +260,7 @@ export const en: Record<string, string> = {
   "toast.copyPathFail": "Couldn't copy path",
   "toast.pasteImageFail": "Couldn't save pasted image",
   "toast.tableFail": "Couldn't update table",
+  "toast.anchorMissing": "No heading matches #{id}",
 
   // File association (.md handler)
   "assoc.prompt": "mdedit isn't your default Markdown editor.",

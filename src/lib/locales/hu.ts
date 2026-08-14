@@ -261,6 +261,7 @@ export const hu: Record<string, string> = {
   "toast.copyPathFail": "Az útvonal nem másolható",
   "toast.pasteImageFail": "A beillesztett kép nem menthető",
   "toast.tableFail": "A táblázat frissítése nem sikerült",
+  "toast.anchorMissing": "Nincs #{id} azonosítójú címsor",
 
   // File association (.md handler)
   "assoc.prompt": "A mdedit nem az alapértelmezett Markdown-szerkesztőd.",

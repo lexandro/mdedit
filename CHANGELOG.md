@@ -16,6 +16,18 @@ All notable changes to mdedit are documented here. This project adheres to
   it back out. Selections behave as before: within one line the selection is
   replaced, across lines the block is indented.
 
+- **Anchor links jump again.** `[How it works](#how-it-works)` did nothing: the
+  renderer emitted bare `<h1>`, so there was no target in the document — which
+  also made every table of contents the app itself inserts dead on arrival.
+  Headings now carry GitHub-style ids (repeats numbered `-1`, `-2`, …), the exact
+  slugs the TOC command writes. Clicking an anchor scrolls the preview pane;
+  Ctrl+click in Live mode jumps to the heading's line; exported and copied HTML
+  carry the ids too. A link that matches no heading now says so instead of
+  silently doing nothing.
+- **Accented headings keep their letters in anchors.** The slug rule dropped
+  every non-ASCII character, so "Áttekintés" became `ttekints` and headings that
+  differed only in accents collided. Letters of any script are kept now.
+
 ### Added
 
 - **Settings → Editor → Tab key**: choose whether Tab types spaces (default) or a

@@ -16,6 +16,7 @@ import DOMPurify from "dompurify";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { dirname, toAbsoluteImagePath, isUncPath } from "$lib/md-assets";
 import { splitFrontmatter } from "$lib/frontmatter";
+import { makeSlugger } from "$lib/md-headings";
 
 /** Rewrite a local <img> src to the Tauri asset protocol; pass URLs through. */
 export function resolveAssetSrc(src: string, baseDir: string | null): string {
@@ -101,6 +102,20 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   return defaultLinkOpen(tokens, idx, options, env, self);
 };
 
+// Stamp heading ids so `[text](#slug)` links have something to jump to — the
+// app's own TOC (buildToc) writes exactly these slugs. The counter that numbers
+// repeated headings lives in `env`, so it restarts on every render.
+const defaultHeadingOpen =
+  md.renderer.rules.heading_open ??
+  ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+
+md.renderer.rules.heading_open = (tokens, idx, options, env, self) => {
+  const text = tokens[idx + 1]?.type === "inline" ? tokens[idx + 1].content : "";
+  const nextSlug = env?.slugger as ((t: string) => string) | undefined;
+  if (text && nextSlug) tokens[idx].attrSet("id", nextSlug(text));
+  return defaultHeadingOpen(tokens, idx, options, env, self);
+};
+
 // Allow the attributes markdown-it/task-lists/our rules emit, after sanitizing.
 DOMPurify.addHook("afterSanitizeAttributes", (node) => {
   if (node.tagName === "A" && node.getAttribute("target") === "_blank") {
@@ -111,7 +126,7 @@ DOMPurify.addHook("afterSanitizeAttributes", (node) => {
 export function renderMarkdown(source: string, basePath?: string | null): string {
   const baseDir = basePath ? dirname(basePath) : null;
   const { frontmatter, body } = splitFrontmatter(source);
-  let dirty = md.render(body, { baseDir });
+  let dirty = md.render(body, { baseDir, slugger: makeSlugger() });
   if (frontmatter !== null) {
     dirty = `<pre class="frontmatter">${md.utils.escapeHtml(frontmatter)}</pre>\n${dirty}`;
   }

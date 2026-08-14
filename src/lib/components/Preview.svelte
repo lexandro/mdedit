@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { onMount, tick } from "svelte";
   import { renderMarkdown } from "$lib/markdown/renderer";
   import { renderMermaidSvg } from "$lib/markdown/mermaid";
   import { toggleTaskInSource } from "$lib/md-tasks";
+  import { anchorId } from "$lib/md-headings";
   import { settings } from "$lib/stores/settings.svelte";
+  import { toasts } from "$lib/stores/toasts.svelte";
+  import { t } from "$lib/i18n";
 
   let {
     source,
@@ -47,6 +50,29 @@
     const boxes = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
     const idx = boxes.indexOf(target);
     if (idx >= 0) onSourceChange(toggleTaskInSource(source, idx, target.checked));
+  }
+
+  // Bound in script rather than the template: a click handler on a plain <div>
+  // trips the a11y lint, while the links themselves are focusable and fire this
+  // through their native Enter-to-click.
+  onMount(() => {
+    container.addEventListener("click", onContainerClick);
+    return () => container.removeEventListener("click", onContainerClick);
+  });
+
+  // Follow in-document anchor links by scrolling this pane. Left to the webview,
+  // `#foo` would be an SPA navigation against the app's own URL instead.
+  function onContainerClick(e: MouseEvent) {
+    if (!(e.target instanceof Element)) return;
+    const href = e.target.closest("a")?.getAttribute("href");
+    const id = href ? anchorId(href) : null;
+    if (id === null) return;
+    e.preventDefault();
+    // Scanning beats a selector: ids come from document text, so escaping them
+    // into a selector is a bug waiting to happen (and CSS.escape isn't universal).
+    const target = [...container.querySelectorAll("[id]")].find((el) => el.id === id);
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    else toasts.show(t("toast.anchorMissing", { id }), "info");
   }
 
   // Last fraction we programmatically applied, to suppress the echo scroll event.

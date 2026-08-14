@@ -11,7 +11,7 @@ describe("renderMarkdown — math", () => {
     expect(html).toContain("katex");
   });
   it("still renders ordinary Markdown", () => {
-    expect(renderMarkdown("# Title")).toContain("<h1>");
+    expect(renderMarkdown("# Title")).toContain("<h1");
   });
 });
 
@@ -42,6 +42,33 @@ describe("renderMarkdown — frontmatter", () => {
     const html = renderMarkdown("---\ntitle: Hi\n---\n# Body\n");
     expect(html).toContain('class="frontmatter"');
     expect(html).toContain("title: Hi");
-    expect(html).toContain("<h1>Body</h1>");
+    expect(html).toContain(">Body</h1>");
+  });
+});
+
+// Anchor links ("[How it works](#how-it-works)") had nothing to jump to: the
+// renderer emitted bare <h1>. The TOC command writes exactly these slugs, so the
+// ids it stamps must match what buildToc links to.
+describe("renderMarkdown — heading anchors", () => {
+  it("stamps a GitHub-style id on each heading", () => {
+    const html = renderMarkdown("# How it works\n\n## Setup & config\n");
+    expect(html).toContain('id="how-it-works"');
+    expect(html).toContain('id="setup-config"');
+  });
+
+  it("numbers repeated headings so every id is unique", () => {
+    const html = renderMarkdown("# Notes\n\n# Notes\n\n# Notes\n");
+    expect(html).toContain('id="notes"');
+    expect(html).toContain('id="notes-1"');
+    expect(html).toContain('id="notes-2"');
+  });
+
+  it("restarts numbering on every render (no cross-render leakage)", () => {
+    renderMarkdown("# Notes\n");
+    expect(renderMarkdown("# Notes\n")).toContain('id="notes"');
+  });
+
+  it("survives sanitizing", () => {
+    expect(renderMarkdown("## Kept")).toMatch(/<h2[^>]*id="kept"/);
   });
 });
