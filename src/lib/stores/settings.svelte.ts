@@ -3,6 +3,7 @@
 import { type Store } from "@tauri-apps/plugin-store";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { tryLoadStore } from "$lib/stores/persist";
+import { tauriOnly } from "$lib/ipc";
 import { clampZoom, clampFontSize, clampDebounce, clampAutosaveDelay } from "$lib/settings-util";
 import { type DateFormat } from "$lib/date-format";
 import { type IndentStyle } from "$lib/md-indent";
@@ -132,9 +133,7 @@ class SettingsStore {
   }
 
   applyZoom() {
-    getCurrentWebview()
-      .setZoom(this.uiZoom)
-      .catch(() => {}); // not under Tauri
+    tauriOnly(() => getCurrentWebview().setZoom(this.uiZoom));
   }
 
   applyTheme() {

@@ -10,6 +10,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest run",
+    "smoke": "vite build && bun run scripts/smoke.ts",
     "tauri": "tauri"
   },
   "license": "MIT",

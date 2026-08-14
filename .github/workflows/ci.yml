@@ -23,3 +23,7 @@ jobs:
         run: bun run test
       - name: Build
         run: bun run build
+      # Drives the built app in headless Chrome (the runner image ships one), so
+      # real key handling, layout and scrolling are covered — not just jsdom.
+      - name: UI smoke test
+        run: bun run scripts/smoke.ts

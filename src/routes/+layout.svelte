@@ -8,7 +8,7 @@
   import { updater } from "$lib/stores/updater.svelte";
   import { fileAssoc } from "$lib/stores/fileassoc.svelte";
   import { tabs } from "$lib/stores/tabs.svelte";
-  import { takeLaunchFiles } from "$lib/ipc";
+  import { takeLaunchFiles, tauriOnly } from "$lib/ipc";
   import { prewarm } from "$lib/prewarm";
   import { dialogPreloads } from "$lib/components/dialogs.svelte";
   import { preloadHtmlToMarkdown } from "$lib/html-to-md";
@@ -35,13 +35,15 @@
       await Promise.all([settings.init(), recent.init(), snippets.init()]);
       // Apply the startup window state (maximized by default; the OS window
       // already opens maximized, so this only matters when set to normal).
-      const win = getCurrentWindow();
-      await (settings.startupMaximized ? win.maximize() : win.unmaximize()).catch(() => {});
+      tauriOnly(() => {
+        const win = getCurrentWindow();
+        return settings.startupMaximized ? win.maximize() : win.unmaximize();
+      });
       // The window starts hidden (tauri.conf.json) to avoid a white flash;
       // reveal it only after the theme is painted. Rust shows it regardless
       // after 3s, so a failure here can't leave the app windowless.
       await new Promise(requestAnimationFrame);
-      win.show().catch(() => {});
+      tauriOnly(() => getCurrentWindow().show());
       await session.restore();
       openPaths(await takeLaunchFiles());
     })().finally(() => {
@@ -69,12 +71,13 @@
       .catch(() => {}); // not under Tauri
 
     // Files dropped onto the window.
-    getCurrentWebview()
-      .onDragDropEvent((e) => {
-        if (e.payload.type === "drop") openPaths(e.payload.paths);
-      })
-      .then((fn) => unlisteners.push(fn))
-      .catch(() => {});
+    tauriOnly(() =>
+      getCurrentWebview()
+        .onDragDropEvent((e) => {
+          if (e.payload.type === "drop") openPaths(e.payload.paths);
+        })
+        .then((fn) => unlisteners.push(fn)),
+    );
 
     const flush = () => void session.flush();
     window.addEventListener("beforeunload", flush);

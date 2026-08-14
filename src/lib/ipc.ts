@@ -27,6 +27,21 @@ export interface LoadedFile {
   encoding: Encoding;
 }
 
+/** Run a Tauri-only call and shrug it off when there is no Tauri.
+ *
+ *  Accessors like `getCurrentWindow()` throw *synchronously* without the
+ *  injected internals, so a trailing `.catch()` doesn't cover them — an
+ *  unguarded call takes the whole startup down in a plain browser (which is how
+ *  `bun run smoke` drives the UI). */
+export function tauriOnly(call: () => Promise<unknown> | void): void {
+  try {
+    const r = call();
+    if (r instanceof Promise) r.catch(() => {});
+  } catch {
+    /* not under Tauri */
+  }
+}
+
 const MD_FILTERS = [
   { name: "Markdown", extensions: ["md", "markdown", "mdown", "mkd", "mdx"] },
   { name: "Text", extensions: ["txt"] },

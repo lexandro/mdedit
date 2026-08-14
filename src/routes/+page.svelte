@@ -32,6 +32,7 @@
   import { t } from "$lib/i18n";
   import { exportHtml, exportPdf, copyAsHtml } from "$lib/export";
   import { getCurrentWindow } from "@tauri-apps/api/window";
+  import { tauriOnly } from "$lib/ipc";
 
   let settingsOpen = $state(false);
   let aboutOpen = $state(false);
@@ -49,9 +50,7 @@
   $effect(() => {
     const t = tabs.active;
     const title = t ? `${isDirty(t) ? "● " : ""}${tabTitle(t)} — mdedit` : "mdedit";
-    getCurrentWindow()
-      .setTitle(title)
-      .catch(() => {}); // not under Tauri
+    tauriOnly(() => getCurrentWindow().setTitle(title));
   });
 
   // Autosave: when enabled, save the active path-backed tab after the user stops
@@ -79,7 +78,7 @@
     save_all: () => void tabs.saveAll(),
     close_tab: () => tabs.activeId != null && void tabs.closeWithConfirm(tabs.activeId),
     reopen_closed: () => tabs.reopenClosed(),
-    quit: () => void getCurrentWindow().close(),
+    quit: () => tauriOnly(() => getCurrentWindow().close()),
     export_html: () => void (tabs.active && exportHtml(tabs.active.content, docTitle())),
     export_pdf: () => tabs.active && exportPdf(tabs.active.content, tabs.active.path, docTitle()),
     copy_html: () => void (tabs.active && copyAsHtml(tabs.active.content)),
