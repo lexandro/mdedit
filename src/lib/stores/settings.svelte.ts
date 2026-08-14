@@ -5,6 +5,7 @@ import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { tryLoadStore } from "$lib/stores/persist";
 import { clampZoom, clampFontSize, clampDebounce, clampAutosaveDelay } from "$lib/settings-util";
 import { type DateFormat } from "$lib/date-format";
+import { type IndentStyle } from "$lib/md-indent";
 
 export {
   ZOOM_MIN,
@@ -42,6 +43,7 @@ interface PersistShape {
   spellcheck: boolean;
   spellcheckLang: string;
   dateFormat: DateFormat;
+  indentStyle: IndentStyle;
 }
 
 const DEFAULTS: PersistShape = {
@@ -59,6 +61,7 @@ const DEFAULTS: PersistShape = {
   spellcheck: false, // opt-in: native spellcheck squiggles code/URLs too
   spellcheckLang: "", // empty = WebView system dictionary
   dateFormat: "iso",
+  indentStyle: "spaces", // spaces keep the editor, preview and export identical
 };
 
 class SettingsStore {
@@ -76,6 +79,7 @@ class SettingsStore {
   spellcheck = $state<boolean>(DEFAULTS.spellcheck);
   spellcheckLang = $state<string>(DEFAULTS.spellcheckLang);
   dateFormat = $state<DateFormat>(DEFAULTS.dateFormat);
+  indentStyle = $state<IndentStyle>(DEFAULTS.indentStyle);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -117,6 +121,7 @@ class SettingsStore {
       this.spellcheckLang =
         (await this.#store.get<string>("spellcheckLang")) ?? DEFAULTS.spellcheckLang;
       this.dateFormat = (await this.#store.get<DateFormat>("dateFormat")) ?? DEFAULTS.dateFormat;
+      this.indentStyle = (await this.#store.get<IndentStyle>("indentStyle")) ?? DEFAULTS.indentStyle;
     }
     this.applyTheme();
     this.applyZoom();
@@ -205,6 +210,11 @@ class SettingsStore {
   async setDateFormat(f: DateFormat) {
     this.dateFormat = f;
     await this.#store?.set("dateFormat", f);
+  }
+
+  async setIndentStyle(s: IndentStyle) {
+    this.indentStyle = s;
+    await this.#store?.set("indentStyle", s);
   }
 }
 

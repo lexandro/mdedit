@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toggleEmphasis, nextListPrefix, linkFromPaste } from "./md-format-core";
+import { toggleEmphasis, nextListPrefix, linkFromPaste, parseListLine } from "./md-format-core";
 
 describe("toggleEmphasis", () => {
   it("wraps unwrapped text, selecting the inner text", () => {
@@ -37,6 +37,29 @@ describe("toggleEmphasis", () => {
   it("toggles inline code too", () => {
     expect(toggleEmphasis("x", "", "", "`").insert).toBe("`x`");
     expect(toggleEmphasis("x", "`", "`", "`").insert).toBe("x");
+  });
+});
+
+describe("parseListLine", () => {
+  it("returns null for non-list lines", () => {
+    expect(parseListLine("just text")).toBeNull();
+    expect(parseListLine("")).toBeNull();
+    expect(parseListLine("-no space after the marker")).toBeNull();
+  });
+  it("splits indent, marker, gap and content", () => {
+    expect(parseListLine("  -   item")).toEqual({
+      indent: "  ",
+      marker: "-",
+      gap: "   ",
+      checkbox: "",
+      content: "item",
+    });
+  });
+  it("separates a task checkbox from the content", () => {
+    expect(parseListLine("- [x] done")).toMatchObject({ marker: "-", checkbox: "[x] ", content: "done" });
+  });
+  it("keeps the ordered marker with its delimiter", () => {
+    expect(parseListLine("10) item")).toMatchObject({ marker: "10)", gap: " " });
   });
 });
 

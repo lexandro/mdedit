@@ -60,17 +60,33 @@ export function linkFromPaste(selected: string, pasted: string): string | null {
 
 const LIST_RE = /^(\s*)([-*+]|\d+[.)])(\s+)(\[[ xX]\]\s+)?(.*)$/;
 
+export interface ListLine {
+  indent: string; // leading whitespace
+  marker: string; // "-" | "*" | "+" | "1." | "1)"
+  gap: string; // whitespace between the marker and the content
+  checkbox: string; // "[ ] " / "[x] " with its trailing space, or ""
+  content: string;
+}
+
+/** Split a Markdown list line into its parts, or null when it isn't one. The
+ *  single home of list-line syntax (Enter continuation, Tab indentation). */
+export function parseListLine(line: string): ListLine | null {
+  const m = line.match(LIST_RE);
+  if (!m) return null;
+  const [, indent, marker, gap, checkbox, content] = m;
+  return { indent, marker, gap, checkbox: checkbox ?? "", content };
+}
+
 export type ListAction = { exit: true } | { prefix: string } | null;
 
 /** Decide what Enter should do on a list line: exit (empty item), continue with
  *  the next marker, or nothing (not a list line). */
 export function nextListPrefix(line: string): ListAction {
-  const m = line.match(LIST_RE);
-  if (!m) return null;
-  const [, indent, marker, space, checkbox, content] = m;
-  if (content.trim() === "") return { exit: true };
-  const nextMarker = /^\d+[.)]$/.test(marker)
-    ? `${parseInt(marker, 10) + 1}${marker.slice(-1)}`
-    : marker;
-  return { prefix: indent + nextMarker + space + (checkbox ? "[ ] " : "") };
+  const li = parseListLine(line);
+  if (!li) return null;
+  if (li.content.trim() === "") return { exit: true };
+  const nextMarker = /^\d+[.)]$/.test(li.marker)
+    ? `${parseInt(li.marker, 10) + 1}${li.marker.slice(-1)}`
+    : li.marker;
+  return { prefix: li.indent + nextMarker + li.gap + (li.checkbox ? "[ ] " : "") };
 }

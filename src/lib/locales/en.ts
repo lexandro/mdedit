@@ -116,6 +116,11 @@ export const en: Record<string, string> = {
   "settings.incFont": "Increase editor font size",
   "settings.decDelay": "Decrease preview delay",
   "settings.incDelay": "Increase preview delay",
+  "settings.indent": "Tab key",
+  "settings.indentSpaces": "Spaces",
+  "settings.indentTab": "Tab character",
+  "settings.indentHint":
+    "What Tab types at the cursor, using Markdown's 4-column tab stops. Indenting a list item always aligns with spaces, so it stays a sub-list.",
   "settings.spellcheck": "Spell check",
   "settings.spellcheckHint": "Underline misspelled words using the system dictionaries.",
   "settings.spellcheckLang": "Spell-check language",

@@ -117,6 +117,11 @@ export const hu: Record<string, string> = {
   "settings.incFont": "Betűméret növelése",
   "settings.decDelay": "Késleltetés csökkentése",
   "settings.incDelay": "Késleltetés növelése",
+  "settings.indent": "Tab billentyű",
+  "settings.indentSpaces": "Szóközök",
+  "settings.indentTab": "Tab karakter",
+  "settings.indentHint":
+    "Mit gépel a Tab a kurzornál, a Markdown 4 oszlopos tabulátorpozíciói szerint. A listaelemek behúzása mindig szóközzel igazít, így al-lista marad.",
   "settings.spellcheck": "Helyesírás-ellenőrzés",
   "settings.spellcheckHint": "Aláhúzza a hibás szavakat a rendszer szótárai alapján.",
   "settings.spellcheckLang": "Ellenőrzés nyelve",

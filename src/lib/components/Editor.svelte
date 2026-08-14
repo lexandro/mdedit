@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
   import { EditorState, Compartment } from "@codemirror/state";
-  import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
+  import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
   import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
   import {
     closeBrackets,
@@ -11,8 +11,15 @@
     acceptCompletion,
   } from "@codemirror/autocomplete";
   import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-  import { syntaxHighlighting, defaultHighlightStyle, foldKeymap } from "@codemirror/language";
+  import {
+    syntaxHighlighting,
+    defaultHighlightStyle,
+    foldKeymap,
+    indentUnit,
+  } from "@codemirror/language";
   import { markdownFolding } from "$lib/editor/md-fold";
+  import { mdTabKeymap } from "$lib/editor/md-tab";
+  import { TAB_STOP } from "$lib/md-indent";
   import { oneDark } from "@codemirror/theme-one-dark";
   import { tabs, type Tab } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
@@ -49,6 +56,12 @@
   const wrapCompartment = new Compartment();
   const liveCompartment = new Compartment();
   const spellCompartment = new Compartment();
+  const indentCompartment = new Compartment();
+
+  // Block indent (Ctrl+] and multi-line Tab) steps by one CommonMark tab stop.
+  function indentExtension() {
+    return indentUnit.of(settings.indentStyle === "tab" ? "\t" : " ".repeat(TAB_STOP));
+  }
 
   function spellExtension() {
     return EditorView.contentAttributes.of(
@@ -154,6 +167,7 @@
           autocompletion({ override: [snippetSource], icons: false }),
           wrapCompartment.of(settings.wordWrap ? EditorView.lineWrapping : []),
           spellCompartment.of(spellExtension()),
+          indentCompartment.of(indentExtension()),
           liveCompartment.of(live ? livePreview(tab.path) : []),
           markdown({ base: markdownLanguage }), // GFM: tables, strikethrough, task lists
           EditorView.domEventHandlers({ paste: handlePaste }),
@@ -170,7 +184,7 @@
             ...foldKeymap,
             // Tab: snippet-field nav (auto, Prec.highest) → accept completion → indent.
             { key: "Tab", run: acceptCompletion },
-            indentWithTab,
+            ...mdTabKeymap(() => settings.indentStyle),
           ]),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) {
@@ -217,6 +231,12 @@
     view?.dispatch({
       effects: wrapCompartment.reconfigure(wrap ? EditorView.lineWrapping : []),
     });
+  });
+
+  // Switch the block-indent unit when the tab style changes.
+  $effect(() => {
+    const _style = settings.indentStyle;
+    view?.dispatch({ effects: indentCompartment.reconfigure(indentExtension()) });
   });
 
   // Re-apply native spellcheck attributes when the setting or language changes.

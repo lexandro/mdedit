@@ -172,6 +172,21 @@
         </section>
 
         <section>
+          <h3>{t("settings.indent")}</h3>
+          <div class="seg">
+            <button
+              class:active={settings.indentStyle === "spaces"}
+              onclick={() => settings.setIndentStyle("spaces")}>{t("settings.indentSpaces")}</button
+            >
+            <button
+              class:active={settings.indentStyle === "tab"}
+              onclick={() => settings.setIndentStyle("tab")}>{t("settings.indentTab")}</button
+            >
+          </div>
+          <p class="hint">{t("settings.indentHint")}</p>
+        </section>
+
+        <section>
           <h3>{t("settings.spellcheck")}</h3>
           <div class="seg">
             <button class:active={settings.spellcheck} onclick={() => settings.setSpellcheck(true)}

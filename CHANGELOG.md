@@ -3,6 +3,25 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- **Tab types at the cursor instead of shoving the whole line.** The editor used
+  CodeMirror's stock `indentWithTab`, which is line-based: pressing Tab in the
+  middle of a line indented the entire line. Tab now inserts at the cursor, up
+  to Markdown's 4-column tab stop. Pressing it at the start of a list item still
+  indents the item — aligned to the previous sibling's content column ("- " → 2,
+  "1. " → 3), which is what CommonMark needs for a real sub-list; Shift+Tab moves
+  it back out. Selections behave as before: within one line the selection is
+  replaced, across lines the block is indented.
+
+### Added
+
+- **Settings → Editor → Tab key**: choose whether Tab types spaces (default) or a
+  real tab character. List indentation always aligns with spaces, since a tab
+  cannot land on a 2- or 3-column content boundary.
+
 ## v0.11.1 — 2026-08-09
 
 ### Changed
