@@ -128,6 +128,9 @@ export const hu: Record<string, string> = {
   "settings.spellcheckSystem": "Rendszer szerinti",
   "settings.autosave": "Automatikus mentés",
   "settings.autosaveHint": "A változások automatikus mentése a gépelés abbahagyása után (csak mentett fájloknál).",
+  "settings.autoReload": "Módosult fájlok automatikus újratöltése",
+  "settings.autoReloadHint":
+    "A fájl lemezen történt módosulásakor csendben frissíti a tartalmat, kérdés nélkül. Mentetlen módosítás esetén továbbra is rákérdez.",
   "settings.autosaveDelay": "Mentési késleltetés",
   "settings.decAutosave": "Mentési késleltetés csökkentése",
   "settings.incAutosave": "Mentési késleltetés növelése",

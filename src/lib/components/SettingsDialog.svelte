@@ -256,6 +256,19 @@
             </div>
           </section>
         {/if}
+
+        <section>
+          <h3>{t("settings.autoReload")}</h3>
+          <div class="seg">
+            <button class:active={settings.autoReload} onclick={() => settings.setAutoReload(true)}
+              >{t("settings.on")}</button
+            >
+            <button class:active={!settings.autoReload} onclick={() => settings.setAutoReload(false)}
+              >{t("settings.off")}</button
+            >
+          </div>
+          <p class="hint">{t("settings.autoReloadHint")}</p>
+        </section>
       {:else if tab === "preview"}
         <section>
           <h3>{t("settings.defaultView")}</h3>

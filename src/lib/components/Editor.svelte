@@ -278,9 +278,16 @@
     // full-document toString (and string compare) per keypress.
     if (incoming === lastPushed) return;
     if (view && incoming !== view.state.doc.toString()) {
+      // Replacing the whole document maps the cursor to offset 0 and scrolls to
+      // the top; restore both, or an auto-reloading file yanks the reader back
+      // to the start on every write.
+      const head = Math.min(view.state.selection.main.head, incoming.length);
+      const top = view.scrollDOM.scrollTop;
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: incoming },
+        selection: { anchor: head },
       });
+      view.scrollDOM.scrollTop = top;
     }
   });
 

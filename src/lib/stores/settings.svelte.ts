@@ -44,6 +44,7 @@ interface PersistShape {
   spellcheckLang: string;
   dateFormat: DateFormat;
   indentStyle: IndentStyle;
+  autoReload: boolean;
 }
 
 const DEFAULTS: PersistShape = {
@@ -62,6 +63,7 @@ const DEFAULTS: PersistShape = {
   spellcheckLang: "", // empty = WebView system dictionary
   dateFormat: "iso",
   indentStyle: "spaces", // spaces keep the editor, preview and export identical
+  autoReload: false, // opt-in: silently replacing the buffer surprises people
 };
 
 class SettingsStore {
@@ -80,6 +82,7 @@ class SettingsStore {
   spellcheckLang = $state<string>(DEFAULTS.spellcheckLang);
   dateFormat = $state<DateFormat>(DEFAULTS.dateFormat);
   indentStyle = $state<IndentStyle>(DEFAULTS.indentStyle);
+  autoReload = $state<boolean>(DEFAULTS.autoReload);
 
   /** The actually-applied light/dark value, after resolving "system". */
   resolvedTheme = $state<"light" | "dark">("light");
@@ -122,6 +125,7 @@ class SettingsStore {
         (await this.#store.get<string>("spellcheckLang")) ?? DEFAULTS.spellcheckLang;
       this.dateFormat = (await this.#store.get<DateFormat>("dateFormat")) ?? DEFAULTS.dateFormat;
       this.indentStyle = (await this.#store.get<IndentStyle>("indentStyle")) ?? DEFAULTS.indentStyle;
+      this.autoReload = (await this.#store.get<boolean>("autoReload")) ?? DEFAULTS.autoReload;
     }
     this.applyTheme();
     this.applyZoom();
@@ -210,6 +214,11 @@ class SettingsStore {
   async setDateFormat(f: DateFormat) {
     this.dateFormat = f;
     await this.#store?.set("dateFormat", f);
+  }
+
+  async setAutoReload(on: boolean) {
+    this.autoReload = on;
+    await this.#store?.set("autoReload", on);
   }
 
   async setIndentStyle(s: IndentStyle) {

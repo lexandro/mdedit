@@ -127,6 +127,9 @@ export const en: Record<string, string> = {
   "settings.spellcheckSystem": "System default",
   "settings.autosave": "Autosave",
   "settings.autosaveHint": "Save changes automatically after you stop typing (saved files only).",
+  "settings.autoReload": "Auto-reload changed files",
+  "settings.autoReloadHint":
+    "Refresh the buffer silently when the file changes on disk, instead of asking every time. A tab with unsaved edits still asks first.",
   "settings.autosaveDelay": "Autosave delay",
   "settings.decAutosave": "Decrease autosave delay",
   "settings.incAutosave": "Increase autosave delay",

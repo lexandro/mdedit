@@ -235,12 +235,16 @@ class TabsStore {
     }
     if (loaded.content === tab.savedContent) return; // no real change (e.g. our own save)
 
-    // Notepad++-style: notice the external edit and offer to reload.
-    const name = tabTitle(tab);
-    const msg = isDirty(tab)
-      ? t("confirm.reloadDiscard", { name })
-      : t("confirm.reload", { name });
-    if (!(await this.#confirm(msg, t("confirm.fileChangedTitle")))) return;
+    // Notepad++-style: notice the external edit and offer to reload. With
+    // auto-reload on we skip the prompt — but never over unsaved edits, which a
+    // reload would silently throw away.
+    if (!settings.autoReload || isDirty(tab)) {
+      const name = tabTitle(tab);
+      const msg = isDirty(tab)
+        ? t("confirm.reloadDiscard", { name })
+        : t("confirm.reload", { name });
+      if (!(await this.#confirm(msg, t("confirm.fileChangedTitle")))) return;
+    }
 
     tab.content = loaded.content;
     tab.savedContent = loaded.content;

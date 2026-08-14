@@ -33,6 +33,11 @@ All notable changes to mdedit are documented here. This project adheres to
 - **Settings → Editor → Tab key**: choose whether Tab types spaces (default) or a
   real tab character. List indentation always aligns with spaces, since a tab
   cannot land on a 2- or 3-column content boundary.
+- **Settings → Editor → Auto-reload changed files**: when a file keeps changing
+  on disk, stop answering the same reload prompt over and over — the buffer
+  refreshes silently instead. A tab with unsaved edits still asks first, so this
+  can never discard your work. Reloading now also keeps the cursor and scroll
+  position, which a full-document replace used to reset to the top.
 
 ## v0.11.1 — 2026-08-09
 
