@@ -289,6 +289,9 @@ export const en: Record<string, string> = {
   "confirm.reloadDiscard":
     '"{name}" was modified by another program.\nReload and discard your unsaved changes?',
   "confirm.reload": '"{name}" was modified by another program.\nReload it?',
+  "confirm.reloadAction": "Reload",
+  "confirm.keep": "Keep mine",
+  "confirm.autoReloadFromNow": "Don't ask again — reload automatically from now on",
   "confirm.discard": 'Discard unsaved changes to "{name}"?',
   "confirm.createFileTitle": "File not found",
   "confirm.createFile": '"{name}" doesn\'t exist yet.\nCreate it as a new empty file?\n\n{path}',

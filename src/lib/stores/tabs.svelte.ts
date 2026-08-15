@@ -18,6 +18,7 @@ import { moveItem } from "$lib/array-util";
 import { trimClosedStack } from "$lib/tab-history";
 import { settings, type ViewMode } from "$lib/stores/settings.svelte";
 import { recent } from "$lib/stores/recent.svelte";
+import { confirmDialog } from "$lib/stores/confirm.svelte";
 import { toasts } from "$lib/stores/toasts.svelte";
 import { t } from "$lib/i18n";
 
@@ -240,10 +241,18 @@ class TabsStore {
     // reload would silently throw away.
     if (!settings.autoReload || isDirty(tab)) {
       const name = tabTitle(tab);
-      const msg = isDirty(tab)
-        ? t("confirm.reloadDiscard", { name })
-        : t("confirm.reload", { name });
-      if (!(await this.#confirm(msg, t("confirm.fileChangedTitle")))) return;
+      const dirty = isDirty(tab);
+      const { confirmed, checked } = await confirmDialog.ask({
+        title: t("confirm.fileChangedTitle"),
+        message: dirty ? t("confirm.reloadDiscard", { name }) : t("confirm.reload", { name }),
+        confirmLabel: t("confirm.reloadAction"),
+        cancelLabel: t("confirm.keep"),
+        // No "don't ask again" over unsaved edits: a dirty buffer asks even with
+        // auto-reload on, so the option would promise something we never do.
+        optionLabel: dirty ? undefined : t("confirm.autoReloadFromNow"),
+      });
+      if (!confirmed) return;
+      if (checked) await settings.setAutoReload(true);
     }
 
     tab.content = loaded.content;

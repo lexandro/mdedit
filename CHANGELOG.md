@@ -13,6 +13,13 @@ All notable changes to mdedit are documented here. This project adheres to
   that history like a browser, as do Alt+Left / Alt+Right and the new Edit-menu
   entries. Each tab keeps its own history.
 
+- **"File changed on disk" now asks inside the app**, in a themed dialog instead
+  of the bare OS message box — and it carries a **"Don't ask again — reload
+  automatically from now on"** checkbox. Tick it and confirm, and auto-reload
+  stays on (the same switch as Settings → Editor), so the prompt stops coming
+  back. Enter reloads, Escape keeps your buffer. A tab with unsaved edits still
+  asks every time, so the option isn't offered there.
+
 ### Fixed
 
 - Anchor jumps in the preview are instant for anyone whose system asks for

@@ -9,6 +9,9 @@
   import AssocBanner from "$lib/components/AssocBanner.svelte";
   import Outline from "$lib/components/Outline.svelte";
   import Toasts from "$lib/components/Toasts.svelte";
+  // Not code-split: a confirm request can arrive from a background event (a file
+  // changing on disk), and a chunk still loading would strand its promise.
+  import ConfirmDialog from "$lib/components/ConfirmDialog.svelte";
   // Dialogs are code-split; each `.current` is null until its chunk arrives.
   import {
     SettingsDialog,
@@ -267,6 +270,7 @@
     onClose={() => (tableEdit = null)}
   />
 {/if}
+<ConfirmDialog />
 <Toasts />
 
 <style>

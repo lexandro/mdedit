@@ -290,6 +290,9 @@ export const hu: Record<string, string> = {
   "confirm.reloadDiscard":
     "A(z) „{name}” fájlt egy másik program módosította.\nÚjratöltöd, eldobva a nem mentett változtatásokat?",
   "confirm.reload": "A(z) „{name}” fájlt egy másik program módosította.\nÚjratöltöd?",
+  "confirm.reloadAction": "Újratöltés",
+  "confirm.keep": "Marad a jelenlegi",
+  "confirm.autoReloadFromNow": "Ne kérdezd többé – mostantól töltse újra automatikusan",
   "confirm.discard": "Eldobod a(z) „{name}” nem mentett változtatásait?",
   "confirm.createFileTitle": "A fájl nem található",
   "confirm.createFile": "A(z) „{name}” még nem létezik.\nLétrehozod új, üres fájlként?\n\n{path}",
