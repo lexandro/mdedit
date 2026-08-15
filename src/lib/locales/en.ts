@@ -30,6 +30,8 @@ export const en: Record<string, string> = {
   "cmd.paste_as_markdown": "Paste as Markdown",
   "cmd.select_all": "Select All",
   "cmd.goto_line": "Go to Line…",
+  "cmd.jump_back": "Go Back",
+  "cmd.jump_forward": "Go Forward",
   "cmd.edit_table": "Table Editor…",
   "cmd.insert_toc": "Insert Table of Contents",
   "cmd.insert_emoji": "Insert Emoji…",
@@ -264,6 +266,7 @@ export const en: Record<string, string> = {
   "toast.pasteImageFail": "Couldn't save pasted image",
   "toast.tableFail": "Couldn't update table",
   "toast.anchorMissing": "No heading matches #{id}",
+  "toast.jumpUnavailable": "That position isn't in this view",
 
   // File association (.md handler)
   "assoc.prompt": "mdedit isn't your default Markdown editor.",

@@ -101,10 +101,26 @@ const lineText = (n: number) =>
   check("Tab nests a list item", line === "  - second", `line = ${JSON.stringify(line)}`);
 }
 
+const filler = (tag: string) =>
+  Array.from({ length: 60 }, (_, i) => `${tag} filler line ${i + 1}.`).join("\n\n");
+
+const previewTop = () => page.eval<number>("document.querySelector('.preview').scrollTop");
+
+/** Wait for a preview measurement to stop changing. Wrapped in an object so a
+ *  settled value of 0 still reads as an answer. */
+const settle = (expr: string) =>
+  until(
+    "the preview to settle",
+    async () => {
+      const a = await page.eval<number>(expr);
+      await Bun.sleep(150);
+      return a === (await page.eval<number>(expr)) ? { value: a } : null;
+    },
+    8000,
+  ).then((r) => r.value);
+
 // 3. An anchor link scrolls the preview to its heading.
 {
-  const filler = (tag: string) =>
-    Array.from({ length: 60 }, (_, i) => `${tag} filler line ${i + 1}.`).join("\n\n");
   // Filler *after* the heading too: at the very end of the document the pane
   // simply cannot scroll the heading up to its top edge.
   await setDoc(
@@ -113,17 +129,16 @@ const lineText = (n: number) =>
   await until("the preview to render", () =>
     page.eval("!!document.querySelector('.preview a[href^=\"#\"]')"),
   );
-  const scrollTop = () => page.eval<number>("document.querySelector('.preview').scrollTop");
-  const before = await scrollTop();
+  const before = await previewTop();
   await page.click('.preview a[href^="#"]');
   // Smooth scrolling is animated: wait for the position to stop moving, or the
   // heading gets measured mid-flight.
   const after = await until(
     "the scroll to settle",
     async () => {
-      const a = await scrollTop();
+      const a = await previewTop();
       await Bun.sleep(150);
-      const b = await scrollTop();
+      const b = await previewTop();
       return a === b && b > 0 ? b : null;
     },
     8000,
@@ -146,6 +161,45 @@ const lineText = (n: number) =>
     "Anchor link scrolls the preview to its heading",
     before === 0 && after > 0 && after < maxScroll && offset !== null && Math.abs(offset) <= 100,
     `scrollTop ${before} -> ${after} (max ${maxScroll}), heading offset from pane top: ${offset}px`,
+  );
+}
+
+// 4. The mouse side buttons retrace an anchor jump.
+{
+  await setDoc(
+    `[Jump](#target-heading)\n\n${filler("Before")}\n\n# Target heading\n\n${filler("After")}`,
+  );
+  await until("the preview to render", () =>
+    page.eval("!!document.querySelector('.preview a[href^=\"#\"]')"),
+  );
+  // The pane re-renders (debounced Markdown) after it first paints, and the
+  // browser then re-anchors the scroll. Measuring before that lands leaves the
+  // reference position drifting, which is a test bug, not a product one.
+  await settle("document.querySelector('.preview').scrollHeight");
+  const press = async (button: "back" | "forward") => {
+    for (const type of ["mousePressed", "mouseReleased"]) {
+      await page.send("Input.dispatchMouseEvent", {
+        type,
+        x: 400,
+        y: 400,
+        button,
+        buttons: type === "mousePressed" ? (button === "back" ? 8 : 16) : 0,
+        clickCount: 1,
+      });
+    }
+    return settle("document.querySelector('.preview').scrollTop");
+  };
+  // Block 3 left the pane scrolled; start this one from the top.
+  await page.eval("document.querySelector('.preview').scrollTop = 0");
+  const before = await settle("document.querySelector('.preview').scrollTop");
+  await page.click('.preview a[href^="#"]');
+  const jumped = await settle("document.querySelector('.preview').scrollTop");
+  const backTo = await press("back");
+  const fwdTo = await press("forward");
+  check(
+    "Mouse back/forward retrace the anchor jump",
+    before === 0 && jumped > 0 && backTo === 0 && Math.abs(fwdTo - jumped) <= 2,
+    `scrollTop ${before} -> jump ${jumped} -> back ${backTo} -> forward ${fwdTo}`,
   );
 }
 

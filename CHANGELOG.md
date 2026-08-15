@@ -5,6 +5,14 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ## Unreleased
 
+### Added
+
+- **Back and forward through in-document jumps.** Following a `#` link (in the
+  preview or with Ctrl+click in live mode), clicking an outline entry or using
+  Go to Line now records where you jumped from. The mouse's side buttons walk
+  that history like a browser, as do Alt+Left / Alt+Right and the new Edit-menu
+  entries. Each tab keeps its own history.
+
 ### Fixed
 
 - Anchor jumps in the preview are instant for anyone whose system asks for

@@ -66,6 +66,8 @@
         "sep",
         { label: t("cmd.select_all"), id: "select_all", shortcut: "Ctrl+A" },
         { label: t("cmd.goto_line"), id: "goto_line", shortcut: "Ctrl+G" },
+        { label: t("cmd.jump_back"), id: "jump_back", shortcut: "Alt+Left" },
+        { label: t("cmd.jump_forward"), id: "jump_forward", shortcut: "Alt+Right" },
         "sep",
         { label: t("cmd.edit_table"), id: "edit_table", shortcut: "Ctrl+T" },
         { label: t("cmd.insert_toc"), id: "insert_toc" },

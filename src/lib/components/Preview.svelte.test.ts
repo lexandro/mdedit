@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render } from "@testing-library/svelte";
 import { tick } from "svelte";
 import Preview from "./Preview.svelte";
+import { canGoBack, canGoForward, jumpBack } from "$lib/jump-nav";
+import { tabs } from "$lib/stores/tabs.svelte";
 import { toasts } from "$lib/stores/toasts.svelte";
 
 // jsdom has no layout, so scrollIntoView is missing entirely.
@@ -11,6 +13,7 @@ Element.prototype.scrollIntoView = scrollIntoView;
 beforeEach(() => {
   scrollIntoView.mockClear();
   toasts.items = [];
+  tabs.newTab(); // a fresh tab id means a fresh jump stack (module singleton)
 });
 
 async function mount(source: string) {
@@ -44,6 +47,24 @@ describe("Preview — anchor links", () => {
     container.querySelector("a")!.click();
     expect(scrollIntoView).not.toHaveBeenCalled();
     expect(toasts.items.at(-1)?.message).toContain("missing");
+  });
+
+  // jsdom has no layout, so every offset measures 0: assert the wiring, not pixels.
+  it("records the jump so back and forward can retrace it", async () => {
+    const container = await mount(doc);
+    expect(canGoBack()).toBe(false);
+    container.querySelector("a")!.click();
+    expect(canGoBack()).toBe(true);
+    jumpBack();
+    expect(canGoBack()).toBe(false);
+    expect(canGoForward()).toBe(true);
+    expect(toasts.items).toHaveLength(0); // the pane is mounted: no "unavailable"
+  });
+
+  it("records nothing for a link that points at no heading", async () => {
+    const container = await mount("# Real\n\n[x](#missing)\n");
+    container.querySelector("a")!.click();
+    expect(canGoBack()).toBe(false);
   });
 
   it("leaves external links to the webview", async () => {

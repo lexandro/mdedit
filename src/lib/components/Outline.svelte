@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goToLine } from "$lib/editor-commands";
+  import { jumpToLine } from "$lib/jump-nav";
   import { parseHeadings } from "$lib/md-headings";
   import { t } from "$lib/i18n";
 
@@ -16,7 +16,7 @@
     <ul>
       {#each headings as h (h.line)}
         <li>
-          <button style="padding-left: {(h.level - 1) * 12 + 8}px" onclick={() => goToLine(h.line)}>
+          <button style="padding-left: {(h.level - 1) * 12 + 8}px" onclick={() => jumpToLine(h.line)}>
             {h.text}
           </button>
         </li>

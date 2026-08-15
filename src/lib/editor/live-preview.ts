@@ -20,6 +20,8 @@ import { anchorId, anchorLine } from "$lib/md-headings";
 import { renderMarkdown, resolveAssetSrc } from "$lib/markdown/renderer";
 import { renderMermaidSvg } from "$lib/markdown/mermaid";
 import { RenderCache } from "$lib/render-cache";
+import { revealPos } from "$lib/editor-commands";
+import { recordEditorJump } from "$lib/jump-nav";
 import {
   headingClass,
   STYLE_CLASS,
@@ -289,17 +291,14 @@ function linkUrlAt(view: EditorView, pos: number): string | null {
 function jumpToAnchor(view: EditorView, url: string): boolean {
   const line = anchorLine(view.state.doc.toString(), url);
   if (line === null) return false;
-  const pos = view.state.doc.line(line).from;
-  view.dispatch({
-    selection: { anchor: pos },
-    effects: EditorView.scrollIntoView(pos, { y: "start", yMargin: 40 }),
-  });
+  revealPos(view, view.state.doc.line(line).from);
   return true;
 }
 
 // Ctrl/Cmd-click a rendered link to open it (plain click just edits the source).
 const openLinkOnClick = EditorView.domEventHandlers({
   mousedown(e, view) {
+    if (e.button !== 0) return false; // side buttons are jump-nav's back/forward
     if (!(e.ctrlKey || e.metaKey)) return false;
     const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
     if (pos == null) return false;
@@ -307,7 +306,12 @@ const openLinkOnClick = EditorView.domEventHandlers({
     if (!url) return false;
     if (anchorId(url) !== null) {
       const jumped = jumpToAnchor(view, url);
-      if (jumped) e.preventDefault();
+      // The click position is the origin: preventDefault keeps the cursor from
+      // moving there, so the selection still sits wherever it was before.
+      if (jumped) {
+        recordEditorJump(view, pos);
+        e.preventDefault();
+      }
       return jumped;
     }
     if (isFollowableUrl(url)) {

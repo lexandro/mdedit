@@ -29,6 +29,8 @@ export const hu: Record<string, string> = {
   "cmd.paste_as_markdown": "Beillesztés Markdownként",
   "cmd.select_all": "Összes kijelölése",
   "cmd.goto_line": "Ugrás sorra…",
+  "cmd.jump_back": "Ugrás vissza",
+  "cmd.jump_forward": "Ugrás előre",
   "cmd.edit_table": "Táblázatszerkesztő…",
   "cmd.insert_toc": "Tartalomjegyzék beszúrása",
   "cmd.insert_emoji": "Emoji beszúrása…",
@@ -265,6 +267,7 @@ export const hu: Record<string, string> = {
   "toast.pasteImageFail": "A beillesztett kép nem menthető",
   "toast.tableFail": "A táblázat frissítése nem sikerült",
   "toast.anchorMissing": "Nincs #{id} azonosítójú címsor",
+  "toast.jumpUnavailable": "Ez a pozíció ebben a nézetben nem érhető el",
 
   // File association (.md handler)
   "assoc.prompt": "A mdedit nem az alapértelmezett Markdown-szerkesztőd.",

@@ -4,6 +4,12 @@
   import { renderMermaidSvg } from "$lib/markdown/mermaid";
   import { toggleTaskInSource } from "$lib/md-tasks";
   import { anchorId } from "$lib/md-headings";
+  import {
+    anchorTarget,
+    clearActivePreview,
+    recordPreviewJump,
+    setActivePreview,
+  } from "$lib/jump-nav";
   import { settings } from "$lib/stores/settings.svelte";
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
@@ -57,7 +63,11 @@
   // through their native Enter-to-click.
   onMount(() => {
     container.addEventListener("click", onContainerClick);
-    return () => container.removeEventListener("click", onContainerClick);
+    setActivePreview(container); // the pane jump-nav scrolls back and forward
+    return () => {
+      container.removeEventListener("click", onContainerClick);
+      clearActivePreview(container);
+    };
   });
 
   // Follow in-document anchor links by scrolling this pane. Left to the webview,
@@ -68,13 +78,14 @@
     const id = href ? anchorId(href) : null;
     if (id === null) return;
     e.preventDefault();
-    // Scanning beats a selector: ids come from document text, so escaping them
-    // into a selector is a bug waiting to happen (and CSS.escape isn't universal).
-    const target = [...container.querySelectorAll("[id]")].find((el) => el.id === id);
+    const target = anchorTarget(container, id);
     if (!target) {
       toasts.show(t("toast.anchorMissing", { id }), "info");
       return;
     }
+    // Before scrolling: with reduced motion the scroll below is synchronous, so
+    // afterwards the position we jumped from is already lost.
+    recordPreviewJump(container, target);
     // Animate the jump only when the user hasn't asked for less motion.
     const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     target.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });

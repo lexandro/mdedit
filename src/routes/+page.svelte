@@ -27,6 +27,7 @@
   import { settings, type ViewMode } from "$lib/stores/settings.svelte";
   import { updater } from "$lib/stores/updater.svelte";
   import { editorCommands, formatCommands, insertToc, formatDocument } from "$lib/editor-commands";
+  import { jumpBack, jumpForward, mouseNav, pruneJumpHistory } from "$lib/jump-nav";
   import { getTableEditContext, applyTableEdit, type TableEditContext } from "$lib/table-edit";
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
@@ -94,6 +95,8 @@
     format_tables: () => formatCommands.formatTables(),
     format_document: () => formatDocument(),
     goto_line: () => (gotoOpen = true),
+    jump_back: () => jumpBack(),
+    jump_forward: () => jumpForward(),
     insert_emoji: () => (emojiOpen = true),
     insert_snippet: () => (snippetsOpen = true),
     manage_snippets: () => (snippetMgrOpen = true),
@@ -121,6 +124,12 @@
 
   // Keystroke -> command id. Tab cycling is keyboard-only (not a menu command).
   function onKeydown(e: KeyboardEvent) {
+    // Jump back/forward: the keyboard twin of the mouse side buttons, so it has
+    // to be handled above the Ctrl/Cmd gate below.
+    if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+      return commands[e.key === "ArrowLeft" ? "jump_back" : "jump_forward"]();
+    }
     if (!(e.ctrlKey || e.metaKey)) return;
     const key = e.key.toLowerCase();
 
@@ -170,6 +179,10 @@
     }
   }
 
+  // Jump stacks are keyed by tab id; drop the ones whose tab is gone. Kept here
+  // rather than in the tabs store so CodeMirror stays out of the store's imports.
+  $effect(() => pruneJumpHistory(tabs.tabs.map((tab) => tab.id)));
+
   function cycleTab(dir: number) {
     if (tabs.tabs.length === 0) return;
     const idx = tabs.tabs.findIndex((t) => t.id === tabs.activeId);
@@ -177,7 +190,7 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} />
+<svelte:window onkeydown={onKeydown} onmousedown={mouseNav} onauxclick={mouseNav} />
 
 <div class="app">
   <MenuBar onCommand={handleMenu} {outlineVisible} />

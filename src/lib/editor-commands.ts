@@ -116,16 +116,21 @@ export function insertToc() {
   applyEdit({ from, to, insert: text }, from + text.length);
 }
 
+/** Move the cursor to a document position and scroll it to the top of the view.
+ *  Shared by go-to-line, the live-preview anchor jump and jump-nav's restore. */
+export function revealPos(view: EditorView, pos: number) {
+  view.dispatch({
+    selection: { anchor: pos },
+    effects: EditorView.scrollIntoView(pos, { y: "start", yMargin: 40 }),
+  });
+}
+
 /** Move the active editor's cursor to a 1-based line and scroll it into view. */
 export function goToLine(line: number) {
   if (!activeView) return;
   const doc = activeView.state.doc;
   if (line < 1 || line > doc.lines) return;
-  const pos = doc.line(line).from;
-  activeView.dispatch({
-    selection: { anchor: pos },
-    effects: EditorView.scrollIntoView(pos, { y: "start", yMargin: 40 }),
-  });
+  revealPos(activeView, doc.line(line).from);
   activeView.focus();
 }
 

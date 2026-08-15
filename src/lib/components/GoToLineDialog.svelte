@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goToLine } from "$lib/editor-commands";
+  import { jumpToLine } from "$lib/jump-nav";
   import { t } from "$lib/i18n";
 
   let { onClose }: { onClose: () => void } = $props();
@@ -10,7 +10,7 @@
 
   function submit() {
     const n = parseInt(value, 10);
-    if (Number.isFinite(n)) goToLine(n);
+    if (Number.isFinite(n)) jumpToLine(n);
     onClose();
   }
 </script>

@@ -177,6 +177,11 @@
             { key: "Mod-b", run: (v) => wrapSelection(v, "**") },
             { key: "Mod-i", run: (v) => wrapSelection(v, "*") },
             { key: "Mod-k", run: insertLink },
+            // Alt+Arrow is the app's jump back/forward (handled on window). Claim
+            // the key so defaultKeymap's syntax-move doesn't also run: CodeMirror
+            // marks the event handled but never stops its propagation.
+            { key: "Alt-ArrowLeft", run: () => true },
+            { key: "Alt-ArrowRight", run: () => true },
             ...closeBracketsKeymap,
             ...defaultKeymap,
             ...historyKeymap,
