@@ -143,12 +143,13 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     font-size: 12.5px;
-    color: var(--fg-muted);
+    /* Full-strength text, not muted: on the light theme --fg-muted lands at
+       4.36:1 against --bg-alt, under WCAG AA, and this label is a control. */
+    color: var(--fg);
     cursor: pointer;
   }
   .option:hover {
     border-color: var(--accent);
-    color: var(--fg);
   }
   .option input {
     width: 15px;
