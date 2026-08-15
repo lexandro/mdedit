@@ -292,7 +292,11 @@ export const en: Record<string, string> = {
   "confirm.reloadAction": "Reload",
   "confirm.keep": "Keep mine",
   "confirm.autoReloadFromNow": "Don't ask again — reload automatically from now on",
-  "confirm.discard": 'Discard unsaved changes to "{name}"?',
+  "confirm.saveBeforeClose": '"{name}" has unsaved changes.\nSave them before closing?',
+  "confirm.saveAction": "Save",
+  "confirm.discardAction": "Don't save",
+  "confirm.cancel": "Cancel",
   "confirm.createFileTitle": "File not found",
   "confirm.createFile": '"{name}" doesn\'t exist yet.\nCreate it as a new empty file?\n\n{path}',
+  "confirm.createAction": "Create",
 };

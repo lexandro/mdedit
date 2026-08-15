@@ -20,6 +20,13 @@ All notable changes to mdedit are documented here. This project adheres to
   back. Enter reloads, Escape keeps your buffer. A tab with unsaved edits still
   asks every time, so the option isn't offered there.
 
+- **Closing a tab with unsaved changes now offers to save it.** The OS message
+  box could only say OK or Cancel, so "close and lose the edits" was the only
+  way forward; the in-app prompt has the third answer — Save, Don't save,
+  Cancel — with Save as the default. If saving is called off in the file picker
+  or fails, the tab stays open. "Create this file?" moved into the same dialog,
+  which leaves no OS message boxes in the app.
+
 ### Fixed
 
 - Anchor jumps in the preview are instant for anyone whose system asks for

@@ -38,7 +38,7 @@ describe("ConfirmDialog", () => {
     await fireEvent.click(box());
     await fireEvent.click(screen.getByText("Reload"));
 
-    await expect(answered).resolves.toEqual({ confirmed: true, checked: true });
+    await expect(answered).resolves.toEqual({ choice: "confirm", checked: true });
     expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
@@ -46,21 +46,40 @@ describe("ConfirmDialog", () => {
     const { answered } = await ask();
     await fireEvent.click(box());
     await fireEvent.keyDown(screen.getByRole("alertdialog"), { key: "Escape" });
-    await expect(answered).resolves.toEqual({ confirmed: false, checked: false });
+    await expect(answered).resolves.toEqual({ choice: "cancel", checked: false });
   });
 
   it("confirms on Enter and focuses the confirm button", async () => {
     const { answered } = await ask();
     expect(document.activeElement).toBe(screen.getByText("Reload"));
     await fireEvent.keyDown(screen.getByRole("alertdialog"), { key: "Enter" });
-    await expect(answered).resolves.toEqual({ confirmed: true, checked: false });
+    await expect(answered).resolves.toEqual({ choice: "confirm", checked: false });
   });
 
   it("hides the checkbox for a request that offers no option", async () => {
     const { answered } = await ask({ ...REQUEST, optionLabel: undefined });
     expect(screen.queryByRole("checkbox")).toBeNull();
     confirmDialog.cancel();
-    await expect(answered).resolves.toEqual({ confirmed: false, checked: false });
+    await expect(answered).resolves.toEqual({ choice: "cancel", checked: false });
+  });
+
+  it("offers a third answer when one is asked for", async () => {
+    const { answered } = await ask({
+      ...REQUEST,
+      optionLabel: undefined,
+      confirmLabel: "Save",
+      altLabel: "Don't save",
+      cancelLabel: "Cancel",
+    });
+    await fireEvent.click(screen.getByText("Don't save"));
+    await expect(answered).resolves.toEqual({ choice: "alt", checked: false });
+  });
+
+  it("shows only two buttons without one", async () => {
+    const { answered } = await ask();
+    expect(screen.getAllByRole("button").filter((b) => b.textContent?.trim())).toHaveLength(2);
+    confirmDialog.cancel();
+    await expect(answered).resolves.toEqual({ choice: "cancel", checked: false });
   });
 
   // A ticked box must not leak into the next file's prompt.
@@ -69,11 +88,11 @@ describe("ConfirmDialog", () => {
     const second = confirmDialog.ask(REQUEST);
     await fireEvent.click(box());
     await fireEvent.click(screen.getByText("Reload"));
-    await expect(first).resolves.toEqual({ confirmed: true, checked: true });
+    await expect(first).resolves.toEqual({ choice: "confirm", checked: true });
 
     await tick();
     expect(box().checked).toBe(false);
     confirmDialog.cancel();
-    await expect(second).resolves.toEqual({ confirmed: false, checked: false });
+    await expect(second).resolves.toEqual({ choice: "cancel", checked: false });
   });
 });

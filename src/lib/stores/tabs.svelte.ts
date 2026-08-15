@@ -1,6 +1,5 @@
 // Open-document model. Each tab owns its own buffer, file path, view mode and
 // line-ending metadata. Dirty state is derived: content !== savedContent.
-import { confirm } from "@tauri-apps/plugin-dialog";
 import {
   pathExists,
   pickOpenPath,
@@ -136,8 +135,13 @@ class TabsStore {
     // create over a file we can't even inspect — report the open error instead.
     if (await pathExists(path).catch(() => true)) return false;
     const name = basename(path);
-    const msg = t("confirm.createFile", { name, path });
-    if (!(await this.#confirm(msg, t("confirm.createFileTitle")))) return true;
+    const { choice } = await confirmDialog.ask({
+      title: t("confirm.createFileTitle"),
+      message: t("confirm.createFile", { name, path }),
+      confirmLabel: t("confirm.createAction"),
+      cancelLabel: t("confirm.cancel"),
+    });
+    if (choice !== "confirm") return true;
     try {
       await writeFile(path, "", { lineEnding: "lf", encoding: "utf-8" });
       this.#openLoaded({ path, content: "", lineEnding: "lf", encoding: "utf-8" });
@@ -242,7 +246,7 @@ class TabsStore {
     if (!settings.autoReload || isDirty(tab)) {
       const name = tabTitle(tab);
       const dirty = isDirty(tab);
-      const { confirmed, checked } = await confirmDialog.ask({
+      const { choice, checked } = await confirmDialog.ask({
         title: t("confirm.fileChangedTitle"),
         message: dirty ? t("confirm.reloadDiscard", { name }) : t("confirm.reload", { name }),
         confirmLabel: t("confirm.reloadAction"),
@@ -251,7 +255,7 @@ class TabsStore {
         // auto-reload on, so the option would promise something we never do.
         optionLabel: dirty ? undefined : t("confirm.autoReloadFromNow"),
       });
-      if (!confirmed) return;
+      if (choice !== "confirm") return;
       if (checked) await settings.setAutoReload(true);
     }
 
@@ -264,15 +268,6 @@ class TabsStore {
   // Windows-1250 is read-only; saving such a buffer writes (and relabels) UTF-8.
   #writeEncoding(tab: Tab): Encoding {
     return tab.encoding === "windows-1250" ? "utf-8" : tab.encoding;
-  }
-
-  /** Native confirm dialog, falling back to the web one outside Tauri. */
-  async #confirm(message: string, title: string): Promise<boolean> {
-    try {
-      return await confirm(message, { title, kind: "warning" });
-    } catch {
-      return window.confirm(message);
-    }
   }
 
   /** Save active/given tab. Returns true on success, false if cancelled. */
@@ -358,13 +353,22 @@ class TabsStore {
     if (tab.path) void watchFile(tab.path);
   }
 
-  /** Close a tab, prompting if it has unsaved changes. */
+  /** Close a tab, offering to save first when it has unsaved changes. */
   async closeWithConfirm(id: number) {
     const tab = this.tabs.find((t) => t.id === id);
     if (!tab) return;
     if (isDirty(tab)) {
-      const msg = t("confirm.discard", { name: tabTitle(tab) });
-      if (!(await this.#confirm(msg, t("confirm.unsavedTitle")))) return;
+      const { choice } = await confirmDialog.ask({
+        title: t("confirm.unsavedTitle"),
+        message: t("confirm.saveBeforeClose", { name: tabTitle(tab) }),
+        confirmLabel: t("confirm.saveAction"),
+        altLabel: t("confirm.discardAction"),
+        cancelLabel: t("confirm.cancel"),
+      });
+      if (choice === "cancel") return;
+      // Saving can still fail or be called off in the file picker — then the
+      // tab stays open, or closing it would discard what we just tried to keep.
+      if (choice === "confirm" && !(await this.save(id))) return;
     }
     this.close(id);
   }

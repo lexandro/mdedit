@@ -293,7 +293,11 @@ export const hu: Record<string, string> = {
   "confirm.reloadAction": "Újratöltés",
   "confirm.keep": "Marad a jelenlegi",
   "confirm.autoReloadFromNow": "Ne kérdezd többé – mostantól töltse újra automatikusan",
-  "confirm.discard": "Eldobod a(z) „{name}” nem mentett változtatásait?",
+  "confirm.saveBeforeClose": "A(z) „{name}” nem mentett változtatásokat tartalmaz.\nMented bezárás előtt?",
+  "confirm.saveAction": "Mentés",
+  "confirm.discardAction": "Ne mentse",
+  "confirm.cancel": "Mégse",
   "confirm.createFileTitle": "A fájl nem található",
   "confirm.createFile": "A(z) „{name}” még nem létezik.\nLétrehozod új, üres fájlként?\n\n{path}",
+  "confirm.createAction": "Létrehozás",
 };

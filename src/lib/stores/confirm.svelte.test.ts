@@ -13,9 +13,9 @@ describe("confirm store", () => {
     const answered = confirmDialog.ask(req("a"));
     expect(confirmDialog.current?.title).toBe("a");
 
-    confirmDialog.answer({ confirmed: true, checked: true });
+    confirmDialog.answer({ choice: "confirm", checked: true });
 
-    await expect(answered).resolves.toEqual({ confirmed: true, checked: true });
+    await expect(answered).resolves.toEqual({ choice: "confirm", checked: true });
     expect(confirmDialog.current).toBeNull();
   });
 
@@ -24,12 +24,12 @@ describe("confirm store", () => {
     const b = confirmDialog.ask(req("b"));
     expect(confirmDialog.current?.title).toBe("a");
 
-    confirmDialog.answer({ confirmed: true, checked: false });
-    await expect(a).resolves.toEqual({ confirmed: true, checked: false });
+    confirmDialog.answer({ choice: "confirm", checked: false });
+    await expect(a).resolves.toEqual({ choice: "confirm", checked: false });
     expect(confirmDialog.current?.title).toBe("b");
 
     confirmDialog.cancel();
-    await expect(b).resolves.toEqual({ confirmed: false, checked: false });
+    await expect(b).resolves.toEqual({ choice: "cancel", checked: false });
     expect(confirmDialog.current).toBeNull();
   });
 });

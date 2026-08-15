@@ -16,7 +16,8 @@
     acceptBtn?.focus();
   });
 
-  const accept = () => confirmDialog.answer({ confirmed: true, checked });
+  const accept = () => confirmDialog.answer({ choice: "confirm", checked });
+  const alt = () => confirmDialog.answer({ choice: "alt", checked });
   const cancel = () => confirmDialog.cancel();
 
   function onKey(e: KeyboardEvent) {
@@ -62,6 +63,9 @@
 
     <footer>
       <button onclick={cancel}>{req.cancelLabel}</button>
+      {#if req.altLabel}
+        <button onclick={alt}>{req.altLabel}</button>
+      {/if}
       <button class="primary" bind:this={acceptBtn} onclick={accept}>{req.confirmLabel}</button>
     </footer>
   </div>

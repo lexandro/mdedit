@@ -7,12 +7,18 @@ export interface ConfirmRequest {
   message: string;
   confirmLabel: string;
   cancelLabel: string;
+  /** A third answer sitting between confirm and cancel ("Don't save"). Closing
+   *  a dirty tab needs it: save, discard and abandon are three outcomes, which
+   *  is exactly what the OS dialog's two buttons could never express. */
+  altLabel?: string;
   /** When set, a checkbox is offered and its state comes back as `checked`. */
   optionLabel?: string;
 }
 
+export type ConfirmChoice = "confirm" | "alt" | "cancel";
+
 export interface ConfirmAnswer {
-  confirmed: boolean;
+  choice: ConfirmChoice;
   checked: boolean;
 }
 
@@ -21,7 +27,7 @@ interface Pending {
   resolve: (answer: ConfirmAnswer) => void;
 }
 
-const DECLINED: ConfirmAnswer = { confirmed: false, checked: false };
+const DECLINED: ConfirmAnswer = { choice: "cancel", checked: false };
 
 class ConfirmStore {
   #queue = $state<Pending[]>([]);
