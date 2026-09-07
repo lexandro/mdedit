@@ -203,6 +203,52 @@ const settle = (expr: string) =>
   );
 }
 
+// 5. A menu opened with Alt takes the arrow keys: they walk the menu, not the
+// caret behind it, and Escape hands the keyboard back to the editor.
+{
+  await setDoc(`alpha
+bravo
+charlie`);
+  const lnCol = () =>
+    page.eval<string>(
+      `[...document.querySelectorAll('.statusbar span')]
+         .map((s) => s.textContent).find((t) => t.startsWith('Ln')) ?? ''`,
+    );
+  const altKey = async (key: string, code: string, keyCode: number) => {
+    for (const type of ["keyDown", "keyUp"]) {
+      await page.send("Input.dispatchKeyEvent", {
+        type,
+        key,
+        code,
+        windowsVirtualKeyCode: keyCode,
+        modifiers: 1, // Alt
+      });
+    }
+  };
+
+  const atEnd = await lnCol();
+  await page.key("ArrowUp", "ArrowUp", 38); // positive control: the probe follows the caret
+  const parked = await lnCol();
+
+  await altKey("v", "KeyV", 86);
+  await until("the View menu", () => page.eval("!!document.querySelector('.dropdown')"));
+  await page.key("ArrowDown", "ArrowDown", 40);
+  await page.key("ArrowDown", "ArrowDown", 40);
+  const row = await page.eval<string>(
+    "document.querySelector('.dropdown .item.active')?.textContent.trim() ?? ''",
+  );
+  const after = await lnCol();
+  await page.key("Escape", "Escape", 27);
+  const refocused = await page.eval<boolean>(
+    "!!document.activeElement?.classList.contains('cm-content')",
+  );
+  check(
+    "An Alt-opened menu takes the arrow keys",
+    parked !== atEnd && row.startsWith("Split") && after === parked && refocused,
+    `caret ${atEnd} -> ${parked} -> ${after}, active row = ${JSON.stringify(row)}, refocused: ${refocused}`,
+  );
+}
+
 console.log(`\n${results.join("\n")}\n`);
 await page.close();
 stopServer();

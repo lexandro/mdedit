@@ -4,7 +4,8 @@
   import { recent } from "$lib/stores/recent.svelte";
   import { basename } from "$lib/stores/tabs.svelte";
   import { settings } from "$lib/stores/settings.svelte";
-  import { mnemonicIndex } from "$lib/menu-util";
+  import { mnemonicIndex, nextRow, rowByLetter, type MenuRow } from "$lib/menu-util";
+  import { getActiveView } from "$lib/editor-commands";
   import { t } from "$lib/i18n";
 
   type Item =
@@ -117,54 +118,160 @@
     },
   ]);
 
-  let open = $state<number | null>(null);
-  let subOpen = $state<string | null>(null);
+  let open = $state<number | null>(null); // index of the open top-level menu
+  let sel = $state(-1); // keyboard-highlighted row of the open menu
+  let subOpen = $state<number | null>(null); // row whose submenu is open
+  let subSel = $state(-1);
   let altMode = $state(false); // show access-key underlines while Alt is held
+  let dropdownEl = $state<HTMLElement | null>(null);
 
-  function toggle(i: number) {
-    open = open === i ? null : i;
+  // Arrow keys land only on rows that do something; separators and placeholders
+  // (an empty "Open Recent") are skipped.
+  const rowOf = (it: Item): MenuRow => (it !== "sep" && (it.id || it.children) ? it.label : null);
+  const childrenOf = (it: Item | undefined): Item[] =>
+    it && it !== "sep" && it.children ? it.children : [];
+
+  let items = $derived<Item[]>(open === null ? [] : (menus[open]?.items ?? []));
+  let rows = $derived(items.map(rowOf));
+  let subItems = $derived<Item[]>(subOpen === null ? [] : childrenOf(items[subOpen]));
+  let subRows = $derived(subItems.map(rowOf));
+
+  // An open menu takes focus off the editor — otherwise the arrow keys would
+  // move the caret instead of the menu selection (the whole point of Alt+F).
+  $effect(() => {
+    dropdownEl?.focus();
+  });
+
+  // Keep the highlighted row visible; Open Recent can be taller than the screen.
+  $effect(() => {
+    void sel;
+    void subSel;
+    const active = dropdownEl?.querySelectorAll<HTMLElement>(".item.active");
+    active?.[active.length - 1]?.scrollIntoView?.({ block: "nearest" });
+  });
+
+  function openMenu(i: number) {
+    open = i;
+    sel = -1;
     subOpen = null;
+    subSel = -1;
+  }
+  function reset() {
+    open = null;
+    sel = -1;
+    subOpen = null;
+    subSel = -1;
+    altMode = false;
+  }
+  function closeMenu() {
+    reset();
+    getActiveView()?.focus(); // hand the keyboard back to the document
+  }
+  function closeSub() {
+    subOpen = null;
+    subSel = -1;
+  }
+  function openSub(j: number) {
+    subOpen = j;
+    subSel = nextRow(subRows, -1, 1);
+  }
+  function toggle(i: number) {
+    if (open === i) closeMenu();
+    else openMenu(i);
   }
   function hover(i: number) {
-    if (open !== null) {
-      open = i; // switch menus on hover while one is open
-      subOpen = null;
-    }
+    if (open !== null && open !== i) openMenu(i); // switch menus on hover
   }
   function choose(id: string | undefined) {
     if (!id) return; // placeholder / non-actionable row
-    open = null;
-    subOpen = null;
+    closeMenu(); // before the command runs, so a dialog it opens keeps focus
     onCommand(id);
   }
-  function onWindowPointerDown(e: PointerEvent) {
-    if (open !== null && !(e.target as HTMLElement).closest(".menubar")) {
-      open = null;
-      subOpen = null;
+  function activate() {
+    if (subOpen !== null) {
+      const child = subItems[subSel];
+      if (child && child !== "sep") choose(child.id);
+      return;
     }
+    const item = items[sel];
+    if (!item || item === "sep") return;
+    if (item.children) openSub(sel);
+    else choose(item.id);
+  }
+  function onWindowPointerDown(e: PointerEvent) {
+    // No refocus here: the click itself decides where the keyboard goes next.
+    if (open !== null && !(e.target as HTMLElement).closest(".menubar")) reset();
   }
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      open = null;
-      subOpen = null;
-      altMode = false;
-    } else if (e.key === "Alt" && !e.repeat) {
+    if (e.key === "Alt" && !e.repeat) {
       altMode = true;
-    } else if (e.altKey && /^[a-z]$/i.test(e.key)) {
+      return;
+    }
+    if (e.altKey && /^[a-z]$/i.test(e.key)) {
       const idx = mnemonicIndex(
         menus.map((m) => m.label),
         e.key,
       );
       if (idx >= 0) {
         e.preventDefault();
-        open = idx;
-        subOpen = null;
+        openMenu(idx);
         altMode = true;
+        return;
       }
     }
+    if (open === null) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      closeMenu(); // an app shortcut takes over; let it through untouched
+      return;
+    }
+    const inSub = subOpen !== null;
+    switch (e.key) {
+      case "Escape":
+        if (inSub) closeSub();
+        else closeMenu();
+        break;
+      case "ArrowDown":
+        if (inSub) subSel = nextRow(subRows, subSel, 1);
+        else sel = nextRow(rows, sel, 1);
+        break;
+      case "ArrowUp":
+        if (inSub) subSel = nextRow(subRows, subSel < 0 ? subRows.length : subSel, -1);
+        else sel = nextRow(rows, sel < 0 ? rows.length : sel, -1);
+        break;
+      case "ArrowRight": {
+        const item = items[sel];
+        if (!inSub && item && item !== "sep" && item.children) openSub(sel);
+        else openMenu((open + 1) % menus.length);
+        break;
+      }
+      case "ArrowLeft":
+        if (inSub) closeSub();
+        else openMenu((open + menus.length - 1) % menus.length);
+        break;
+      case "Home":
+        if (inSub) subSel = nextRow(subRows, -1, 1);
+        else sel = nextRow(rows, -1, 1);
+        break;
+      case "End":
+        if (inSub) subSel = nextRow(subRows, subRows.length, -1);
+        else sel = nextRow(rows, rows.length, -1);
+        break;
+      case "Enter":
+      case " ":
+        activate();
+        break;
+      default: {
+        if (!/^\S$/u.test(e.key)) return; // only printable single characters
+        const i = inSub ? rowByLetter(subRows, e.key, subSel) : rowByLetter(rows, e.key, sel);
+        if (i < 0) return;
+        if (inSub) subSel = i;
+        else sel = i;
+      }
+    }
+    e.preventDefault();
   }
   function onKeyup(e: KeyboardEvent) {
-    if (e.key === "Alt") altMode = false;
+    if (e.key === "Alt" && open === null) altMode = false; // keep them while a menu is open
   }
 </script>
 
@@ -184,28 +291,40 @@
         {#if altMode}<u>{menu.label[0]}</u>{menu.label.slice(1)}{:else}{menu.label}{/if}
       </button>
       {#if open === i}
-        <div class="dropdown" role="menu">
+        <!-- Focused on open so the arrow keys drive the menu, not the editor. -->
+        <div class="dropdown" role="menu" tabindex="-1" bind:this={dropdownEl}>
           {#each menu.items as item, j (j)}
             {#if item === "sep"}
               <div class="sep" role="separator"></div>
             {:else if item.children}
               <div
                 class="item sub-parent"
+                class:active={sel === j}
                 role="menuitem"
                 tabindex="-1"
                 aria-haspopup="true"
-                onmouseenter={() => (subOpen = `${i}-${j}`)}
-                onmouseleave={() => (subOpen = null)}
+                aria-expanded={subOpen === j}
+                onmouseenter={() => {
+                  sel = j;
+                  subOpen = j;
+                }}
+                onmouseleave={closeSub}
               >
                 <span class="label">{item.label}</span>
                 <span class="arrow" aria-hidden="true">▸</span>
-                {#if subOpen === `${i}-${j}`}
+                {#if subOpen === j}
                   <div class="dropdown sub" role="menu">
                     {#each item.children as child, k (k)}
                       {#if child === "sep"}
                         <div class="sep" role="separator"></div>
                       {:else if child.id}
-                        <button class="item" role="menuitem" onclick={() => choose(child.id)}>
+                        <button
+                          class="item"
+                          class:active={subSel === k}
+                          role="menuitem"
+                          onmousemove={() => (subSel = k)}
+                          onclick={() => choose(child.id)}
+                        >
                           <span class="label">{child.label}</span>
                         </button>
                       {:else}
@@ -216,7 +335,13 @@
                 {/if}
               </div>
             {:else if item.id}
-              <button class="item" role="menuitem" onclick={() => choose(item.id)}>
+              <button
+                class="item"
+                class:active={sel === j}
+                role="menuitem"
+                onmousemove={() => (sel = j)}
+                onclick={() => choose(item.id)}
+              >
                 <span class="label">{item.label}</span>
                 {#if item.hint}<span class="shortcut">{item.hint}</span>{/if}
                 {#if item.shortcut}<span class="shortcut">{item.shortcut}</span>{/if}
@@ -281,7 +406,8 @@
     text-align: left;
     white-space: nowrap;
   }
-  .item:hover {
+  .item:hover,
+  .item.active {
     background: var(--accent);
     color: var(--accent-fg);
   }
@@ -292,7 +418,8 @@
     color: var(--fg-muted);
     font-size: 12px;
   }
-  .item:hover .shortcut {
+  .item:hover .shortcut,
+  .item.active .shortcut {
     color: var(--accent-fg);
     opacity: 0.8;
   }
@@ -309,7 +436,8 @@
     color: var(--fg-muted);
     font-size: 11px;
   }
-  .sub-parent:hover .arrow {
+  .sub-parent:hover .arrow,
+  .sub-parent.active .arrow {
     color: var(--accent-fg);
   }
   .dropdown.sub {
@@ -325,5 +453,9 @@
   .item.disabled:hover {
     background: transparent;
     color: var(--fg-muted);
+  }
+  /* The panel only holds focus to receive keys; the row highlight shows where. */
+  .dropdown:focus {
+    outline: none;
   }
 </style>

@@ -29,6 +29,15 @@ All notable changes to mdedit are documented here. This project adheres to
 
 ### Fixed
 
+- **A menu opened with Alt is now driven by the keyboard.** Alt+F / Alt+E /
+  Alt+V / Alt+H dropped the menu open but left the keyboard in the document, so
+  the arrow keys moved the caret behind it and the menu could only be finished
+  with the mouse. The open menu takes focus: Up/Down walk the entries (skipping
+  separators, wrapping at the ends), Left/Right move between menus and in and
+  out of Open Recent, Home/End jump to the first and last entry, a letter jumps
+  to the next entry starting with it, Enter or Space runs the highlighted one,
+  and Escape closes the menu and hands the keyboard back to the editor.
+
 - Anchor jumps in the preview are instant for anyone whose system asks for
   reduced motion, instead of always animating.
 
