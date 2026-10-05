@@ -71,9 +71,18 @@ This codebase is maintained by an AI, not a human team. Optimize for
   `bun run tauri dev` boot for runtime/capability changes. Stop dev cleanly and
   free port 1420 afterwards.
 - Commit per feature/phase; English message ending with the Co-Authored-By line.
-- Release: bump version in `package.json`, `src-tauri/tauri.conf.json`,
-  `src-tauri/Cargo.toml` (+ `cargo check` to update `Cargo.lock`), add a
-  CHANGELOG entry, tag `vX.Y.Z`, then publish the draft as latest.
+- Release: bump the version in `package.json`, `src-tauri/tauri.conf.json`,
+  `src-tauri/Cargo.toml` (+ `cargo check` to update `Cargo.lock`), rename the
+  CHANGELOG's `Unreleased` heading to `vX.Y.Z — <date>`, commit as
+  `release: vX.Y.Z`, then push that tag. An `Unreleased` holding `### Added`
+  entries is a minor bump, not a patch. `release.yml` builds the signed
+  installers and publishes a **live** Release — no draft, no manual publish —
+  and `winget.yml` / `choco.yml` run off that. Green there is not availability:
+  winget lands as a PR in `microsoft/winget-pkgs` and Chocolatey sits in
+  moderation, so verify in those two places. The winget job fails with a
+  `CreateRef` permission error whenever the `lexandro/winget-pkgs` fork is
+  stale — `gh repo sync lexandro/winget-pkgs -b master`, then
+  `gh run rerun <id> --failed`.
 
 ## Review checklist
 
