@@ -38,6 +38,12 @@ All notable changes to mdedit are documented here. This project adheres to
   to the next entry starting with it, Enter or Space runs the highlighted one,
   and Escape closes the menu and hands the keyboard back to the editor.
 
+- **Mermaid diagrams now follow a theme switch.** Switching between light and
+  dark left every diagram already on screen in the old theme: the preview only
+  redrew one on the next document change, and in Live mode it stayed wrong until
+  the diagram itself was edited or the app restarted. Both views now redraw
+  their diagrams when the theme flips.
+
 - Anchor jumps in the preview are instant for anyone whose system asks for
   reduced motion, instead of always animating.
 

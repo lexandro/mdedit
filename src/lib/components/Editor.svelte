@@ -33,6 +33,7 @@
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
   import { livePreview } from "$lib/editor/live-preview";
+  import { refreshMermaidHosts } from "$lib/markdown/mermaid";
   import { snippetSource } from "$lib/editor-snippets";
 
   let {
@@ -263,6 +264,9 @@
   $effect(() => {
     const _ = settings.resolvedTheme;
     view?.dispatch({ effects: themeCompartment.reconfigure(themeExtension()) });
+    // Live-mode Mermaid widgets outlive a theme change (their decorations only
+    // rebuild on doc changes), so their SVGs have to be re-drawn by hand.
+    if (view) void refreshMermaidHosts(view.dom, ".cm-lp-mermaid");
   });
 
   // Follow the preview's scroll position (driven from a split view).

@@ -249,6 +249,82 @@ charlie`);
   );
 }
 
+// 6. A theme flip re-themes the Mermaid diagrams that are already on screen, in
+// the preview and in Live mode (whose widgets a theme change alone never rebuilds).
+{
+  await setDoc("```mermaid\ngraph TD\n  A[Alpha] --> B[Bravo]\n```\n");
+  // Await the app's own data-theme, not just the emulated media query: switching
+  // view modes before the app has reacted would measure the wrong theme.
+  const setDark = async (dark: boolean) => {
+    await page.send("Emulation.setEmulatedMedia", {
+      features: [
+        { name: "prefers-color-scheme", value: dark ? "dark" : "light" },
+        { name: "prefers-reduced-motion", value: "reduce" },
+      ],
+    });
+    const want = dark ? "dark" : "light";
+    await until(`the ${want} theme`, () =>
+      page.eval(`document.documentElement.getAttribute('data-theme') === '${want}'`),
+    );
+  };
+  const ctrl = async (key: string, code: string, keyCode: number) => {
+    for (const type of ["keyDown", "keyUp"]) {
+      await page.send("Input.dispatchKeyEvent", {
+        type,
+        key,
+        code,
+        windowsVirtualKeyCode: keyCode,
+        modifiers: 2, // Ctrl
+      });
+    }
+  };
+  // A diagram node's fill comes from Mermaid's theme and is baked into the SVG at
+  // render time, so it moves only if the SVG was really re-rendered.
+  const fill = (scope: string) =>
+    page.eval<string>(
+      `(() => { const r = document.querySelector('${scope} svg .node rect, ${scope} svg rect');
+         return r ? getComputedStyle(r).fill : ''; })()`,
+    );
+  const seen: Record<string, string> = {};
+  for (const [name, scope, mode] of [
+    ["preview", ".preview pre.mermaid", 2],
+    ["live", ".cm-lp-mermaid", 4],
+  ] as const) {
+    await setDark(false);
+    await ctrl(String(mode), `Digit${mode}`, 48 + mode);
+    await until(
+      `the ${name} diagram`,
+      () => page.eval(`!!document.querySelector('${scope} svg')`),
+      30000,
+    );
+    const light = await fill(scope);
+    await setDark(true);
+    // Re-rendering is async (Mermaid import + render). Fall back to the unchanged
+    // colour so a regression reports the colour instead of a bare timeout.
+    const dark = await until(
+      `the ${name} diagram to re-theme`,
+      async () => {
+        const f = await fill(scope);
+        return f && f !== light ? f : null;
+      },
+      8000,
+    ).catch(() => light);
+    seen[`${name} light`] = light;
+    seen[`${name} dark`] = dark;
+  }
+  await setDark(false);
+  check(
+    "A theme flip re-themes rendered Mermaid diagrams",
+    Object.values(seen).every(Boolean) &&
+      seen["preview light"] !== seen["preview dark"] &&
+      seen["live light"] !== seen["live dark"] &&
+      seen["preview dark"] === seen["live dark"],
+    Object.entries(seen)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(", "),
+  );
+}
+
 console.log(`\n${results.join("\n")}\n`);
 await page.close();
 stopServer();

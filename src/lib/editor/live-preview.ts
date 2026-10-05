@@ -18,7 +18,7 @@ import katex from "katex";
 import { dirname } from "$lib/md-assets";
 import { anchorId, anchorLine } from "$lib/md-headings";
 import { renderMarkdown, resolveAssetSrc } from "$lib/markdown/renderer";
-import { renderMermaidSvg } from "$lib/markdown/mermaid";
+import { renderMermaidInto } from "$lib/markdown/mermaid";
 import { RenderCache } from "$lib/render-cache";
 import { revealPos } from "$lib/editor-commands";
 import { recordEditorJump } from "$lib/jump-nav";
@@ -108,9 +108,9 @@ class MermaidWidget extends WidgetType {
   toDOM() {
     const el = document.createElement("div");
     el.className = "cm-lp-block cm-lp-mermaid";
-    renderMermaidSvg(this.code)
-      .then((svg) => (el.innerHTML = svg))
-      .catch((e: unknown) => (el.textContent = `Mermaid error: ${(e as Error).message}`));
+    // The helper keeps the source on the element, so a theme flip can re-draw
+    // this widget in place — CodeMirror only rebuilds it when the code changes.
+    void renderMermaidInto(el, this.code);
     return el;
   }
 }

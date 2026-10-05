@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import { renderMarkdown } from "$lib/markdown/renderer";
-  import { renderMermaidSvg } from "$lib/markdown/mermaid";
+  import { refreshMermaidHosts } from "$lib/markdown/mermaid";
   import { toggleTaskInSource } from "$lib/md-tasks";
   import { anchorId } from "$lib/md-headings";
   import {
@@ -119,17 +119,7 @@
     const run = async () => {
       await tick(); // wait for {@html html} to land in the DOM before querying
       if (!container) return;
-      const nodes = container.querySelectorAll<HTMLElement>("pre.mermaid:not([data-rendered])");
-      for (const node of nodes) {
-        const code = node.textContent ?? "";
-        node.setAttribute("data-rendered", "1");
-        try {
-          node.innerHTML = await renderMermaidSvg(code);
-          node.classList.add("mermaid-rendered");
-        } catch (e) {
-          node.textContent = `Mermaid error: ${(e as Error).message}`;
-        }
-      }
+      await refreshMermaidHosts(container, "pre.mermaid");
     };
     void run();
   });
