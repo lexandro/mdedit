@@ -3,6 +3,29 @@
 All notable changes to mdedit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- **Print the document.** `File → Print…` (Ctrl+P) opens the system print
+  dialog on the rendered document — diagrams, math, highlighted code, images
+  and tables, the way the preview shows them — whichever view mode you are in.
+  Ctrl+P used to fall through to the WebView2 dialog, which printed the app
+  itself, so there was no way to put a document on paper. The printout follows
+  the app's theme, a long table repeats its header on every page, code blocks
+  wrap instead of being cut off at the page edge, and nothing is clipped at a
+  page break. "Export to PDF…" runs the same command: the system dialog is
+  where "Save as PDF" lives.
+
+### Fixed
+
+- **Exported HTML lost every Mermaid diagram**, writing the diagram's source
+  text into the file instead of the drawing. Diagrams are now drawn into the
+  export too (light-themed, like the rest of the file), and an image given by a
+  relative path is inlined like an absolute one already was. The file also
+  carries KaTeX's stylesheet at last: without it every formula was typeset
+  twice, the hidden MathML copy printing next to the real one.
+
 ## v0.13.0 — 2026-10-05
 
 ### Added

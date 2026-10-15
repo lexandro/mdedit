@@ -10,6 +10,7 @@ type Mermaid = typeof import("mermaid").default;
 let seq = 0;
 let loading: Promise<Mermaid> | null = null;
 let initedTheme: string | null = null;
+let chain: Promise<unknown> = Promise.resolve();
 
 function load(): Promise<Mermaid> {
   loading ??= import("mermaid").then((m) => m.default);
@@ -24,18 +25,26 @@ function mermaidTheme(): "dark" | "default" {
   return settings.resolvedTheme === "dark" ? "dark" : "default";
 }
 
-/** Render Mermaid `code` to an SVG string, themed to match the app. Throws on
- *  invalid diagrams so callers can show their own error UI. */
-export async function renderMermaidSvg(code: string): Promise<string> {
-  const mermaid = await load();
-  const theme = mermaidTheme();
-  // initialize() is a full config rebuild; only redo it when the theme changed.
-  if (initedTheme !== theme) {
-    mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
-    initedTheme = theme;
-  }
-  const { svg } = await mermaid.render(`mmd-${seq++}`, code);
-  return svg;
+/** Render Mermaid `code` to an SVG string, themed to match the app unless a
+ *  theme is given (the HTML export is always light, whatever the app is set to).
+ *  Throws on invalid diagrams so callers can show their own error UI. */
+export function renderMermaidSvg(code: string, theme = mermaidTheme()): Promise<string> {
+  const run = async () => {
+    const mermaid = await load();
+    // initialize() is a full config rebuild; only redo it when the theme changed.
+    if (initedTheme !== theme) {
+      mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
+      initedTheme = theme;
+    }
+    const { svg } = await mermaid.render(`mmd-${seq++}`, code);
+    return svg;
+  };
+  // That config is global and render() is async, so an init+render pair must not
+  // interleave with another one: a diagram would come back in the wrong theme,
+  // stamped with the theme its caller asked for and never repaired. Queue them.
+  const result = chain.then(run, run); // run on failure too: one bad diagram must not poison the queue
+  chain = result.catch(() => {});
+  return result;
 }
 
 /** Draw `code` into `host`, doing nothing if that host already shows this diagram
@@ -49,7 +58,7 @@ export async function renderMermaidInto(host: HTMLElement, code: string): Promis
   host.dataset.mermaidCode = code;
   host.dataset.mermaidTheme = theme;
   try {
-    host.innerHTML = await renderMermaidSvg(code);
+    host.innerHTML = await renderMermaidSvg(code, theme);
   } catch (e) {
     host.textContent = `Mermaid error: ${errorMessage(e)}`;
   }

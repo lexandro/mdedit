@@ -4,10 +4,18 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { renderMarkdown } from "$lib/markdown/renderer";
-import { BASE_CSS, LIGHT_VARS, standaloneHtml, varBlock } from "$lib/doc-html";
+import { renderMermaidSvg } from "$lib/markdown/mermaid";
+import { renderDiagramsIn } from "$lib/markdown/diagrams";
+import {
+  BASE_CSS,
+  LIGHT_VARS,
+  parseBody,
+  serializeBody,
+  standaloneHtml,
+  varBlock,
+} from "$lib/doc-html";
 import { inlineLocalImagesIn, loadKatexCss } from "$lib/doc-assets";
 import { PRINT_CSS } from "$lib/print-css";
-import { parseBody, serializeBody } from "$lib/doc-html";
 import { toasts } from "$lib/stores/toasts.svelte";
 import { t } from "$lib/i18n";
 
@@ -17,11 +25,18 @@ async function exportCss(): Promise<string[]> {
   return [BASE_CSS, varBlock(LIGHT_VARS, "light"), await loadKatexCss(), PRINT_CSS];
 }
 
-/** Save the document as a standalone .html file (local images inlined as
- *  base64; relative image paths kept). */
-export async function exportHtml(content: string, title: string): Promise<void> {
+/** Save the document as a standalone .html file: diagrams drawn, local images
+ *  inlined as base64, so the file stands on its own anywhere. */
+export async function exportHtml(
+  content: string,
+  basePath: string | null,
+  title: string,
+): Promise<void> {
   try {
-    const body = parseBody(renderMarkdown(content, null));
+    const body = parseBody(renderMarkdown(content, basePath));
+    // The file is light-themed wherever the app is, so the diagrams must be too.
+    const { failed } = await renderDiagramsIn(body, (code) => renderMermaidSvg(code, "default"));
+    if (failed > 0) toasts.error(t("toast.diagramsFailed", { n: failed }));
     await inlineLocalImagesIn(body);
     const html = standaloneHtml({ body: serializeBody(body), title, css: await exportCss() });
     const path = await save({

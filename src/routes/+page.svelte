@@ -85,7 +85,8 @@
     reopen_closed: () => tabs.reopenClosed(),
     quit: () => tauriOnly(() => getCurrentWindow().close()),
     print: () => void (tabs.active && printDocument(tabs.active.content, tabs.active.path, docTitle())),
-    export_html: () => void (tabs.active && exportHtml(tabs.active.content, docTitle())),
+    export_html: () =>
+      void (tabs.active && exportHtml(tabs.active.content, tabs.active.path, docTitle())),
     // Same path as Print: the system dialog is where "Save as PDF" lives.
     export_pdf: () => commands.print(),
     copy_html: () => void (tabs.active && copyAsHtml(tabs.active.content)),
