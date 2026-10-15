@@ -45,6 +45,7 @@
         { label: t("cmd.save_as"), id: "save_as", shortcut: "Ctrl+Shift+S" },
         { label: t("cmd.save_all"), id: "save_all", shortcut: "Ctrl+Alt+S" },
         "sep",
+        { label: t("cmd.print"), id: "print", shortcut: "Ctrl+P" },
         { label: t("cmd.export_html"), id: "export_html" },
         { label: t("cmd.export_pdf"), id: "export_pdf" },
         "sep",

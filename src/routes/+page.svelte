@@ -34,7 +34,8 @@
   import { getTableEditContext, applyTableEdit, type TableEditContext } from "$lib/table-edit";
   import { toasts } from "$lib/stores/toasts.svelte";
   import { t } from "$lib/i18n";
-  import { exportHtml, exportPdf, copyAsHtml } from "$lib/export";
+  import { exportHtml, copyAsHtml } from "$lib/export";
+  import { printDocument } from "$lib/print";
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import { tauriOnly } from "$lib/ipc";
 
@@ -83,8 +84,10 @@
     close_tab: () => tabs.activeId != null && void tabs.closeWithConfirm(tabs.activeId),
     reopen_closed: () => tabs.reopenClosed(),
     quit: () => tauriOnly(() => getCurrentWindow().close()),
+    print: () => void (tabs.active && printDocument(tabs.active.content, tabs.active.path, docTitle())),
     export_html: () => void (tabs.active && exportHtml(tabs.active.content, docTitle())),
-    export_pdf: () => tabs.active && exportPdf(tabs.active.content, tabs.active.path, docTitle()),
+    // Same path as Print: the system dialog is where "Save as PDF" lives.
+    export_pdf: () => commands.print(),
     copy_html: () => void (tabs.active && copyAsHtml(tabs.active.content)),
     undo: () => editorCommands.undo(),
     redo: () => editorCommands.redo(),
@@ -164,6 +167,8 @@
     if (key === "s") cmd = e.altKey ? "save_all" : e.shiftKey ? "save_as" : "save";
     else if (key === "n") cmd = e.shiftKey ? "new_from_template" : "new";
     else if (key === "o") cmd = "open";
+    else if (key === "p") cmd = "print"; // below the Ctrl+Shift+P check above
+
     else if (key === "w") cmd = "close_tab";
     else if (key === "g") cmd = "goto_line";
     else if (key === "j") cmd = "insert_snippet";

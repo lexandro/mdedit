@@ -14,6 +14,7 @@ export const paletteCommands: PaletteCommand[] = [
   { id: "save_all", key: "cmd.save_all" },
   { id: "close_tab", key: "cmd.close_tab" },
   { id: "reopen_closed", key: "cmd.reopen_closed" },
+  { id: "print", key: "cmd.print" },
   { id: "export_html", key: "cmd.export_html" },
   { id: "export_pdf", key: "cmd.export_pdf" },
   { id: "copy_html", key: "cmd.copy_html" },

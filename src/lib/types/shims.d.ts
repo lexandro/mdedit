@@ -56,3 +56,9 @@ declare module "markdown-it-texmath" {
   const texmath: PluginWithOptions<TexmathOptions>;
   export default texmath;
 }
+// Vite's `?inline` import returns the processed stylesheet as a string. The
+// generated tsconfig only pulls in @types/node, so vite/client isn't ambient.
+declare module "*?inline" {
+  const css: string;
+  export default css;
+}
