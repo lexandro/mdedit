@@ -129,6 +129,12 @@ const settle = (expr: string) =>
   await until("the preview to render", () =>
     page.eval("!!document.querySelector('.preview a[href^=\"#\"]')"),
   );
+  // The pane re-renders (debounced Markdown) after it first paints, and the
+  // browser then re-anchors the scroll: clicking before that lands makes the
+  // jump use a layout that is about to change. Block 4 already waits for this
+  // on the same document; without it this check drifts with the content height
+  // (CI: landed at 3064 instead of 2445 once the runner image changed).
+  await settle("document.querySelector('.preview').scrollHeight");
   const before = await previewTop();
   await page.click('.preview a[href^="#"]');
   // Smooth scrolling is animated: wait for the position to stop moving, or the
